@@ -1,0 +1,9 @@
+name: DeCTF2
+main: net.dezilla.dectf2.Main
+version: 0.1
+api-version: 1.13
+website: https://www.dezilla.net/
+dev-url: https://www.dezilla.net/
+description: Rewrite of DeCTF based on the now defunct McCTF plugin from McPvP/Brawl
+authors: [DeZilla]
+softdepend: []
