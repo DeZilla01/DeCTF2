@@ -1,5 +1,5 @@
 name: DeCTF2
-main: net.dezilla.dectf2.Main
+main: net.dezilla.dectf2.GameMain
 version: 0.1
 api-version: 1.13
 website: https://www.dezilla.net/
