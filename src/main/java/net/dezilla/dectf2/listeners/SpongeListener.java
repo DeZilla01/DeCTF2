@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -21,7 +22,7 @@ public class SpongeListener implements Listener{
 	
 	@EventHandler(ignoreCancelled=true)
 	public void onSponge(PlayerMoveEvent event) {
-		if(isLaunched(event.getPlayer()))
+		if(isLaunched(event.getPlayer()) || event.getPlayer().getGameMode() == GameMode.SPECTATOR)
 			return;
 		Material mat = event.getTo().getBlock().getRelative(BlockFace.DOWN).getType();
 		if(mat == Material.SPONGE || mat == Material.WET_SPONGE) {
