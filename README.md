@@ -10,6 +10,7 @@ Gamemodes:
 - Capture the Flag (Based on McCTF)
 - Zone Control (Based on the McPvP gamemode of the same name. Take control of control points to win)
 - Team Deathmatch (Just kill the other team for points)
+
 Following gamemodes are not a priority, but are planned:
 - Arena (Based on the TF2 gamemode of the same name. No respawn, last team standing win)
 - Delivery (A single flag/package appear. Deliver it to your capture zone to win)
@@ -26,6 +27,7 @@ Kit List:
 - Archer
 - Pyro
 - Ninja
+
 Following kits are not a priority, but are planned:
 - Engineer (both old and new seperately, likely naming new Engineer "Demoman")
 - Chemist
