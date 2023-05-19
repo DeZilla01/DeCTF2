@@ -30,6 +30,8 @@ import net.dezilla.dectf2.util.UnzipUtility;
 
 public class GameMatch {
 	private static int GAMEID = 0;
+	public static GameMatch currentMatch = null;
+	
 	
 	private int gameId = GAMEID++;
 	private GameBase game = null;
@@ -39,9 +41,10 @@ public class GameMatch {
 	private World world = null;
 	private Location spawn = null;
 	private Map<String, Location> signConfig = new HashMap<String, Location>();
-	private String name = null;
-	private String author = null;
+	private String name = "";
+	private String author = "";
 	private String mode = "tdm";
+	private int teamAmount = 2;
 	
 	public GameMatch(String levelName) throws FileNotFoundException {
 		//Set chosen level
@@ -96,21 +99,15 @@ public class GameMatch {
 				world.setGameRule(GameRule.SHOW_DEATH_MESSAGES, false);
 				world.setGameRule(GameRule.SPECTATORS_GENERATE_CHUNKS, false);
 				spawn = world.getSpawnLocation();
-				//parseSigns();
+				parseSigns();
 				if(mode.equalsIgnoreCase("ctf"))
 					game = new CTFGame(this);
 				else if(mode.equalsIgnoreCase("zones"))
 					{}//TODO
 				else if(mode.equalsIgnoreCase("tdm"))
 					{}//TODO
-				else if(mode.equalsIgnoreCase("arena"))
-					{}//TODO
-				else if(mode.equalsIgnoreCase("delivery"))
-					{}//TODO
-				else if(mode.equalsIgnoreCase("payload"))
-					{}//TODO
 				gameLoaded = true;
-				Util.currentMatch = this;
+				currentMatch = this;
 				onLoad.run(world);
 			});
 		});
@@ -120,9 +117,9 @@ public class GameMatch {
 		int spawnx = world.getSpawnLocation().getChunk().getX();
 		int spawnz = world.getSpawnLocation().getChunk().getZ();
 		List<Block> toRemove = new ArrayList<Block>();
-		for(int x = spawnx-16 ; x >= spawnx+16 ; x++) {
-			for(int z = spawnz-16 ; z >= spawnz+16 ; z++) {
-				if(!world.isChunkGenerated(spawnx, spawnz))
+		for(int x = spawnx-16 ; x <= spawnx+16 ; x++) {
+			for(int z = spawnz-16 ; z <= spawnz+16 ; z++) {
+				if(!world.isChunkGenerated(x, z))
 					continue;
 				Chunk c = world.getChunkAt(x, z, false);
 				for(BlockState s : c.getTileEntities()) {
@@ -141,7 +138,7 @@ public class GameMatch {
 						if(i.startsWith("[") && i.endsWith("]")) {
 							removeSign = true;
 							String line = i.replace("[", "");
-							line = i.replace("]", "");
+							line = line.replace("]", "");
 							signConfig.put(line, loc);
 							//spawn
 							if(line.equalsIgnoreCase("spawn")) {
@@ -175,6 +172,10 @@ public class GameMatch {
 									//TODO
 								} else if(a[0].equalsIgnoreCase("mode")) {
 									mode = a[1];
+								} else if(a[0].equalsIgnoreCase("teams")) {
+									try {
+										teamAmount = Integer.parseInt(a[1]);
+									} catch(Exception e){}
 								}
 							}
 						}
@@ -196,5 +197,12 @@ public class GameMatch {
 		return spawn.clone();
 	}
 	
+	public String getMapName() {
+		return name;
+	}
+	
+	public String getMapAuthor() {
+		return author;
+	}
 	
 }

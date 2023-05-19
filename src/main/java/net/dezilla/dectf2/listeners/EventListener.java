@@ -4,13 +4,13 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 
-import net.dezilla.dectf2.Util;
+import net.dezilla.dectf2.game.GameMatch;
 
 public class EventListener implements Listener{
 
 	@EventHandler
 	public void onJoin(PlayerJoinEvent event) {
-		if(Util.currentMatch != null)
-			event.getPlayer().teleport(Util.currentMatch.getSpawn());
+		if(GameMatch.currentMatch != null)
+			event.getPlayer().teleport(GameMatch.currentMatch.getSpawn());
 	}
 }

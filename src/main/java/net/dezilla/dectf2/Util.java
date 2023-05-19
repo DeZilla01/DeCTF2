@@ -9,7 +9,6 @@ import net.dezilla.dectf2.game.GameMatch;
 import net.dezilla.dectf2.util.GameConfig;
 
 public class Util {
-	public static GameMatch currentMatch = null;
 	
 	static FileFilter zipFileFilter = new FileFilter() {
 		public boolean accept(File file) {
