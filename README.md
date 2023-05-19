@@ -43,4 +43,5 @@ Following kits are not a priority, but are planned:
 - Shade
 - Weirdo
 - Fashionista
+
 (FYI, developing each kits alone will take considerable time. It will take a long while before ALL kits are developed)
