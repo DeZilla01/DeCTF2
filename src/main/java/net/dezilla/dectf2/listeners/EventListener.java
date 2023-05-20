@@ -4,13 +4,16 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 
+import net.dezilla.dectf2.GamePlayer;
 import net.dezilla.dectf2.game.GameMatch;
 
 public class EventListener implements Listener{
 
 	@EventHandler
 	public void onJoin(PlayerJoinEvent event) {
-		if(GameMatch.currentMatch != null)
+		if(GameMatch.currentMatch != null) {
 			event.getPlayer().teleport(GameMatch.currentMatch.getSpawn());
+			GameMatch.currentMatch.addPlayerToRandomTeam(GamePlayer.get(event.getPlayer()));
+		}
 	}
 }

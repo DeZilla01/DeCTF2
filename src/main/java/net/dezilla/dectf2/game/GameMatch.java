@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
 import org.bukkit.GameRule;
 import org.bukkit.Location;
@@ -22,15 +23,19 @@ import org.bukkit.block.Sign;
 import org.bukkit.block.data.Rotatable;
 
 import net.dezilla.dectf2.GameMain;
+import net.dezilla.dectf2.GamePlayer;
 import net.dezilla.dectf2.Util;
 import net.dezilla.dectf2.util.WorldRunnable;
 import net.dezilla.dectf2.game.ctf.CTFGame;
+import net.dezilla.dectf2.util.GameColor;
 import net.dezilla.dectf2.util.GameConfig;
 import net.dezilla.dectf2.util.UnzipUtility;
 
 public class GameMatch {
 	private static int GAMEID = 0;
 	public static GameMatch currentMatch = null;
+	public static GameMatch previousMatch = null;
+	public static GameMatch nextMatch;
 	
 	
 	private int gameId = GAMEID++;
@@ -45,6 +50,8 @@ public class GameMatch {
 	private String author = "";
 	private String mode = "tdm";
 	private int teamAmount = 2;
+	private List<GameTeam> teams = new ArrayList<GameTeam>();
+	private GameState state = GameState.PREGAME;
 	
 	public GameMatch(String levelName) throws FileNotFoundException {
 		//Set chosen level
@@ -100,6 +107,7 @@ public class GameMatch {
 				world.setGameRule(GameRule.SPECTATORS_GENERATE_CHUNKS, false);
 				spawn = world.getSpawnLocation();
 				parseSigns();
+				createTeams();
 				if(mode.equalsIgnoreCase("ctf"))
 					game = new CTFGame(this);
 				else if(mode.equalsIgnoreCase("zones"))
@@ -175,6 +183,10 @@ public class GameMatch {
 								} else if(a[0].equalsIgnoreCase("teams")) {
 									try {
 										teamAmount = Integer.parseInt(a[1]);
+										if(teamAmount>16)
+											teamAmount = 16;
+										else if(teamAmount<0)
+											teamAmount = 0;
 									} catch(Exception e){}
 								}
 							}
@@ -187,6 +199,52 @@ public class GameMatch {
 		}
 		for(Block b : toRemove)
 			b.setType(Material.AIR);
+	}
+	private void createTeams() {
+		for(int i = 0; i<teamAmount;i++) {
+			GameColor c = GameColor.defaultColorOrder()[i];
+			GameTeam t = new GameTeam(i, c);
+			teams.add(t);
+		}
+	}
+	
+	public void addPlayerToRandomTeam(GamePlayer player) {
+		if(teamAmount==0 || !gameLoaded)
+			return;
+		GameTeam t = getTeam(player);
+		if(t!=null) {
+			t.removePlayer(player);
+		}
+		GameTeam lowTeam = teams.get(0);
+		int lowest = teams.get(0).size();
+		for(GameTeam team : teams)
+			if(team.size()<lowest) {
+				lowest = team.size();
+				lowTeam = team;
+			}
+		lowTeam.addPlayer(player);
+	}
+	
+	public void addPlayerToTeam(GamePlayer player, GameTeam team) {
+		if(teamAmount==0 || !gameLoaded)
+			return;
+		GameTeam t = getTeam(player);
+		if(t!=null) {
+			t.removePlayer(player);
+		}
+		team.addPlayer(player);
+	}
+	
+	public GameTeam getTeam(GamePlayer player) {
+		for(GameTeam t : teams) {
+			if(t.isInTeam(player))
+				return t;
+		}
+		return null;
+	}
+	
+	public GameTeam[] getTeams() {
+		return teams.toArray(new GameTeam[teams.size()]);
 	}
 	
 	public boolean isLoaded() {
@@ -203,6 +261,34 @@ public class GameMatch {
 	
 	public String getMapAuthor() {
 		return author;
+	}
+	
+	public int getTeamAmount() {
+		return teamAmount;
+	}
+	
+	public GameState getGameState() {
+		return state;
+	}
+	
+	public List<String> preGameDisplay() {
+		//This is not finished, don't judge me
+		List<String> list = new ArrayList<String>();
+		list.add("Starts in 00:00");
+		list.add("Gamemode:");
+		list.add(ChatColor.GRAY+" "+game.getGamemodeName());
+		list.add("Map:");
+		list.add(ChatColor.GRAY+" "+name);
+		list.add(" by "+ChatColor.GRAY+author);
+		list.add("Online:");
+		list.add(ChatColor.GRAY+" who cares");
+		return list;
+	}
+	
+	public static enum GameState{
+		PREGAME,
+		INGAME,
+		POSTGAME;
 	}
 	
 }
