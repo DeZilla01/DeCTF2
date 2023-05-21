@@ -21,6 +21,7 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Sign;
 import org.bukkit.block.data.Rotatable;
+import org.bukkit.entity.Player;
 
 import net.dezilla.dectf2.GameMain;
 import net.dezilla.dectf2.GamePlayer;
@@ -36,6 +37,7 @@ public class GameMatch {
 	public static GameMatch currentMatch = null;
 	public static GameMatch previousMatch = null;
 	public static GameMatch nextMatch;
+	public static List<GamePlayer> waitingForNextMatch = new ArrayList<GamePlayer>();
 	
 	
 	private int gameId = GAMEID++;
@@ -52,12 +54,14 @@ public class GameMatch {
 	private int teamAmount = 2;
 	private List<GameTeam> teams = new ArrayList<GameTeam>();
 	private GameState state = GameState.PREGAME;
+	private GameTimer timer = new GameTimer(30);
+	private boolean waitingForPlayers = true;
 	
 	public GameMatch(String levelName) throws FileNotFoundException {
 		//Set chosen level
 		if(levelName != null)
 			sourceZip = new File(Util.getGameMapFolder().getPath()+levelName);
-		//Set default level if not valid or null
+		//Set to default level if not valid or null
 		if(sourceZip == null || !sourceZip.exists()) {
 			if(GameConfig.defaultMap!=null)
 				sourceZip = new File(Util.getGameMapFolder().getPath()+GameConfig.defaultMap);
@@ -114,11 +118,43 @@ public class GameMatch {
 					{}//TODO
 				else if(mode.equalsIgnoreCase("tdm"))
 					{}//TODO
+				timer.onSecond((timer) -> {
+					if(state == GameState.PREGAME && waitingForPlayers) {
+						if(Bukkit.getOnlinePlayers().size() >= GameConfig.playersToStart) {
+							waitingForPlayers = false;
+							timer.unpause();
+						}
+					}
+					
+					for(Player p : Bukkit.getOnlinePlayers())
+						GamePlayer.get(p).updateScoreboardDisplay();
+				});
 				gameLoaded = true;
 				currentMatch = this;
 				onLoad.run(world);
 			});
 		});
+	}
+	
+	public void unload() {
+		timer.unregister();
+		gameLoaded = false;
+		
+		Bukkit.getServer().unloadWorld(world, false);
+	}
+	
+	public void addPlayer(GamePlayer player) {
+		boolean addedToPreviousTeam = false;
+		if(previousMatch != null && previousMatch.getTeam(player) != null) {
+			addedToPreviousTeam = addPlayerToTeam(player, previousMatch.getTeam(player).getId());
+		} 
+		if(!addedToPreviousTeam)
+			addPlayerToRandomTeam(player);
+		if(state == GameState.INGAME) {
+			//add team spawn teleport here
+		} else {
+			player.getPlayer().teleport(spawn);
+		}
 	}
 	
 	private void parseSigns() {
@@ -235,6 +271,14 @@ public class GameMatch {
 		team.addPlayer(player);
 	}
 	
+	//return false if teamId does not exists.
+	public boolean addPlayerToTeam(GamePlayer player, int teamId) {
+		if(teams.size()-1 < teamId)
+			return false;
+		addPlayerToTeam(player, teams.get(teamId));
+		return true;
+	}
+	
 	public GameTeam getTeam(GamePlayer player) {
 		for(GameTeam t : teams) {
 			if(t.isInTeam(player))
@@ -272,16 +316,18 @@ public class GameMatch {
 	}
 	
 	public List<String> preGameDisplay() {
-		//This is not finished, don't judge me
 		List<String> list = new ArrayList<String>();
-		list.add("Starts in 00:00");
+		if(waitingForPlayers) 
+			list.add("Waiting for players ("+Bukkit.getOnlinePlayers().size()+"/"+GameConfig.playersToStart+")");
+		else
+			list.add("Starts in "+timer.getTimeLeftDisplay());
 		list.add("Gamemode:");
 		list.add(ChatColor.GRAY+" "+game.getGamemodeName());
 		list.add("Map:");
 		list.add(ChatColor.GRAY+" "+name);
 		list.add(" by "+ChatColor.GRAY+author);
 		list.add("Online:");
-		list.add(ChatColor.GRAY+" who cares");
+		list.add(ChatColor.GRAY+" "+Bukkit.getOnlinePlayers().size());
 		return list;
 	}
 	

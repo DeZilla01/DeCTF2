@@ -23,6 +23,10 @@ public class GamePlayer {
 		for(GamePlayer i : PLAYERS) {
 			if(i.getPlayer().equals(player))
 				return i;
+			if(i.getPlayer().getUniqueId().equals(player.getUniqueId())) {
+				i.updatePlayer(player);
+				return i;
+			}
 		}
 		return new GamePlayer(player);
 	}
@@ -42,6 +46,12 @@ public class GamePlayer {
 	
 	public Player getPlayer() {
 		return player;
+	}
+	
+	private void updatePlayer(Player player) {
+		this.player = player;
+		applyScoreboard();
+		updateScoreboardDisplay();
 	}
 	
 	public void updateScoreboardTeams() {
@@ -77,7 +87,7 @@ public class GamePlayer {
 			display.setDisplayName(pregame.get(0));
 			pregame.remove(0);
 			
-			int s = pregame.size();
+			int s = pregame.size()-1;
 			for(String i : pregame)
 				display.getScore(i).setScore(s--);
 		}
