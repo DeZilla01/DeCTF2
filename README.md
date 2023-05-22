@@ -3,8 +3,11 @@ Rewrite of DeCTF based on the now defunct McCTF plugin from McPvP/Brawl
 
 This project is being created 1 month after the full shutdown of McBrawl, thus rendering McCTF defunct. At the current moment, this is somewhat of a side project with no ETA to bring some life back to McPvP's legacy. Project is currently private to lower expectations. Reason of writing this based on DeCTF rather than McCTF code is to somewhat keep ownership and being able to freely release the plugin when ready.
 
+Version:
+This may be a difficult choice for some, but I decided to start this project on MC 1.19. This may be a controversial choice due to combat differences with 1.8, but the fact is 1.8 is now heavily outdated. At the moment I write this I haven't started work on kit/balance, but I plan to introduce 1.8ish combat as far as it can realistically be.
+
 Teams:
-I want the plugin to be as versatile as possible. So the plan that I have for now is to allow from Free-for-all to 16 teams. Notably only 2 teams gamemodes is going to be used (mostly), but I'd like to keep options open.
+I want the plugin to be as versatile as possible. So the plan that I have for now is to allow from 2 to 16 teams. Notably only 2 teams gamemodes is going to be used (mostly), but I'd like to keep options open.
 
 Gamemodes:
 - Capture the Flag (Based on McCTF)
