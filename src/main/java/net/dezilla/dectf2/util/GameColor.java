@@ -1,33 +1,36 @@
 package net.dezilla.dectf2.util;
 
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 
 public enum GameColor {
-	WHITE("White", ChatColor.WHITE),
-	ORANGE("Orange", ChatColor.GOLD),
-	MAGENTA("Magenta", ChatColor.LIGHT_PURPLE),
-	LIGHT_BLUE("Light Blue", ChatColor.AQUA),
-	YELLOW("Yellow", ChatColor.YELLOW),
-	GREEN("Green", ChatColor.GREEN),
-	PINK("Pink", ChatColor.LIGHT_PURPLE),
-	DARK_GRAY("Dark Gray", ChatColor.DARK_GRAY),
-	GRAY("Gray", ChatColor.GRAY),
-	CYAN("Cyan", ChatColor.DARK_AQUA),
-	PURPLE("Purple", ChatColor.DARK_PURPLE),
-	BLUE("Blue", ChatColor.BLUE),
-	BROWN("Brown", ChatColor.GOLD),
-	DARK_GREEN("Dark Green", ChatColor.DARK_GREEN),
-	RED("Red", ChatColor.RED),
-	BLACK("Black", ChatColor.BLACK);
+	WHITE("White", ChatColor.WHITE, "WHITE"),
+	ORANGE("Orange", ChatColor.GOLD, "ORANGE"),
+	MAGENTA("Magenta", ChatColor.LIGHT_PURPLE, "MAGENTA"),
+	LIGHT_BLUE("Light Blue", ChatColor.AQUA, "LIGHT_BLUE"),
+	YELLOW("Yellow", ChatColor.YELLOW, "YELLOW"),
+	GREEN("Green", ChatColor.GREEN, "LIME"),
+	PINK("Pink", ChatColor.LIGHT_PURPLE, "PINK"),
+	DARK_GRAY("Dark Gray", ChatColor.DARK_GRAY, "GRAY"),
+	GRAY("Gray", ChatColor.GRAY, "LIGHT_GRAY"),
+	CYAN("Cyan", ChatColor.DARK_AQUA, "CYAN"),
+	PURPLE("Purple", ChatColor.DARK_PURPLE, "PURPLE"),
+	BLUE("Blue", ChatColor.BLUE, "BLUE"),
+	BROWN("Brown", ChatColor.GOLD, "BROWN"),
+	DARK_GREEN("Dark Green", ChatColor.DARK_GREEN, "GREEN"),
+	RED("Red", ChatColor.RED, "RED"),
+	BLACK("Black", ChatColor.BLACK, "BLACK");
 	
 	String name;
 	ChatColor chatcolor;
 	String prefix;
+	String materialName;
 	
-	GameColor(String name, ChatColor chatcolor) {
+	GameColor(String name, ChatColor chatcolor, String materialName) {
 		this.name = name;
 		this.chatcolor = chatcolor;
 		this.prefix = chatcolor+"";
+		this.materialName = materialName;
 	}
 	
 	public String getName() {
@@ -42,6 +45,67 @@ public enum GameColor {
 		return chatcolor;
 	}
 	
+	public Material wool() {
+		return Material.valueOf(materialName+"_WOOL");
+	}
+	
+	public Material terracotta() {
+		return Material.valueOf(materialName+"_TERRACOTTA");
+	}
+	
+	public Material banner() {
+		return Material.valueOf(materialName+"_BANNER");
+	}
+	
+	public Material bed() {
+		return Material.valueOf(materialName+"_BED");
+	}
+	
+	public Material candle() {
+		return Material.valueOf(materialName+"_CANDLE");
+	}
+	
+	public Material candleCake() {
+		return Material.valueOf(materialName+"_CANDLE_CAKE");
+	}
+	
+	public Material carpet() {
+		return Material.valueOf(materialName+"_CARPET");
+	}
+	
+	public Material concrete() {
+		return Material.valueOf(materialName+"_CONCRETE");
+	}
+	
+	public Material concretePowder() {
+		return Material.valueOf(materialName+"_CONCRETE_POWDER");
+	}
+	
+	public Material dye() {
+		return Material.valueOf(materialName+"_DYE");
+	}
+	
+	public Material glazedTerracotta() {
+		return Material.valueOf(materialName+"_GLAZED_TERRACOTTA");
+	}
+	
+	public Material shulkerBox() {
+		return Material.valueOf(materialName+"_SHULKER_BOX");
+	}
+	
+	public Material stainedGlass() {
+		return Material.valueOf(materialName+"_STAINED_GLASS");
+	}
+	
+	public Material stainedGlassPane() {
+		return Material.valueOf(materialName+"_STAINED_GLASS_PANE");
+	}
+	
+	public Material wallBanner() {
+		return Material.valueOf(materialName+"_WALL_BANNER");
+	}
+	
+	//For team creation.
 	private final static GameColor[] colorOrder = {
 			GameColor.RED, //team 0
 			GameColor.BLUE, //team 1

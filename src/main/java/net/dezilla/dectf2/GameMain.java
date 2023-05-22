@@ -11,8 +11,7 @@ import org.bukkit.command.CommandMap;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import net.dezilla.dectf2.commands.SwitchCommand;
-import net.dezilla.dectf2.commands.TestCommand;
+import net.dezilla.dectf2.commands.*;
 import net.dezilla.dectf2.game.GameMatch;
 import net.dezilla.dectf2.listeners.EventListener;
 import net.dezilla.dectf2.listeners.SpongeListener;
@@ -45,7 +44,8 @@ public class GameMain extends JavaPlugin{
 			
 			List<Command> commands = Arrays.asList(
 					new TestCommand(),
-					new SwitchCommand());
+					new SwitchCommand(),
+					new TimerCommand());
 			commandMap.registerAll("dectf2", commands);
 		} catch(Exception e) {
 			e.printStackTrace();

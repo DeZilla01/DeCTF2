@@ -52,6 +52,7 @@ public class GameMatch {
 	private String author = "";
 	private String mode = "tdm";
 	private int teamAmount = 2;
+	private int timeLimit = 1200; //20 mins default
 	private List<GameTeam> teams = new ArrayList<GameTeam>();
 	private GameState state = GameState.PREGAME;
 	private GameTimer timer = new GameTimer(30);
@@ -129,6 +130,11 @@ public class GameMatch {
 					for(Player p : Bukkit.getOnlinePlayers())
 						GamePlayer.get(p).updateScoreboardDisplay();
 				});
+				timer.onEnd((timer) -> {
+					state = GameState.INGAME;
+					timer.setSeconds(timeLimit);
+					game.gameStart();
+				});
 				gameLoaded = true;
 				currentMatch = this;
 				onLoad.run(world);
@@ -139,7 +145,7 @@ public class GameMatch {
 	public void unload() {
 		timer.unregister();
 		gameLoaded = false;
-		
+		game.unregister();
 		Bukkit.getServer().unloadWorld(world, false);
 	}
 	
@@ -211,7 +217,9 @@ public class GameMatch {
 								if(a[0].equalsIgnoreCase("spawn")) {
 									//TODO
 								} else if(a[0].equalsIgnoreCase("time")) {
-									//TODO
+									try {
+										timeLimit = Integer.parseInt(a[1]);
+									}catch(Exception e) {}
 								} else if(a[0].equalsIgnoreCase("score")) {
 									//TODO
 								} else if(a[0].equalsIgnoreCase("mode")) {
@@ -313,6 +321,18 @@ public class GameMatch {
 	
 	public GameState getGameState() {
 		return state;
+	}
+	
+	public GameTimer getTimer() {
+		return timer;
+	}
+	
+	public boolean isWaitingForPlayers() {
+		return waitingForPlayers;
+	}
+	
+	public void setWaitingForPlayers(boolean value) {
+		waitingForPlayers = value;
 	}
 	
 	public List<String> preGameDisplay() {
