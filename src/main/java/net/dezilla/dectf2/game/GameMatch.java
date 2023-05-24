@@ -57,6 +57,8 @@ public class GameMatch {
 	private GameState state = GameState.PREGAME;
 	private GameTimer timer = new GameTimer(30);
 	private boolean waitingForPlayers = true;
+	private int scoreToWin = 3;
+	private Map<Integer, Location> teamSpawns = new HashMap<Integer, Location>();//this var is only used between sign parse and team creations, use GameTeam#getSpawn()
 	
 	public GameMatch(String levelName) throws FileNotFoundException {
 		//Set chosen level
@@ -215,13 +217,18 @@ public class GameMatch {
 							if(line.contains("=")) {
 								String[] a = line.split("=");
 								if(a[0].equalsIgnoreCase("spawn")) {
-									//TODO
+									try {
+										int team = Integer.parseInt(a[1]);
+										teamSpawns.put(team, loc);
+									}catch(Exception e) {}
 								} else if(a[0].equalsIgnoreCase("time")) {
 									try {
 										timeLimit = Integer.parseInt(a[1]);
 									}catch(Exception e) {}
 								} else if(a[0].equalsIgnoreCase("score")) {
-									//TODO
+									try {
+										scoreToWin = Integer.parseInt(a[1]);
+									}catch(Exception e) {}
 								} else if(a[0].equalsIgnoreCase("mode")) {
 									mode = a[1];
 								} else if(a[0].equalsIgnoreCase("teams")) {
@@ -229,8 +236,8 @@ public class GameMatch {
 										teamAmount = Integer.parseInt(a[1]);
 										if(teamAmount>16)
 											teamAmount = 16;
-										else if(teamAmount<0)
-											teamAmount = 0;
+										else if(teamAmount<1)
+											teamAmount = 1;
 									} catch(Exception e){}
 								}
 							}
@@ -247,7 +254,10 @@ public class GameMatch {
 	private void createTeams() {
 		for(int i = 0; i<teamAmount;i++) {
 			GameColor c = GameColor.defaultColorOrder()[i];
-			GameTeam t = new GameTeam(i, c);
+			Location l = spawn.clone();
+			if(teamSpawns.containsKey(i))
+				l = teamSpawns.get(i);
+			GameTeam t = new GameTeam(i, c, l);
 			teams.add(t);
 		}
 	}
@@ -333,6 +343,10 @@ public class GameMatch {
 	
 	public void setWaitingForPlayers(boolean value) {
 		waitingForPlayers = value;
+	}
+	
+	public Map<String, Location> signConfigs(){
+		return signConfig;
 	}
 	
 	public List<String> preGameDisplay() {

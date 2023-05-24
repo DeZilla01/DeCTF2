@@ -4,9 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
-import org.bukkit.scoreboard.Scoreboard;
-import org.bukkit.scoreboard.Team;
 
 import net.dezilla.dectf2.GamePlayer;
 import net.dezilla.dectf2.util.GameColor;
@@ -16,12 +15,14 @@ public class GameTeam {
 	private GameColor teamColor;
 	private String teamName;
 	private List<GamePlayer> players = new ArrayList<GamePlayer>();
+	private Location spawn;
 	
 	
-	public GameTeam(int id, GameColor color) {
+	public GameTeam(int id, GameColor color, Location spawn) {
 		this.id = id;
 		teamColor = color;
 		teamName = color.getName();
+		this.spawn = spawn;
 	}
 	
 	public int size() {
@@ -31,6 +32,10 @@ public class GameTeam {
 	
 	public int getId() {
 		return id;
+	}
+	
+	public Location getSpawn() {
+		return spawn.clone();
 	}
 	
 	public void addPlayer(GamePlayer player) {
