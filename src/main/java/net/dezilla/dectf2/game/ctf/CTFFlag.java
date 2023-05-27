@@ -206,6 +206,10 @@ public class CTFFlag {
 		}
 	}
 	
+	public GamePlayer getCarrier() {
+		return carrier;
+	}
+	
 	public static enum FlagType {
 		BANNER,
 		WOOL,

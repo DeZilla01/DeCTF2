@@ -1,7 +1,9 @@
 package net.dezilla.dectf2;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -33,6 +35,7 @@ public class GamePlayer {
 	
 	private Player player;
 	private Scoreboard score;
+	private Map<String, Integer> stats = new HashMap<String, Integer>();
 	
 	private GamePlayer(Player player) {
 		this.player = player;
@@ -80,17 +83,40 @@ public class GamePlayer {
 		display = score.registerNewObjective("display", Criteria.DUMMY, "display");
 		display.setDisplaySlot(DisplaySlot.SIDEBAR);
 		
-		if(match == null) {
-			score.clearSlot(DisplaySlot.SIDEBAR);
-		} else if(match.getGameState() == GameState.PREGAME) {
-			List<String> pregame = match.preGameDisplay();
-			display.setDisplayName(pregame.get(0));
-			pregame.remove(0);
-			
-			int s = pregame.size()-1;
-			for(String i : pregame)
-				display.getScore(i).setScore(s--);
+		List<String> displayList = new ArrayList<String>();
+		displayList.add("DeCTF2");
+		displayList.add("No game found");
+		
+		if(match != null && match.getGameState() == GameState.PREGAME) {
+			displayList = match.preGameDisplay();
+		} else if(match != null && match.getGameState() == GameState.INGAME) {
+			displayList = match.getGame().getScoreboardDisplay(this);
+		} else if(match != null && match.getGameState() == GameState.POSTGAME) {
+			displayList.clear();
+			displayList.add("DeCTF2");
+			displayList.add("postgame display");
+			displayList.add(match.getTimer().getTimeLeftDisplay());
 		}
+		display.setDisplayName(displayList.get(0));
+		displayList.remove(0);
+		
+		int s = displayList.size()-1;
+		for(String i : displayList)
+			display.getScore(i).setScore(s--);
+	}
+	
+	public void setStats(String key, int amount) {
+		stats.put(key, amount);
+	}
+	
+	public void incrementStats(String key, int amount) {
+		stats.put(key, getStats(key)+amount);
+	}
+	
+	public int getStats(String key) {
+		if(!stats.containsKey(key))
+			stats.put(key, 0);
+		return stats.get(key);
 	}
 	
 	public void applyScoreboard() {

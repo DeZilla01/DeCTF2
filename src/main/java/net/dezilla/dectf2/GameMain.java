@@ -55,10 +55,9 @@ public class GameMain extends JavaPlugin{
 			GameMatch m = new GameMatch(null);
 			m.Load((world) -> {
 				for(Player p : Bukkit.getOnlinePlayers())
-					p.teleport(m.getSpawn());
+					m.addPlayer(GamePlayer.get(p));
 			});
 		} catch (FileNotFoundException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}

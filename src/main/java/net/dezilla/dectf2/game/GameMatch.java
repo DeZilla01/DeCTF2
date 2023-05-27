@@ -11,6 +11,7 @@ import java.util.Map;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
+import org.bukkit.GameMode;
 import org.bukkit.GameRule;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -136,6 +137,34 @@ public class GameMatch {
 					state = GameState.INGAME;
 					timer.setSeconds(timeLimit);
 					game.gameStart();
+					timer.unpause();
+					for(Player p : Bukkit.getOnlinePlayers()) {
+						if(p.getGameMode() == GameMode.SURVIVAL) 
+							respawnPlayer(GamePlayer.get(p));
+					}
+					timer.onEnd((postTimer) -> {
+						state = GameState.POSTGAME;
+						timer.setSeconds(20);
+						game.unregister();
+						postTimer.unpause();
+						for(Player p : Bukkit.getOnlinePlayers()) {
+							if(p.getGameMode() == GameMode.SURVIVAL) 
+								respawnPlayer(GamePlayer.get(p));
+						}
+						postTimer.onEnd((endTimer) -> {
+							unload();
+							GameMatch.currentMatch = null;
+							try {
+								GameMatch m = new GameMatch(null);
+								m.Load((world) -> {
+									for(Player p : Bukkit.getOnlinePlayers())
+										m.addPlayer(GamePlayer.get(p));
+								});
+							} catch (FileNotFoundException e) {
+								e.printStackTrace();
+							}
+						});
+					});
 				});
 				gameLoaded = true;
 				currentMatch = this;
@@ -148,9 +177,12 @@ public class GameMatch {
 		timer.unregister();
 		gameLoaded = false;
 		game.unregister();
+		for(Player p : world.getPlayers()) 
+			p.teleport(Bukkit.getWorlds().get(0).getSpawnLocation());
 		Bukkit.getServer().unloadWorld(world, false);
 	}
 	
+	//When joining the server or switching match
 	public void addPlayer(GamePlayer player) {
 		boolean addedToPreviousTeam = false;
 		if(previousMatch != null && previousMatch.getTeam(player) != null) {
@@ -158,8 +190,20 @@ public class GameMatch {
 		} 
 		if(!addedToPreviousTeam)
 			addPlayerToRandomTeam(player);
+		GameTeam team = getTeam(player);
 		if(state == GameState.INGAME) {
-			//add team spawn teleport here
+			player.getPlayer().teleport(team.getSpawn());
+		} else {
+			player.getPlayer().teleport(spawn);
+		}
+	}
+	
+	public void respawnPlayer(GamePlayer player) {
+		player.getPlayer().setGameMode(GameMode.SURVIVAL);
+		player.getPlayer().setHealth(20.0);
+		GameTeam team = getTeam(player);
+		if(state == GameState.INGAME && team != null) {
+			player.getPlayer().teleport(team.getSpawn());
 		} else {
 			player.getPlayer().teleport(spawn);
 		}
@@ -255,9 +299,14 @@ public class GameMatch {
 		for(int i = 0; i<teamAmount;i++) {
 			GameColor c = GameColor.defaultColorOrder()[i];
 			Location l = spawn.clone();
-			if(teamSpawns.containsKey(i))
+			boolean teamSpawnSet = false;
+			if(teamSpawns.containsKey(i)) {
 				l = teamSpawns.get(i);
+				teamSpawnSet = true;
+			}
 			GameTeam t = new GameTeam(i, c, l);
+			if(!teamSpawnSet)
+				System.out.println("Missing configuration for spawn "+t.getTeamName());
 			teams.add(t);
 		}
 	}
@@ -349,6 +398,14 @@ public class GameMatch {
 		return signConfig;
 	}
 	
+	public void setScoreToWin(int amount) {
+		scoreToWin = amount;
+	}
+	
+	public int getScoreToWin() {
+		return scoreToWin;
+	}
+	
 	public List<String> preGameDisplay() {
 		List<String> list = new ArrayList<String>();
 		if(waitingForPlayers) 
@@ -362,7 +419,12 @@ public class GameMatch {
 		list.add(" by "+ChatColor.GRAY+author);
 		list.add("Online:");
 		list.add(ChatColor.GRAY+" "+Bukkit.getOnlinePlayers().size());
+		list.add(""+ChatColor.GRAY+ChatColor.ITALIC+"dezilla.net");
 		return list;
+	}
+	
+	public GameBase getGame() {
+		return game;
 	}
 	
 	public static enum GameState{

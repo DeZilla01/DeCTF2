@@ -16,6 +16,7 @@ public class GameTeam {
 	private String teamName;
 	private List<GamePlayer> players = new ArrayList<GamePlayer>();
 	private Location spawn;
+	private int score = 0;
 	
 	
 	public GameTeam(int id, GameColor color, Location spawn) {
@@ -36,6 +37,19 @@ public class GameTeam {
 	
 	public Location getSpawn() {
 		return spawn.clone();
+	}
+	
+	public int incrementScore(int amount) {
+		score+=amount;
+		return score;
+	}
+	
+	public void setScore(int amount) {
+		score = amount;
+	}
+	
+	public int getScore() {
+		return score;
 	}
 	
 	public void addPlayer(GamePlayer player) {
