@@ -23,7 +23,9 @@ import net.dezilla.dectf2.Util;
 import net.dezilla.dectf2.game.GameMatch;
 import net.dezilla.dectf2.game.GameMatch.GameState;
 import net.dezilla.dectf2.game.GameTeam;
+import net.dezilla.dectf2.game.GameTimer;
 import net.dezilla.dectf2.util.GameColor;
+import net.dezilla.dectf2.util.GameConfig;
 
 public class CTFFlag {
 	GameTeam team;
@@ -39,6 +41,7 @@ public class CTFFlag {
 	Material flagPostMaterial = null;
 	ItemStack carrierHelmet = null;
 	int woolTaskId = 0;
+	GameTimer resetTimer = null;
 	
 	public CTFFlag(GameTeam team, Location home, FlagType type) {
 		this.team = team;
@@ -178,6 +181,24 @@ public class CTFFlag {
 		return flagIsHome;
 	}
 	
+	public boolean isDropped() {
+		return !flagIsHome && carrier==null;
+	}
+	
+	public boolean inStealRange(GamePlayer player) {
+		return getLocation().distance(player.getPlayer().getLocation()) <= GameConfig.flagStealRadius;
+	}
+	
+	public GameColor getColor() {
+		return color;
+	}
+	
+	public boolean isFlagMaterial(Material material) {
+		if(material == color.banner() || material == color.wool() || material == color.spawnBlock())
+			return true;
+		return false;
+	}
+	
 	public void setCarrier(GamePlayer player) {
 		carrier = player;
 		flagIsHome = false;
@@ -187,6 +208,10 @@ public class CTFFlag {
 				if(h != null)
 					carrierHelmet = h.clone();
 				player.getPlayer().getEquipment().setHelmet(new ItemStack(color.banner()));
+				if(flagEntity!=null && !flagEntity.isDead())
+					flagEntity.remove();
+				homeEntity = spawnEntity(homeLocation, false);
+				player.getPlayer().getInventory().addItem(new ItemStack(color.banner()));
 				break;
 			}
 			case WOOL:{
@@ -204,6 +229,31 @@ public class CTFFlag {
 				break;
 			}
 		}
+	}
+	
+	public void dropFlag(Location location, Vector velocity) {
+		unsetCarrier();
+		if(type == FlagType.BANNER) {
+			flagEntity = spawnEntity(location, true);
+			ArmorStand as = (ArmorStand) flagEntity;
+			as.setGravity(true);
+			as.setSmall(true);
+			as.setVelocity(velocity);
+		}
+		resetTimer = new GameTimer(16);
+		resetTimer.unpause();
+		resetTimer.onTick((timer) -> {
+			if(!isDropped())
+				timer.unregister();
+		});
+		resetTimer.onEnd((timer) -> {
+			resetFlag();
+			timer.unregister();
+		});
+	}
+	
+	public GameTimer getResetTimer() {
+		return resetTimer;
 	}
 	
 	public GamePlayer getCarrier() {

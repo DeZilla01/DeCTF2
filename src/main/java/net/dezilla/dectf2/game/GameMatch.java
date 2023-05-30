@@ -58,7 +58,7 @@ public class GameMatch {
 	private GameState state = GameState.PREGAME;
 	private GameTimer timer = new GameTimer(30);
 	private boolean waitingForPlayers = true;
-	private int scoreToWin = 3;
+	private int scoreToWin = 0;
 	private Map<Integer, Location> teamSpawns = new HashMap<Integer, Location>();//this var is only used between sign parse and team creations, use GameTeam#getSpawn()
 	
 	public GameMatch(String levelName) throws FileNotFoundException {
@@ -85,6 +85,7 @@ public class GameMatch {
 	}
 	
 	public void Load(WorldRunnable onLoad) {
+		scoreboardNotif("Loading "+name);
 		Bukkit.getScheduler().runTaskAsynchronously(GameMain.getInstance(), () -> {
 			//Create folder for the game
 			gameFolder = Util.CreateMatchFolder(gameId);
@@ -96,6 +97,7 @@ public class GameMatch {
 				e.printStackTrace();
 			}
 			Bukkit.getScheduler().runTask(GameMain.getInstance(), () -> {
+				scoreboardNotif("Creating world");
 				WorldCreator wc = new WorldCreator(gameFolder.getPath());
 				world = Bukkit.getServer().createWorld(wc);
 				world.setAutoSave(false);
@@ -114,6 +116,7 @@ public class GameMatch {
 				world.setGameRule(GameRule.SHOW_DEATH_MESSAGES, false);
 				world.setGameRule(GameRule.SPECTATORS_GENERATE_CHUNKS, false);
 				spawn = world.getSpawnLocation();
+				scoreboardNotif("Parsing signs");
 				parseSigns();
 				createTeams();
 				if(mode.equalsIgnoreCase("ctf"))
@@ -122,6 +125,9 @@ public class GameMatch {
 					{}//TODO
 				else if(mode.equalsIgnoreCase("tdm"))
 					{}//TODO
+				if(scoreToWin <= 0) {
+					scoreToWin = game.getDefaultScoreToWin();
+				}
 				timer.onSecond((timer) -> {
 					if(state == GameState.PREGAME && waitingForPlayers) {
 						if(Bukkit.getOnlinePlayers().size() >= GameConfig.playersToStart) {
@@ -134,43 +140,54 @@ public class GameMatch {
 						GamePlayer.get(p).updateScoreboardDisplay();
 				});
 				timer.onEnd((timer) -> {
-					state = GameState.INGAME;
-					timer.setSeconds(timeLimit);
-					game.gameStart();
-					timer.unpause();
-					for(Player p : Bukkit.getOnlinePlayers()) {
-						if(p.getGameMode() == GameMode.SURVIVAL) 
-							respawnPlayer(GamePlayer.get(p));
-					}
-					timer.onEnd((postTimer) -> {
-						state = GameState.POSTGAME;
-						timer.setSeconds(20);
-						game.unregister();
-						postTimer.unpause();
+					if(state == GameState.PREGAME) {
+						state = GameState.INGAME;
+						timer.setSeconds(timeLimit);
+						game.gameStart();
+						timer.unpause();
 						for(Player p : Bukkit.getOnlinePlayers()) {
 							if(p.getGameMode() == GameMode.SURVIVAL) 
 								respawnPlayer(GamePlayer.get(p));
 						}
-						postTimer.onEnd((endTimer) -> {
-							unload();
-							GameMatch.currentMatch = null;
-							try {
-								GameMatch m = new GameMatch(null);
-								m.Load((world) -> {
-									for(Player p : Bukkit.getOnlinePlayers())
-										m.addPlayer(GamePlayer.get(p));
-								});
-							} catch (FileNotFoundException e) {
-								e.printStackTrace();
-							}
-						});
-					});
+					}
+					else if(state == GameState.INGAME) {
+						state = GameState.POSTGAME;
+						timer.setSeconds(20);
+						game.unregister();
+						timer.unpause();
+						for(Player p : Bukkit.getOnlinePlayers()) {
+							if(p.getGameMode() == GameMode.SURVIVAL) 
+								respawnPlayer(GamePlayer.get(p));
+						}
+					}
+					else if(state == GameState.POSTGAME) {
+						unload();
+						GameMatch.currentMatch = null;
+						try {
+							GameMatch m = new GameMatch(null);
+							m.Load((world) -> {
+								for(Player p : Bukkit.getOnlinePlayers())
+									m.addPlayer(GamePlayer.get(p));
+							});
+						} catch (FileNotFoundException e) {
+							e.printStackTrace();
+						}
+					}
 				});
 				gameLoaded = true;
 				currentMatch = this;
 				onLoad.run(world);
 			});
 		});
+	}
+	
+	//currently used for debug
+	private void scoreboardNotif(String msg) {
+		List<String> l = new ArrayList<String>();
+		l.add("DeCTF2");
+		l.add(msg);
+		for(Player p : Bukkit.getOnlinePlayers())
+			GamePlayer.get(p).updateScoreboardDisplay(l);
 	}
 	
 	public void unload() {
@@ -420,6 +437,14 @@ public class GameMatch {
 		list.add("Online:");
 		list.add(ChatColor.GRAY+" "+Bukkit.getOnlinePlayers().size());
 		list.add(""+ChatColor.GRAY+ChatColor.ITALIC+"dezilla.net");
+		return list;
+	}
+	
+	public List<String> postGameDisplay() {
+		List<String> list = new ArrayList<String>();
+		list.add("DeCTF2");
+		list.add("postgame display");
+		list.add(timer.getTimeLeftDisplay());
 		return list;
 	}
 	

@@ -13,6 +13,8 @@ public abstract class GameBase {
 	
 	public abstract String getGamemodeName();
 	
+	public abstract int getDefaultScoreToWin();
+	
 	public abstract List<String> getScoreboardDisplay(GamePlayer player);
 
 }

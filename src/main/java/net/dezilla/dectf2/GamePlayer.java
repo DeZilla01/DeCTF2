@@ -16,6 +16,7 @@ import org.bukkit.scoreboard.Team;
 import net.dezilla.dectf2.game.GameMatch;
 import net.dezilla.dectf2.game.GameMatch.GameState;
 import net.dezilla.dectf2.game.GameTeam;
+import net.dezilla.dectf2.util.DamageCause;
 
 public class GamePlayer {
 	
@@ -36,6 +37,7 @@ public class GamePlayer {
 	private Player player;
 	private Scoreboard score;
 	private Map<String, Integer> stats = new HashMap<String, Integer>();
+	private DamageCause lastDamage = null;
 	
 	private GamePlayer(Player player) {
 		this.player = player;
@@ -92,11 +94,24 @@ public class GamePlayer {
 		} else if(match != null && match.getGameState() == GameState.INGAME) {
 			displayList = match.getGame().getScoreboardDisplay(this);
 		} else if(match != null && match.getGameState() == GameState.POSTGAME) {
-			displayList.clear();
-			displayList.add("DeCTF2");
-			displayList.add("postgame display");
-			displayList.add(match.getTimer().getTimeLeftDisplay());
+			displayList = match.postGameDisplay();
 		}
+		display.setDisplayName(displayList.get(0));
+		displayList.remove(0);
+		
+		int s = displayList.size()-1;
+		for(String i : displayList)
+			display.getScore(i).setScore(s--);
+	}
+	
+	public void updateScoreboardDisplay(List<String> list) {
+		List<String> displayList = new ArrayList<String>(list);
+		Objective display = score.getObjective("display");
+		if(display != null)
+			display.unregister();
+		display = score.registerNewObjective("display", Criteria.DUMMY, "display");
+		display.setDisplaySlot(DisplaySlot.SIDEBAR);
+		
 		display.setDisplayName(displayList.get(0));
 		displayList.remove(0);
 		
@@ -117,6 +132,30 @@ public class GamePlayer {
 		if(!stats.containsKey(key))
 			stats.put(key, 0);
 		return stats.get(key);
+	}
+	
+	public void setLastDamage(DamageCause cause) {
+		lastDamage = cause;
+	}
+	
+	public DamageCause getLastDamage() {
+		if(lastDamage != null && !lastDamage.isDamagerOnline())
+			return null;
+		return lastDamage;
+	}
+	
+	public GameTeam getTeam() {
+		if(GameMatch.currentMatch == null)
+			return null;
+		return GameMatch.currentMatch.getTeam(this);
+	}
+	
+	public String getColoredName() {
+		GameTeam t = getTeam();
+		String prefix = "";
+		if(t != null)
+			prefix = t.getColor().getPrefix();
+		return prefix+player.getName();
 	}
 	
 	public void applyScoreboard() {
