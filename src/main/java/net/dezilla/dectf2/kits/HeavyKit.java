@@ -15,6 +15,7 @@ public class HeavyKit extends BaseKit {
 	@Override
 	public void setInventory() {
 		PlayerInventory inv = player.getInventory();
+		inv.clear();
 		inv.setHelmet(new ItemStack(Material.DIAMOND_HELMET));
 		inv.setChestplate(new ItemStack(Material.DIAMOND_CHESTPLATE));
 		inv.setLeggings(new ItemStack(Material.DIAMOND_LEGGINGS));

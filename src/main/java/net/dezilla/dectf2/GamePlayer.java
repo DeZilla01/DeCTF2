@@ -1,5 +1,6 @@
 package net.dezilla.dectf2;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -16,6 +17,8 @@ import org.bukkit.scoreboard.Team;
 import net.dezilla.dectf2.game.GameMatch;
 import net.dezilla.dectf2.game.GameMatch.GameState;
 import net.dezilla.dectf2.game.GameTeam;
+import net.dezilla.dectf2.kits.BaseKit;
+import net.dezilla.dectf2.kits.HeavyKit;
 import net.dezilla.dectf2.util.DamageCause;
 
 public class GamePlayer {
@@ -38,15 +41,15 @@ public class GamePlayer {
 	private Scoreboard score;
 	private Map<String, Integer> stats = new HashMap<String, Integer>();
 	private DamageCause lastDamage = null;
+	private BaseKit kit;
 	
 	private GamePlayer(Player player) {
 		this.player = player;
 		PLAYERS.add(this);
 		score = Bukkit.getScoreboardManager().getNewScoreboard();
-		
 		applyScoreboard();
-		
 		updateScoreboardDisplay();
+		kit = new HeavyKit(this);
 	}
 	
 	public Player getPlayer() {
@@ -67,6 +70,10 @@ public class GamePlayer {
 			Team team = score.getTeam(""+t.getId());
 			if(team==null) {
 				team = score.registerNewTeam(""+t.getId());
+				team.setPrefix(t.getColor().getPrefix());
+				team.setColor(t.getColor().getChatColor());
+			}
+			if(team.getColor() != t.getColor().getChatColor()) {
 				team.setPrefix(t.getColor().getPrefix());
 				team.setColor(t.getColor().getChatColor());
 			}
@@ -132,6 +139,22 @@ public class GamePlayer {
 		if(!stats.containsKey(key))
 			stats.put(key, 0);
 		return stats.get(key);
+	}
+	
+	public BaseKit getKit() {
+		return kit;
+	}
+	
+	public void setKit(Class<BaseKit> kit) {
+		try {
+			BaseKit oldkit = this.kit;
+			this.kit = kit.getConstructor(this.getClass()).newInstance(this);
+			oldkit.unregister();
+		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException
+				| NoSuchMethodException | SecurityException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 	
 	public void setLastDamage(DamageCause cause) {

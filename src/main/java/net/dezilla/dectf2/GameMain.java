@@ -45,7 +45,8 @@ public class GameMain extends JavaPlugin{
 			List<Command> commands = Arrays.asList(
 					new TestCommand(),
 					new SwitchCommand(),
-					new TimerCommand());
+					new TimerCommand(),
+					new TeamCommand());
 			commandMap.registerAll("dectf2", commands);
 		} catch(Exception e) {
 			e.printStackTrace();

@@ -101,7 +101,7 @@ public class CTFGame extends GameBase implements Listener{
 		CTFFlag held = getHeldFlag(p);
 		Item item = event.getItemDrop();
 		if(held != null && held.isFlagMaterial(item.getItemStack().getType())) {
-			held.dropFlag(item.getLocation(), item.getVelocity());
+			held.dropFlag(item.getLocation().add(0, 1, 0), item.getVelocity());
 		}
 	}
 	

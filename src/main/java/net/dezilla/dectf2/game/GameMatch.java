@@ -11,6 +11,7 @@ import java.util.Map;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
+import org.bukkit.ChunkSnapshot;
 import org.bukkit.GameMode;
 import org.bukkit.GameRule;
 import org.bukkit.Location;
@@ -59,7 +60,10 @@ public class GameMatch {
 	private GameTimer timer = new GameTimer(30);
 	private boolean waitingForPlayers = true;
 	private int scoreToWin = 0;
+	private int yBottom = -64;
 	private Map<Integer, Location> teamSpawns = new HashMap<Integer, Location>();//this var is only used between sign parse and team creations, use GameTeam#getSpawn()
+	private Map<Integer, Material> spawnMat = new HashMap<Integer, Material>();
+	private boolean blockparsed = false;
 	
 	public GameMatch(String levelName) throws FileNotFoundException {
 		//Set chosen level
@@ -177,6 +181,28 @@ public class GameMatch {
 				gameLoaded = true;
 				currentMatch = this;
 				onLoad.run(world);
+				//This task is going to grab all spawn blocks and team-colored blocks. This is performed while match is in pre-game
+				Bukkit.getScheduler().runTaskAsynchronously(GameMain.getInstance(), () -> {
+					int max = world.getMaxHeight();
+					int min = world.getMinHeight();
+					for(Chunk c : world.getLoadedChunks()) {
+						ChunkSnapshot cs = c.getChunkSnapshot();
+						for(int x = 0; x < 16 ; x++) {
+							for(int z = 0; z < 16; z++) {
+								for(int y = min; y < max; y++) {
+									Material m = cs.getBlockType(x, y, z);
+									for(GameTeam t : teams) {
+										if(t.isSpawnMaterial(m))
+											t.addSpawnBlock(c.getBlock(x, y, z));
+										if(t.isTeamColor(m))
+											t.addColorBlock(c.getBlock(x, y, z));
+									}
+								}
+							}
+						}
+					}
+					blockparsed=true;
+				});
 			});
 		});
 	}
@@ -219,10 +245,11 @@ public class GameMatch {
 		player.getPlayer().setGameMode(GameMode.SURVIVAL);
 		player.getPlayer().setHealth(20.0);
 		GameTeam team = getTeam(player);
-		if(state == GameState.INGAME && team != null) {
-			player.getPlayer().teleport(team.getSpawn());
-		} else {
+		if(state != GameState.INGAME || team == null) {
 			player.getPlayer().teleport(spawn);
+		} else {
+			player.getKit().setInventory();
+			player.getPlayer().teleport(team.getSpawn());
 		}
 	}
 	
@@ -281,6 +308,7 @@ public class GameMatch {
 									try {
 										int team = Integer.parseInt(a[1]);
 										teamSpawns.put(team, loc);
+										spawnMat.put(team, loc.getBlock().getRelative(BlockFace.DOWN).getType());
 									}catch(Exception e) {}
 								} else if(a[0].equalsIgnoreCase("time")) {
 									try {
@@ -324,6 +352,8 @@ public class GameMatch {
 			GameTeam t = new GameTeam(i, c, l);
 			if(!teamSpawnSet)
 				System.out.println("Missing configuration for spawn "+t.getTeamName());
+			if(spawnMat.containsKey(i))
+				t.setSpawnMaterial(spawnMat.get(i));
 			teams.add(t);
 		}
 	}
@@ -375,6 +405,19 @@ public class GameMatch {
 		return teams.toArray(new GameTeam[teams.size()]);
 	}
 	
+	public GameTeam getTeam(int id) {
+		if(teams.size()>=id-1 && id>=0)
+			return teams.get(id);
+		return null;
+	}
+	
+	public GameTeam getTeam(String name) {
+		for(GameTeam t : teams)
+			if(t.getTeamName().equalsIgnoreCase(name))
+				return t;
+		return null;
+	}
+	
 	public boolean isLoaded() {
 		return gameLoaded;
 	}
@@ -423,6 +466,10 @@ public class GameMatch {
 		return scoreToWin;
 	}
 	
+	public boolean isBlockParsed() {
+		return blockparsed;
+	}
+	
 	public List<String> preGameDisplay() {
 		List<String> list = new ArrayList<String>();
 		if(waitingForPlayers) 
@@ -436,6 +483,8 @@ public class GameMatch {
 		list.add(" by "+ChatColor.GRAY+author);
 		list.add("Online:");
 		list.add(ChatColor.GRAY+" "+Bukkit.getOnlinePlayers().size());
+		if(!blockparsed)
+			list.add(ChatColor.GRAY+"Blocks parsing...");
 		list.add(""+ChatColor.GRAY+ChatColor.ITALIC+"dezilla.net");
 		return list;
 	}

@@ -52,6 +52,10 @@ public enum GameColor {
 		return dye;
 	}
 	
+	public String getMaterialName() {
+		return materialName;
+	}
+	
 	public Material wool() {
 		return Material.valueOf(materialName+"_WOOL");
 	}
@@ -110,6 +114,11 @@ public enum GameColor {
 	
 	public Material wallBanner() {
 		return Material.valueOf(materialName+"_WALL_BANNER");
+	}
+	
+	public Material[] coloredMaterials() {
+		Material[] a = {wool(), terracotta(), banner(), bed(), candle(), candleCake(), carpet(), concrete(), concretePowder(), glazedTerracotta(), shulkerBox(), stainedGlass(), stainedGlassPane(), wallBanner()};
+		return a;
 	}
 	
 	//Default spawn block material for spawn recolor or chest flag
