@@ -90,6 +90,15 @@ public class GameTeam {
 		return material == spawnMaterial;
 	}
 	
+	public boolean isSpawnBlock(Block block) {
+		GameMatch match = GameMatch.currentMatch;
+		if(match==null)
+			return false;
+		if(match.isBlockParsed()) 
+			return spawnBlocks.contains(block);
+		return block.getType() == spawnMaterial;
+	}
+	
 	public boolean isTeamColor(Material material) {
 		if(material.toString().contains(teamColor.getMaterialName())) {
 			for(Material m : teamColor.coloredMaterials()) {
@@ -99,10 +108,6 @@ public class GameTeam {
 			}
 		}
 		return false;
-	}
-	
-	public boolean isSpawnBlock(Block block) {
-		return spawnBlocks.contains(block);
 	}
 	
 	public void changeTeamColor(GameColor color) {

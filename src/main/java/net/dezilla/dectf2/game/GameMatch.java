@@ -233,17 +233,13 @@ public class GameMatch {
 		} 
 		if(!addedToPreviousTeam)
 			addPlayerToRandomTeam(player);
-		GameTeam team = getTeam(player);
-		if(state == GameState.INGAME) {
-			player.getPlayer().teleport(team.getSpawn());
-		} else {
-			player.getPlayer().teleport(spawn);
-		}
+		respawnPlayer(player);
 	}
 	
 	public void respawnPlayer(GamePlayer player) {
 		player.getPlayer().setGameMode(GameMode.SURVIVAL);
 		player.getPlayer().setHealth(20.0);
+		player.getPlayer().getInventory().clear();
 		GameTeam team = getTeam(player);
 		if(state != GameState.INGAME || team == null) {
 			player.getPlayer().teleport(spawn);

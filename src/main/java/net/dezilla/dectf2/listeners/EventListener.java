@@ -1,6 +1,7 @@
 package net.dezilla.dectf2.listeners;
 
 import org.bukkit.GameMode;
+import org.bukkit.block.Block;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -13,10 +14,12 @@ import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
 
 import net.dezilla.dectf2.GamePlayer;
 import net.dezilla.dectf2.game.GameMatch;
 import net.dezilla.dectf2.game.GameMatch.GameState;
+import net.dezilla.dectf2.game.GameTeam;
 import net.dezilla.dectf2.util.DamageCause;
 
 public class EventListener implements Listener{
@@ -46,6 +49,15 @@ public class EventListener implements Listener{
 		GameMatch match = GameMatch.currentMatch;
 		if(match == null || match.getGameState() != GameState.INGAME)
 			return;
+		if(event.getEntityType() == EntityType.PLAYER) {
+			GamePlayer victim = GamePlayer.get((Player) event.getEntity());
+			GameTeam victimTeam = match.getTeam(victim);
+			//spawn protection
+			if(victimTeam.isSpawnBlock(victim.getPlayer().getLocation().add(0,-1,0).getBlock())) {
+				event.setCancelled(true);
+				return;
+			}
+		}
 		if(event.getEntityType() == EntityType.PLAYER && event.getDamager() instanceof Player) {
 			GamePlayer victim = GamePlayer.get((Player) event.getEntity());
 			GamePlayer damager = GamePlayer.get((Player) event.getDamager());
@@ -69,6 +81,29 @@ public class EventListener implements Listener{
 			p.setLastDamage(null);
 		}
 		match.respawnPlayer(p);
+	}
+	
+	@EventHandler(ignoreCancelled=true)
+	public void onMove(PlayerMoveEvent event) {
+		GameMatch match = GameMatch.currentMatch;
+		if(match == null)
+			return;
+		GamePlayer p = GamePlayer.get(event.getPlayer());
+		GameTeam t = match.getTeam(p);
+		if(t == null)
+			return;
+		Block b = p.getPlayer().getLocation().add(0,-1,0).getBlock();
+		if(t.isSpawnBlock(b) && !p.isSpawnProtected()){
+			p.setSpawnProtection();
+		}
+		for(GameTeam team : match.getTeams()) {
+			if(team.equals(t))
+				continue;
+			if(team.isSpawnBlock(b)) {
+				p.getPlayer().damage(999);
+				p.getPlayer().sendMessage("Don't walk in the enemy's spawn, dumbass");
+			}
+		}
 	}
 	
 	@EventHandler(ignoreCancelled=true)

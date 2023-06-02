@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.bukkit.Bukkit;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Criteria;
 import org.bukkit.scoreboard.DisplaySlot;
@@ -17,6 +19,7 @@ import org.bukkit.scoreboard.Team;
 import net.dezilla.dectf2.game.GameMatch;
 import net.dezilla.dectf2.game.GameMatch.GameState;
 import net.dezilla.dectf2.game.GameTeam;
+import net.dezilla.dectf2.game.GameTimer;
 import net.dezilla.dectf2.kits.BaseKit;
 import net.dezilla.dectf2.kits.HeavyKit;
 import net.dezilla.dectf2.util.DamageCause;
@@ -42,6 +45,7 @@ public class GamePlayer {
 	private Map<String, Integer> stats = new HashMap<String, Integer>();
 	private DamageCause lastDamage = null;
 	private BaseKit kit;
+	private boolean spawnProtection = false;
 	
 	private GamePlayer(Player player) {
 		this.player = player;
@@ -143,6 +147,40 @@ public class GamePlayer {
 	
 	public BaseKit getKit() {
 		return kit;
+	}
+	
+	public boolean isSpawnProtected() {
+		return spawnProtection;
+	}
+	
+	public void setSpawnProtection() {
+		spawnProtection = true;
+		GameTimer timer = new GameTimer(-1);
+		timer.unpause();
+		timer.onSecond((t) -> {
+			double max = player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
+			double current = player.getHealth();
+			if(current < max) {
+				if(current+1<max)
+					player.setHealth(current+1);
+				else
+					player.setHealth(max);
+			}
+		});
+		timer.onTick((t) -> {
+			GameTeam team = getTeam();
+			if(team == null) {
+				t.unregister();
+				spawnProtection = false;
+				return;
+			}
+			Block block = player.getLocation().add(0,-1,0).getBlock();
+			if(!team.isSpawnBlock(block)) {
+				t.unregister();
+				spawnProtection = false;
+				return;
+			}
+		});
 	}
 	
 	public void setKit(Class<BaseKit> kit) {

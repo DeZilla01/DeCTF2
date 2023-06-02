@@ -8,13 +8,17 @@ import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.util.Vector;
 
 import net.dezilla.dectf2.GameMain;
+import net.dezilla.dectf2.game.GameTimer;
 
 public class SpongeListener implements Listener{
 	static final double X_INTENSITY = 3;
@@ -31,7 +35,19 @@ public class SpongeListener implements Listener{
 		}
 	}
 	
+	@EventHandler(ignoreCancelled=true)
+	public void onDamage(EntityDamageEvent event) {
+		if(event.getEntityType() == EntityType.PLAYER && event.getCause() == DamageCause.FALL) {
+			Player p = (Player) event.getEntity();
+			if(cancelFall.contains(p)) {
+				event.setCancelled(true);
+				cancelFall.remove(p);
+			}
+		}
+	}
+	
 	private static List<SpongeLaunchEvent> spongeEvents = new ArrayList<SpongeLaunchEvent>();
+	private static List<Player> cancelFall = new ArrayList<Player>();
 	
 	public static boolean isLaunched(Player player) {
 		cleanList();
@@ -98,6 +114,20 @@ public class SpongeListener implements Listener{
 			if(v.getX() == 0 && v.getY() == 0 && v.getZ() == 0) {
 				Bukkit.getScheduler().cancelTask(event.getTaskId());
 				event.setComplete(true);
+				GameTimer timer = new GameTimer(-1);
+				cancelFall.add(p);
+				timer.unpause();
+				timer.onTick((t) -> {
+					if(p.isOnGround()) {
+						t.setSeconds(0);
+					}
+				});
+				timer.onEnd((t) -> {
+					if(cancelFall.contains(p)) {
+						cancelFall.remove(p);
+					}
+					t.unregister();
+				});
 			}
 			p.setVelocity(v);
 		}, 0, 1);
