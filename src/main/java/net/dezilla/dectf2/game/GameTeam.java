@@ -22,6 +22,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 
 import net.dezilla.dectf2.GamePlayer;
+import net.dezilla.dectf2.game.ctf.CTFGame;
 import net.dezilla.dectf2.util.GameColor;
 
 public class GameTeam {
@@ -116,6 +117,13 @@ public class GameTeam {
 		if(teamName.equalsIgnoreCase(oldColor.getName()))
 			teamName = color.getName();
 		spawnMaterial = color.spawnBlock();
+		if(GameMatch.currentMatch != null) {
+			GameMatch match = GameMatch.currentMatch;
+			if(match.getGame() instanceof CTFGame) {
+				CTFGame game = (CTFGame) match.getGame();
+				game.updateFlagColors();
+			}
+		}
 		for(Block b : spawnBlocks)
 			b.setType(spawnMaterial);
 		for(Block b : coloredBlocks) {

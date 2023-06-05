@@ -1,5 +1,6 @@
 package net.dezilla.dectf2.commands;
 
+import org.bukkit.advancement.Advancement;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -10,21 +11,16 @@ import net.dezilla.dectf2.GamePlayer;
 import net.dezilla.dectf2.game.GameMatch;
 
 public class TestCommand extends Command{
-
+	//This command is for testing shit during development.
 	public TestCommand() {
 		super("test");
 	}
 
 	@Override
 	public boolean execute(CommandSender sender, String commandLabel, String[] args) {
-		if(GameMatch.currentMatch != null) {
-			sender.sendMessage("Name: "+GameMatch.currentMatch.getMapName());
-			sender.sendMessage("Author: "+GameMatch.currentMatch.getMapAuthor());
-			if(sender instanceof Player) {
-				Player p = (Player) sender;
-				sender.sendMessage("Team - "+GameMatch.currentMatch.getTeam(GamePlayer.get(p)).getColor().getName());
-			}
-		}
+		GameMatch match = GameMatch.currentMatch;
+		Player p = (Player) sender;
+		
 		return true;
 	}
 }

@@ -74,6 +74,10 @@ public class GameTimer {
 		return paused;
 	}
 	
+	public long getTicks() {
+		return ticks;
+	}
+	
 	public void unregister() {
 		Bukkit.getScheduler().cancelTask(taskId);
 	}

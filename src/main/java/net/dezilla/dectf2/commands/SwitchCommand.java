@@ -68,6 +68,7 @@ public class SwitchCommand extends Command {
 			match.addPlayerToTeam(GamePlayer.get(target), match.getTeams()[Arrays.asList(match.getTeams()).indexOf(currentTeam)+1]);
 		}
 		currentTeam = match.getTeam(GamePlayer.get(target));
+		match.respawnPlayer(GamePlayer.get(target));
 		sender.sendMessage("Team switched to: "+currentTeam.getColoredTeamName());
 		return true;
 	}

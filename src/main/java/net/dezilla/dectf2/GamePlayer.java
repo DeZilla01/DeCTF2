@@ -2,11 +2,14 @@ package net.dezilla.dectf2;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.Location;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -23,6 +26,8 @@ import net.dezilla.dectf2.game.GameTimer;
 import net.dezilla.dectf2.kits.BaseKit;
 import net.dezilla.dectf2.kits.HeavyKit;
 import net.dezilla.dectf2.util.DamageCause;
+import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.TextComponent;
 
 public class GamePlayer {
 	
@@ -46,6 +51,8 @@ public class GamePlayer {
 	private DamageCause lastDamage = null;
 	private BaseKit kit;
 	private boolean spawnProtection = false;
+	private PlayerNotificationType notif = PlayerNotificationType.SUBTITLE;
+	private Location deathLocation = null;
 	
 	private GamePlayer(Player player) {
 		this.player = player;
@@ -153,6 +160,22 @@ public class GamePlayer {
 		return spawnProtection;
 	}
 	
+	public String getName() {
+		return player.getDisplayName();
+	}
+	
+	public Location getLocation() {
+		return player.getLocation();
+	}
+	
+	public Location getDeathLocation() {
+		return deathLocation;
+	}
+	
+	public void setDeathLocation(Location location) {
+		deathLocation = location;
+	}
+	
 	public void setSpawnProtection() {
 		spawnProtection = true;
 		GameTimer timer = new GameTimer(-1);
@@ -213,7 +236,7 @@ public class GamePlayer {
 	
 	public String getColoredName() {
 		GameTeam t = getTeam();
-		String prefix = "";
+		String prefix = ChatColor.WHITE+"";
 		if(t != null)
 			prefix = t.getColor().getPrefix();
 		return prefix+player.getName();
@@ -221,6 +244,34 @@ public class GamePlayer {
 	
 	public void applyScoreboard() {
 		player.setScoreboard(score);
+	}
+	
+	public PlayerNotificationType getNotificationType() {
+		return notif;
+	}
+	
+	public void setNotificationType(PlayerNotificationType type) {
+		notif = type;
+	}
+	
+	public void notify(String msg) {
+		switch(notif) {
+			case ACTIONBAR:
+				player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(msg));
+				break;
+			case SUBTITLE:
+				player.sendTitle(ChatColor.RESET+"", msg, 0, 20, 10);
+				break;
+			case CHAT:
+				player.sendMessage(msg);
+				break;
+		}
+	}
+	
+	public static enum PlayerNotificationType {
+		SUBTITLE,
+		ACTIONBAR,
+		CHAT;
 	}
 
 }

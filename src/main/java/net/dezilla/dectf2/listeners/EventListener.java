@@ -1,18 +1,26 @@
 package net.dezilla.dectf2.listeners;
 
+import java.util.Arrays;
+import java.util.List;
+
 import org.bukkit.GameMode;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
+import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerGameModeChangeEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 
@@ -66,7 +74,7 @@ public class EventListener implements Listener{
 		}
 	}
 	
-	@EventHandler
+	@EventHandler(priority=EventPriority.HIGH)
 	public void onDeath(PlayerDeathEvent event) {
 		GameMatch match = GameMatch.currentMatch;
 		if(match==null)
@@ -80,13 +88,14 @@ public class EventListener implements Listener{
 			p.getLastDamage().getDamager().incrementStats("streak", 1);
 			p.setLastDamage(null);
 		}
+		p.setDeathLocation(p.getLocation());
 		match.respawnPlayer(p);
 	}
 	
 	@EventHandler(ignoreCancelled=true)
 	public void onMove(PlayerMoveEvent event) {
 		GameMatch match = GameMatch.currentMatch;
-		if(match == null)
+		if(match == null || match.getGameState() != GameState.INGAME)
 			return;
 		GamePlayer p = GamePlayer.get(event.getPlayer());
 		GameTeam t = match.getTeam(p);
@@ -104,6 +113,43 @@ public class EventListener implements Listener{
 				p.getPlayer().sendMessage("Don't walk in the enemy's spawn, dumbass");
 			}
 		}
+	}
+	
+	@EventHandler
+	public void onGamemodeChange(PlayerGameModeChangeEvent event) {
+		if(event.getNewGameMode() == GameMode.ADVENTURE) {
+			event.getPlayer().setGameMode(GameMode.SURVIVAL);
+			return;
+		}
+		GameMatch match = GameMatch.currentMatch;
+		if(match == null)
+			return;
+		if(event.getNewGameMode() == GameMode.SURVIVAL) {
+			match.respawnPlayer(GamePlayer.get(event.getPlayer()));
+			return;
+		}
+		if(event.getNewGameMode() == GameMode.CREATIVE) {
+			//idk
+		}
+			
+	}
+	
+	@EventHandler(ignoreCancelled=true)
+	public void onInteract(PlayerInteractEvent event) {
+		Block block = event.getClickedBlock();
+		if(block == null || event.getPlayer().getGameMode() == GameMode.CREATIVE)
+			return;
+		List<Material> dontTouchThat = Arrays.asList(Material.CHEST, Material.TRAPPED_CHEST, Material.BARREL);
+		if(dontTouchThat.contains(block.getType()) || block.getType().toString().contains("SHULKER_BOX")) {
+			event.setCancelled(true);
+			return;
+		}
+	}
+	
+	@EventHandler(ignoreCancelled=true)
+	public void onFoodLevelChange(FoodLevelChangeEvent event) {
+		if(event.getEntityType() == EntityType.PLAYER)
+			event.setCancelled(true);
 	}
 	
 	@EventHandler(ignoreCancelled=true)

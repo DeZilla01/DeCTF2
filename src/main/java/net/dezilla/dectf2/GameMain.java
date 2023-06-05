@@ -46,7 +46,8 @@ public class GameMain extends JavaPlugin{
 					new TestCommand(),
 					new SwitchCommand(),
 					new TimerCommand(),
-					new TeamCommand());
+					new TeamCommand(),
+					new FlagCommand());
 			commandMap.registerAll("dectf2", commands);
 		} catch(Exception e) {
 			e.printStackTrace();

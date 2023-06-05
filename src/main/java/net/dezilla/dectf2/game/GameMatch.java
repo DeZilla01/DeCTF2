@@ -78,7 +78,7 @@ public class GameMatch {
 		if(sourceZip == null || !sourceZip.exists()) {
 			File[] files = Util.getWorldList();
 			if(files.length!=0)
-				sourceZip = files[(int) (Math.random()*(files.length-1))];
+				sourceZip = files[(int) (Math.random()*(files.length))];
 		}
 		//At this point, if no valid map is set, big rip
 		if(sourceZip == null || !sourceZip.exists()) {
@@ -119,6 +119,7 @@ public class GameMatch {
 				world.setGameRule(GameRule.DO_MOB_LOOT, false);
 				world.setGameRule(GameRule.SHOW_DEATH_MESSAGES, false);
 				world.setGameRule(GameRule.SPECTATORS_GENERATE_CHUNKS, false);
+				world.setGameRule(GameRule.DO_IMMEDIATE_RESPAWN, true);
 				spawn = world.getSpawnLocation();
 				scoreboardNotif("Parsing signs");
 				parseSigns();
@@ -165,13 +166,19 @@ public class GameMatch {
 						}
 					}
 					else if(state == GameState.POSTGAME) {
-						unload();
-						GameMatch.currentMatch = null;
+						GameMatch.previousMatch = this;
 						try {
 							GameMatch m = new GameMatch(null);
+							//trying to load a duplicate will cause a crash. This will send players to default world but at least avoid a crash
+							if(m.getSourceZip().equals(sourceZip))
+								unload();
 							m.Load((world) -> {
 								for(Player p : Bukkit.getOnlinePlayers())
 									m.addPlayer(GamePlayer.get(p));
+								if(isLoaded()) {
+									unload();
+									currentMatch = m;
+								}
 							});
 						} catch (FileNotFoundException e) {
 							e.printStackTrace();
@@ -220,6 +227,8 @@ public class GameMatch {
 		timer.unregister();
 		gameLoaded = false;
 		game.unregister();
+		if(currentMatch.equals(this))
+			currentMatch = null;
 		for(Player p : world.getPlayers()) 
 			p.teleport(Bukkit.getWorlds().get(0).getSpawnLocation());
 		Bukkit.getServer().unloadWorld(world, false);
@@ -233,12 +242,13 @@ public class GameMatch {
 		} 
 		if(!addedToPreviousTeam)
 			addPlayerToRandomTeam(player);
+		player.getPlayer().setGameMode(GameMode.SURVIVAL);
 		respawnPlayer(player);
 	}
 	
 	public void respawnPlayer(GamePlayer player) {
-		player.getPlayer().setGameMode(GameMode.SURVIVAL);
 		player.getPlayer().setHealth(20.0);
+		player.getPlayer().setFoodLevel(20);
 		player.getPlayer().getInventory().clear();
 		GameTeam team = getTeam(player);
 		if(state != GameState.INGAME || team == null) {
@@ -466,30 +476,40 @@ public class GameMatch {
 		return blockparsed;
 	}
 	
+	public File getSourceZip() {
+		return sourceZip;
+	}
+	
 	public List<String> preGameDisplay() {
 		List<String> list = new ArrayList<String>();
 		if(waitingForPlayers) 
 			list.add("Waiting for players ("+Bukkit.getOnlinePlayers().size()+"/"+GameConfig.playersToStart+")");
 		else
 			list.add("Starts in "+timer.getTimeLeftDisplay());
-		list.add("Gamemode:");
-		list.add(ChatColor.GRAY+" "+game.getGamemodeName());
-		list.add("Map:");
-		list.add(ChatColor.GRAY+" "+name);
-		list.add(" by "+ChatColor.GRAY+author);
-		list.add("Online:");
-		list.add(ChatColor.GRAY+" "+Bukkit.getOnlinePlayers().size());
+		list.add(ChatColor.BOLD+"Gamemode");
+		list.add(ChatColor.GOLD+" "+game.getGamemodeName());
+		list.add(ChatColor.BOLD+"Map");
+		list.add(ChatColor.GOLD+" "+name);
+		list.add(" by "+ChatColor.GOLD+author);
+		list.add(ChatColor.BOLD+"Online");
+		list.add(ChatColor.GOLD+" "+Bukkit.getOnlinePlayers().size());
 		if(!blockparsed)
-			list.add(ChatColor.GRAY+"Blocks parsing...");
-		list.add(""+ChatColor.GRAY+ChatColor.ITALIC+"dezilla.net");
+			list.add(ChatColor.GOLD+"Blocks parsing...");
+		list.add(""+ChatColor.GRAY+ChatColor.ITALIC+GameConfig.serverName);
 		return list;
 	}
 	
 	public List<String> postGameDisplay() {
 		List<String> list = new ArrayList<String>();
-		list.add("DeCTF2");
-		list.add("postgame display");
-		list.add(timer.getTimeLeftDisplay());
+		list.add("Next game in "+timer.getTimeLeftDisplay());
+		list.add(ChatColor.BOLD+"Scores");
+		for(GameTeam t : getTeams()) 
+			list.add(" "+t.getColoredTeamName()+ChatColor.RESET+" "+t.getScore());
+		list.add(ChatColor.RESET+" ");
+		list.add("DeCTF2 is still in");
+		list.add("development. Enjoy");
+		list.add("your stay =)");
+		list.add(""+ChatColor.GRAY+ChatColor.ITALIC+GameConfig.serverName);
 		return list;
 	}
 	

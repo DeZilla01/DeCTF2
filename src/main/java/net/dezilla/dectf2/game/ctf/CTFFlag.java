@@ -1,12 +1,13 @@
 package net.dezilla.dectf2.game.ctf;
 
 import org.bukkit.Bukkit;
+import org.bukkit.DyeColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.Chest;
-import org.bukkit.block.data.Rotatable;
+import org.bukkit.block.data.Directional;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.ArmorStand.LockType;
 import org.bukkit.entity.Entity;
@@ -35,13 +36,17 @@ public class CTFFlag {
 	boolean flagIsHome = true;
 	Entity homeEntity = null;
 	GamePlayer carrier = null;
+	GamePlayer lastCarrier = null;
 	Entity flagEntity = null;
 	ArmorStand sheepHolder = null;
 	Chest homeChest = null;
 	Material flagPostMaterial = null;
 	ItemStack carrierHelmet = null;
 	int woolTaskId = 0;
+	int sheepTaskId = 0;
 	GameTimer resetTimer = null;
+	boolean bannerGrounded = false;
+	boolean dmgWarned = false;
 	
 	public CTFFlag(GameTeam team, Location home, FlagType type) {
 		this.team = team;
@@ -75,7 +80,8 @@ public class CTFFlag {
 			} 
 			case SHEEP:{
 				flagEntity = spawnEntity(homeLocation, true);
-				sheepHolder = (ArmorStand) homeLocation.getWorld().spawnEntity(homeLocation, EntityType.ARMOR_STAND);
+				Location l = homeLocation.clone().add(0,-1,0);
+				sheepHolder = (ArmorStand) homeLocation.getWorld().spawnEntity(l, EntityType.ARMOR_STAND);
 				sheepHolder.setVisible(false);
 				sheepHolder.setGravity(false);
 				sheepHolder.setInvulnerable(true);
@@ -90,8 +96,9 @@ public class CTFFlag {
 				if(homeChest == null) {
 					Block b = homeLocation.getBlock().getRelative(BlockFace.DOWN);
 					b.setType(Material.CHEST);
-					Rotatable r = ((Rotatable) b.getBlockData());
-					r.setRotation(Util.getFacing(homeLocation.clone()));
+					Directional d = (Directional) b.getBlockData();
+					d.setFacing(Util.getFacing(homeLocation.clone()));
+					b.setBlockData(d);
 					homeChest = (Chest) b.getState();
 				}
 				homeChest.getInventory().setItem(13, new ItemStack(color.spawnBlock()));
@@ -122,10 +129,11 @@ public class CTFFlag {
 			}
 			case WOOL:{
 				Item item;
+				Location l = location.clone().add(0,.5,0);
 				if(colored)
-					item = location.getWorld().dropItem(location, new ItemStack(color.wool()));
+					item = location.getWorld().dropItem(l, new ItemStack(color.wool()));
 				else
-					item = location.getWorld().dropItem(location, new ItemStack(Material.WHITE_WOOL));
+					item = location.getWorld().dropItem(l, new ItemStack(Material.WHITE_WOOL));
 				item.setVelocity(new Vector(0,0,0));
 				item.setGravity(false);
 				item.setPickupDelay(999999999);
@@ -133,12 +141,21 @@ public class CTFFlag {
 				return item;
 			}
 			case CHEST:{
-				return null;
+				Item item;
+				Location l = location.clone().add(0,.5,0);
+				item = location.getWorld().dropItem(l, new ItemStack(color.spawnBlock()));
+				item.setVelocity(new Vector(0,0,0));
+				item.setGravity(false);
+				item.setPickupDelay(999999999);
+				item.setUnlimitedLifetime(true);
+				return item;
 			}
 			case SHEEP:{
 				Sheep sheep = (Sheep) location.getWorld().spawnEntity(location, EntityType.SHEEP);
 				if(colored)
 					sheep.setColor(color.dyeColor());
+				else 
+					sheep.setColor(DyeColor.WHITE);
 				sheep.setInvulnerable(true);
 				return sheep;
 			}
@@ -149,6 +166,11 @@ public class CTFFlag {
 	private void unsetCarrier() {
 		if(carrier==null)
 			return;
+		lastCarrier = carrier;
+		if(!carrier.getPlayer().isOnline()) {
+			carrier = null;
+			return;
+		}
 		if(type == FlagType.BANNER) {
 			if(carrierHelmet != null) {
 				carrier.getPlayer().getEquipment().setHelmet(carrierHelmet);
@@ -161,6 +183,16 @@ public class CTFFlag {
 			Bukkit.getScheduler().cancelTask(woolTaskId);
 			woolTaskId = 0;
 		}
+		final GamePlayer pl = carrier;
+		Bukkit.getScheduler().scheduleSyncDelayedTask(GameMain.getInstance(), () -> {
+			if(!pl.getPlayer().isOnline())
+				return;
+			Material flagMat = getFlagItem().getType();
+			for(ItemStack item : pl.getPlayer().getInventory().getContents()) {
+				if(item!=null && item.getType() == flagMat)
+					pl.getPlayer().getInventory().remove(item);
+			}
+		});
 		carrier = null;
 	}
 	
@@ -169,12 +201,44 @@ public class CTFFlag {
 			return homeLocation.clone();
 		else if(carrier != null)
 			return carrier.getPlayer().getLocation();
+		else if(flagEntity instanceof ArmorStand && bannerGrounded)
+			return flagEntity.getLocation().add(0,.9,0);
 		else
 			return flagEntity.getLocation();
 	}
 	
+	public void changeColor(GameColor color) {
+		this.color = color;
+		if(isHome())
+			resetFlag();
+		else if(isDropped()) {
+			if(flagEntity instanceof ArmorStand) {
+				ArmorStand as = (ArmorStand) flagEntity;
+				as.getEquipment().setHelmet(getFlagItem());
+			} else if(flagEntity instanceof Sheep) {
+				Sheep s = (Sheep) flagEntity;
+				s.setColor(color.dyeColor());
+			} else if(flagEntity instanceof Item) {
+				Item i = (Item) flagEntity;
+				i.setItemStack(getFlagItem());
+			}
+		}
+		else if(carrier != null && type == FlagType.BANNER)
+			carrier.getPlayer().getInventory().setHelmet(new ItemStack(color.banner()));
+	}
+	
 	public FlagType getFlagType() {
 		return type;
+	}
+	
+	public void setFlagType(FlagType type) {
+		this.type = type;
+		if(type!=FlagType.CHEST && homeChest != null) {
+			homeChest.getBlock().setType(flagPostMaterial);
+			homeChest = null;
+		}
+		if(isHome())
+			resetFlag();
 	}
 	
 	public boolean isHome() {
@@ -186,11 +250,21 @@ public class CTFFlag {
 	}
 	
 	public boolean inStealRange(GamePlayer player) {
+		if(type == FlagType.CHEST && isHome())
+			return false;
 		return getLocation().distance(player.getPlayer().getLocation()) <= GameConfig.flagStealRadius;
 	}
 	
 	public GameColor getColor() {
 		return color;
+	}
+	
+	public GameTeam getTeam() {
+		return team;
+	}
+	
+	public Chest getHomeChest() {
+		return homeChest;
 	}
 	
 	public boolean isFlagMaterial(Material material) {
@@ -199,9 +273,22 @@ public class CTFFlag {
 		return false;
 	}
 	
+	public ItemStack getFlagItem() {
+		switch(type){
+			case BANNER:
+				return new ItemStack(color.banner());
+			case WOOL:
+				return new ItemStack(color.wool());
+			case CHEST:
+				return new ItemStack(color.spawnBlock());
+			case SHEEP:
+				return new ItemStack(color.wool());
+		}
+		return new ItemStack(color.banner());
+	}
+	
 	public void setCarrier(GamePlayer player) {
 		carrier = player;
-		flagIsHome = false;
 		switch(type) {
 			case BANNER:{
 				ItemStack h = player.getPlayer().getEquipment().getHelmet();
@@ -210,13 +297,24 @@ public class CTFFlag {
 				player.getPlayer().getEquipment().setHelmet(new ItemStack(color.banner()));
 				if(flagEntity!=null && !flagEntity.isDead())
 					flagEntity.remove();
-				homeEntity = spawnEntity(homeLocation, false);
-				player.getPlayer().getInventory().addItem(new ItemStack(color.banner()));
+				if(isHome())
+					homeEntity = spawnEntity(homeLocation, false);
+				player.getPlayer().getInventory().addItem(getFlagItem());
 				break;
 			}
 			case WOOL:{
+				if(flagEntity!=null && !flagEntity.isDead())
+					flagEntity.remove();
+				if(isHome())
+					homeEntity = spawnEntity(homeLocation, false);
+				player.getPlayer().getInventory().addItem(getFlagItem());
 				woolTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(GameMain.getInstance(), () -> {
-					if(carrier == null || !carrier.getPlayer().isOnline() || carrier.getPlayer().isDead() || GameMatch.currentMatch == null || GameMatch.currentMatch.getGameState() != GameState.INGAME) {
+					if(carrier == null || 
+							!carrier.getPlayer().isOnline() || 
+							carrier.getPlayer().isDead() || 
+							GameMatch.currentMatch == null || 
+							GameMatch.currentMatch.getGameState() != GameState.INGAME ||
+							type != FlagType.WOOL) {
 						Bukkit.getScheduler().cancelTask(woolTaskId);
 						woolTaskId = 0;
 						return;
@@ -228,11 +326,72 @@ public class CTFFlag {
 				}, 0, 4);
 				break;
 			}
+			case SHEEP:{
+				if(flagEntity != null && !flagEntity.isDead() && !(flagEntity instanceof Sheep)) {
+					flagEntity.remove();
+				}
+				if(flagEntity==null || flagEntity.isDead())
+					flagEntity = spawnEntity(player.getLocation(), true);
+				Sheep sheep = (Sheep) flagEntity;
+				sheep.setLeashHolder(player.getPlayer());
+				if(isHome()) {
+					homeEntity = spawnEntity(homeLocation, false);
+					Sheep s = (Sheep) homeEntity;
+					s.setLeashHolder(sheepHolder);
+				}
+				player.getPlayer().getInventory().addItem(getFlagItem());
+				sheepTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(GameMain.getInstance(), () -> {
+					if(carrier == null || 
+							!carrier.getPlayer().isOnline() ||
+							player.getPlayer().isDead() ||
+							GameMatch.currentMatch == null ||
+							GameMatch.currentMatch.getGameState() != GameState.INGAME ||
+							type != FlagType.SHEEP) {
+						Bukkit.getScheduler().cancelTask(sheepTaskId);
+						sheepTaskId = 0;
+						return;
+					}
+					if(flagEntity == null || flagEntity.isDead())
+						flagEntity = spawnEntity(carrier.getLocation(), true);
+					Sheep s = (Sheep) flagEntity;
+					if(!s.isLeashed()) {
+						s.teleport(carrier.getLocation());
+						s.setLeashHolder(carrier.getPlayer());
+					}
+				}, 1, 1);
+				break;
+			}
+			case CHEST:{
+				if(flagEntity != null && !flagEntity.isDead()) {
+					flagEntity.remove();
+					flagEntity=null;
+				}
+				homeChest.getInventory().setItem(13, null);
+				player.getPlayer().getInventory().addItem(getFlagItem());
+				break;
+			}
 		}
+		GameTimer timer = new GameTimer(-1);
+		dmgWarned = false;
+		timer.onTick((t) -> {
+			if(carrier == null || carrier.getPlayer().isDead()) {
+				t.unregister();
+				return;
+			}
+			if(t.getTicks() % 300 == 0) {
+				if(!dmgWarned) {
+					carrier.getPlayer().sendMessage("The "+type.fName+" is poisoning you");
+					dmgWarned = true;
+				}
+				carrier.getPlayer().damage(3);
+			}
+		});
+		flagIsHome = false;
 	}
 	
 	public void dropFlag(Location location, Vector velocity) {
 		unsetCarrier();
+		bannerGrounded = false;
 		if(type == FlagType.BANNER) {
 			flagEntity = spawnEntity(location, true);
 			ArmorStand as = (ArmorStand) flagEntity;
@@ -240,11 +399,43 @@ public class CTFFlag {
 			as.setSmall(true);
 			as.setVelocity(velocity);
 		}
-		resetTimer = new GameTimer(16);
+		else if(type == FlagType.WOOL) {
+			flagEntity = spawnEntity(location, true);
+			Item i = (Item) flagEntity;
+			i.setGravity(true);
+			i.setVelocity(velocity);
+		}
+		else if(type == FlagType.CHEST) {
+			flagEntity = spawnEntity(location, true);
+			Item i = (Item) flagEntity;
+			i.setGravity(true);
+			i.setVelocity(velocity);
+		}
+		else if(type == FlagType.SHEEP) {
+			if(flagEntity == null || flagEntity.isDead())
+				flagEntity = spawnEntity(location, true);
+			Sheep s = (Sheep) flagEntity;
+			s.setLeashHolder(null);
+		}
+		resetTimer = new GameTimer(GameConfig.flagReset);
 		resetTimer.unpause();
 		resetTimer.onTick((timer) -> {
-			if(!isDropped())
+			if(!isDropped()) {
 				timer.unregister();
+				return;
+			}
+			if(flagEntity.isDead()) {
+				resetFlag();
+				timer.unregister();
+			}
+			if(flagEntity instanceof ArmorStand && !bannerGrounded) {
+				ArmorStand as = (ArmorStand) flagEntity;
+				if(as.isOnGround()) {
+					as.setGravity(false);
+					as.teleport(as.getLocation().add(0,-.9,0));
+					bannerGrounded = true;
+				}
+			}
 		});
 		resetTimer.onEnd((timer) -> {
 			resetFlag();
@@ -260,11 +451,27 @@ public class CTFFlag {
 		return carrier;
 	}
 	
+	public GamePlayer getLastCarrier() {
+		return lastCarrier;
+	}
+	
 	public static enum FlagType {
-		BANNER,
-		WOOL,
-		CHEST,
-		SHEEP;
+		BANNER("Flag", "Home"),
+		WOOL("Flag", "Home"),
+		CHEST("Flag", "Chest"),
+		SHEEP("Sheep", "Home");
+		String fName;
+		String hName;
+		FlagType(String flagName, String homeName){
+			fName = flagName;
+			hName = homeName;
+		}
+		public String home() {
+			return hName;
+		}
+		public String flag() {
+			return fName;
+		}
 	}
 	
 }
