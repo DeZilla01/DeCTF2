@@ -8,7 +8,7 @@ This project is being created 1 month after the full shutdown of McBrawl, thus r
 The project is currently private to lower expectations from the community. It will be public when I judge it to be ready.
 
 Current Progress:
-CTF is kinda functional, but unfinished. I'm going to work on kits next to be able to get basic features functional. Looking at maybe using OldCombatMechanics plugin as depency.
+CTF is now functional and working as intented \o/. Going to work on BaseKit fairly soon so I can work on combat. Looking at maybe using OldCombatMechanics plugin as depency.
 
 Version:
 This may be a difficult choice for some, but I decided to start this project on MC 1.19. This may be a controversial choice due to combat differences with 1.8, but the fact is 1.8 is now heavily outdated. At the moment I write this I haven't started work on kit/balance, but I plan to introduce 1.8ish combat as far as it can realistically be.
