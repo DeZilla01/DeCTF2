@@ -98,7 +98,7 @@ public class CTFGame extends GameBase implements Listener{
 		for(Entry<GameTeam, CTFFlag> entry : flags.entrySet()) {
 			CTFFlag f = entry.getValue();
 			if(p.getTeam().equals(entry.getKey())) {
-				if(held != null && entry.getValue().inStealRange(p)) {
+				if(held != null && entry.getValue().inStealRange(p) && entry.getValue().isHome()) {
 					p.incrementStats("captures", 1);
 					held.resetFlag();
 					for(Player pl : Bukkit.getOnlinePlayers()) {

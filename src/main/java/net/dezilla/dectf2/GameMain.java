@@ -2,6 +2,7 @@ package net.dezilla.dectf2;
 
 import java.io.FileNotFoundException;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -13,6 +14,9 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import net.dezilla.dectf2.commands.*;
 import net.dezilla.dectf2.game.GameMatch;
+import net.dezilla.dectf2.kits.BaseKit;
+import net.dezilla.dectf2.kits.HeavyKit;
+import net.dezilla.dectf2.kits.TestyKit;
 import net.dezilla.dectf2.listeners.EventListener;
 import net.dezilla.dectf2.listeners.SpongeListener;
 import net.dezilla.dectf2.util.GameConfig;
@@ -24,9 +28,14 @@ public class GameMain extends JavaPlugin{
 	public static GameMain getInstance() {
 		return instance;
 	}
+	
+	private List<Class<? extends BaseKit>> kits = new ArrayList<Class<? extends BaseKit>>();
+	
 	@Override
 	public void onLoad() {
 		instance = this;
+		kits.add(HeavyKit.class);
+		kits.add(TestyKit.class);
 	}
 	
 	@Override

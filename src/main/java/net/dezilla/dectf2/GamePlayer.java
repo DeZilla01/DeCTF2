@@ -152,10 +152,6 @@ public class GamePlayer {
 		return stats.get(key);
 	}
 	
-	public BaseKit getKit() {
-		return kit;
-	}
-	
 	public boolean isSpawnProtected() {
 		return spawnProtection;
 	}
@@ -204,6 +200,10 @@ public class GamePlayer {
 				return;
 			}
 		});
+	}
+	
+	public BaseKit getKit() {
+		return kit;
 	}
 	
 	public void setKit(Class<BaseKit> kit) {

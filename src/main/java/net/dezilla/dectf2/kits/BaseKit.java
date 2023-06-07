@@ -19,9 +19,14 @@ public abstract class BaseKit implements Listener{
 	
 	GamePlayer player;
 	
+	public abstract String getName();
+	
+	public abstract ItemStack getIcon();
+	
 	public BaseKit(GamePlayer player) {
 		this.player = player;
-		Bukkit.getServer().getPluginManager().registerEvents(this, GameMain.getInstance());
+		if(player != null)
+			Bukkit.getServer().getPluginManager().registerEvents(this, GameMain.getInstance());
 	}
 	
 	public void unregister() {
@@ -33,7 +38,7 @@ public abstract class BaseKit implements Listener{
 	@EventHandler
 	public void onItemUse(PlayerInteractEvent event) {
 		Player p = player.getPlayer();
-		if(!event.getPlayer().equals(player))
+		if(!event.getPlayer().equals(p))
 			return;
 		if(event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK) {
 			//Steak

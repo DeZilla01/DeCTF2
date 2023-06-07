@@ -24,5 +24,15 @@ public class HeavyKit extends BaseKit {
 		inv.setItem(0, new ItemStack(Material.DIAMOND_SWORD));
 		inv.setItem(1, new ItemStack(GameConfig.foodMaterial, 3));
 	}
+	
+	@Override
+	public String getName() {
+		return "Heavy";
+	}
+
+	@Override
+	public ItemStack getIcon() {
+		return new ItemStack(Material.DIAMOND_SWORD);
+	}
 
 }
