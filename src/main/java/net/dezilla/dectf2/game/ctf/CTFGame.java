@@ -33,6 +33,7 @@ import net.dezilla.dectf2.game.GameBase;
 import net.dezilla.dectf2.game.GameMatch;
 import net.dezilla.dectf2.game.GameTeam;
 import net.dezilla.dectf2.game.GameTimer;
+import net.dezilla.dectf2.game.GameMatch.GameState;
 import net.dezilla.dectf2.game.ctf.CTFFlag.FlagType;
 import net.dezilla.dectf2.util.GameConfig;
 
@@ -123,6 +124,10 @@ public class CTFGame extends GameBase implements Listener{
 					if(f.isHome()) {
 						GameTimer timer = new GameTimer(-1);
 						timer.onTick((t) -> {
+							if(GameMatch.currentMatch == null || GameMatch.currentMatch.getGameState() != GameState.INGAME) {
+								t.unregister();
+								stealDelays.remove(p);
+							}
 							if(t.getTicks() >=GameConfig.stealDelay) {
 								t.unregister();
 								stealDelays.remove(p);

@@ -2,14 +2,11 @@ package net.dezilla.dectf2;
 
 import java.io.File;
 import java.io.FileFilter;
-import java.util.Arrays;
-import java.util.List;
 
 import org.bukkit.Location;
 import org.bukkit.block.BlockFace;
 import org.bukkit.util.Vector;
 
-import net.dezilla.dectf2.game.GameMatch;
 import net.dezilla.dectf2.util.GameConfig;
 
 public class Util {

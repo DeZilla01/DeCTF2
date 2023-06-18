@@ -6,6 +6,7 @@ import org.bukkit.inventory.PlayerInventory;
 
 import net.dezilla.dectf2.GamePlayer;
 import net.dezilla.dectf2.util.GameConfig;
+import net.dezilla.dectf2.util.ItemBuilder;
 
 public class HeavyKit extends BaseKit {
 
@@ -17,12 +18,12 @@ public class HeavyKit extends BaseKit {
 	public void setInventory() {
 		PlayerInventory inv = player.getPlayer().getInventory();
 		inv.clear();
-		inv.setHelmet(new ItemStack(Material.DIAMOND_HELMET));
-		inv.setChestplate(new ItemStack(Material.DIAMOND_CHESTPLATE));
-		inv.setLeggings(new ItemStack(Material.DIAMOND_LEGGINGS));
-		inv.setBoots(new ItemStack(Material.DIAMOND_BOOTS));
-		inv.setItem(0, new ItemStack(Material.DIAMOND_SWORD));
-		inv.setItem(1, new ItemStack(GameConfig.foodMaterial, 3));
+		inv.setHelmet(ItemBuilder.of(Material.DIAMOND_HELMET).name("Heavy Helmet").unbreakable().get());
+		inv.setChestplate(ItemBuilder.of(Material.DIAMOND_CHESTPLATE).name("Heavy Chestplate").unbreakable().get());
+		inv.setLeggings(ItemBuilder.of(Material.DIAMOND_LEGGINGS).name("Heavy Leggings").unbreakable().get());
+		inv.setBoots(ItemBuilder.of(Material.DIAMOND_BOOTS).name("Heavy Boots").unbreakable().get());
+		inv.setItem(0, ItemBuilder.of(Material.DIAMOND_SWORD).name("Heavy Sword").unbreakable().get());
+		inv.setItem(1, ItemBuilder.of(GameConfig.foodMaterial).name("Heavy Steak").amount(3).get());
 	}
 	
 	@Override

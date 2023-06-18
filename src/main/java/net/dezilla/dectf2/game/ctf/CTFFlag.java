@@ -27,6 +27,7 @@ import net.dezilla.dectf2.game.GameTeam;
 import net.dezilla.dectf2.game.GameTimer;
 import net.dezilla.dectf2.util.GameColor;
 import net.dezilla.dectf2.util.GameConfig;
+import net.dezilla.dectf2.util.ItemBuilder;
 
 public class CTFFlag {
 	GameTeam team;
@@ -187,9 +188,8 @@ public class CTFFlag {
 		Bukkit.getScheduler().scheduleSyncDelayedTask(GameMain.getInstance(), () -> {
 			if(!pl.getPlayer().isOnline())
 				return;
-			Material flagMat = getFlagItem().getType();
 			for(ItemStack item : pl.getPlayer().getInventory().getContents()) {
-				if(item!=null && item.getType() == flagMat)
+				if(item!=null && ItemBuilder.getData(item) != null && ItemBuilder.getData(item).equals("flag"))
 					pl.getPlayer().getInventory().remove(item);
 			}
 		});
@@ -274,17 +274,14 @@ public class CTFFlag {
 	}
 	
 	public ItemStack getFlagItem() {
-		switch(type){
-			case BANNER:
-				return new ItemStack(color.banner());
-			case WOOL:
-				return new ItemStack(color.wool());
-			case CHEST:
-				return new ItemStack(color.spawnBlock());
-			case SHEEP:
-				return new ItemStack(color.wool());
-		}
-		return new ItemStack(color.banner());
+		Material m = color.banner();
+		if(type == FlagType.WOOL)
+			m = color.wool();
+		else if(type == FlagType.SHEEP)
+			m = color.wool();
+		else if(type == FlagType.CHEST)
+			m = color.spawnBlock();
+		return ItemBuilder.of(m).name(team.getTeamName()+" "+type.fName).data("flag").get();
 	}
 	
 	public void setCarrier(GamePlayer player) {
@@ -374,7 +371,7 @@ public class CTFFlag {
 		GameTimer timer = new GameTimer(-1);
 		dmgWarned = false;
 		timer.onTick((t) -> {
-			if(carrier == null || carrier.getPlayer().isDead()) {
+			if(carrier == null || carrier.getPlayer().isDead() || GameMatch.currentMatch == null || GameMatch.currentMatch.getGameState() != GameState.INGAME) {
 				t.unregister();
 				return;
 			}
