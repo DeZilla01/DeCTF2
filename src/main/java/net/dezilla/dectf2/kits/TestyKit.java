@@ -7,8 +7,8 @@ import net.dezilla.dectf2.GamePlayer;
 
 public class TestyKit extends BaseKit{
 
-	public TestyKit(GamePlayer player) {
-		super(player);
+	public TestyKit(GamePlayer player, int variation) {
+		super(player, variation);
 	}
 
 	@Override
@@ -25,6 +25,18 @@ public class TestyKit extends BaseKit{
 	@Override
 	public ItemStack getIcon() {
 		return new ItemStack(Material.COMMAND_BLOCK);
+	}
+
+	@Override
+	public void setAttributes() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public String[] getVariations() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

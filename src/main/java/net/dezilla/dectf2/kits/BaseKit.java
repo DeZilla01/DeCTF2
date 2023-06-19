@@ -23,8 +23,11 @@ public abstract class BaseKit implements Listener{
 	
 	public abstract ItemStack getIcon();
 	
-	public BaseKit(GamePlayer player) {
+	public abstract String[] getVariations();
+	
+	public BaseKit(GamePlayer player, int variation) {
 		this.player = player;
+		//player can be null, mainly to access kit name, icons, desc, etc...
 		if(player != null)
 			Bukkit.getServer().getPluginManager().registerEvents(this, GameMain.getInstance());
 	}
@@ -33,7 +36,14 @@ public abstract class BaseKit implements Listener{
 		HandlerList.unregisterAll(this);
 	}
 	
-	public abstract void setInventory();
+	public void setInventory() {
+		setAttributes();
+		setEffects();
+	}
+	
+	public void setAttributes() {}
+	
+	public void setEffects() {}
 	
 	@EventHandler
 	public void onItemUse(PlayerInteractEvent event) {

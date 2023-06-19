@@ -1,8 +1,10 @@
 package net.dezilla.dectf2.listeners;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -15,6 +17,7 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
@@ -24,11 +27,13 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 
+import net.dezilla.dectf2.GameMain;
 import net.dezilla.dectf2.GamePlayer;
 import net.dezilla.dectf2.game.GameMatch;
 import net.dezilla.dectf2.game.GameMatch.GameState;
 import net.dezilla.dectf2.game.GameTeam;
-import net.dezilla.dectf2.util.DamageCause;
+import net.dezilla.dectf2.util.CustomDamageCause;
+import net.md_5.bungee.api.ChatColor;
 
 public class EventListener implements Listener{
 
@@ -69,8 +74,7 @@ public class EventListener implements Listener{
 		if(event.getEntityType() == EntityType.PLAYER && event.getDamager() instanceof Player) {
 			GamePlayer victim = GamePlayer.get((Player) event.getEntity());
 			GamePlayer damager = GamePlayer.get((Player) event.getDamager());
-			DamageCause d = new DamageCause(victim, damager, damager.getPlayer().getInventory().getItemInMainHand());
-			victim.setLastDamage(d);
+			victim.setLastAttacker(damager);
 		}
 	}
 	
@@ -81,15 +85,136 @@ public class EventListener implements Listener{
 			return;
 		GamePlayer p = GamePlayer.get(event.getEntity());
 		p.incrementStats("deaths", 1);
-		event.setDeathMessage(null);
-		if(p.getLastDamage()!= null) {
-			event.setDeathMessage(p.getLastDamage().getDeathMessage());
-			p.getLastDamage().getDamager().incrementStats("kills", 1);
-			p.getLastDamage().getDamager().incrementStats("streak", 1);
-			p.setLastDamage(null);
+		GamePlayer killer = p.getLastAttacker();
+		if(killer != null) {
+			killer.incrementStats("kills", 1);
+			killer.incrementStats("streak", 1);
+			p.setLastAttacker(null);
 		}
-		p.setDeathLocation(p.getLocation());
-		match.respawnPlayer(p);
+		Bukkit.getScheduler().scheduleSyncDelayedTask(GameMain.getInstance(), () -> match.respawnPlayer(p));
+		//Death Message
+		String msg = p.getColoredName()+ChatColor.RESET+" ";
+		DamageCause cause = p.getPlayer().getLastDamageCause().getCause();
+		List<String> list = new ArrayList<String>();
+		boolean notByKiller = false;
+		switch(cause) {
+			case BLOCK_EXPLOSION:
+				list.add("exploded into pieces");
+				break;
+			case CONTACT:
+				list.add("kissed the wrong block");
+				notByKiller=true;
+				break;
+			case CRAMMING:
+				list.add("was squished too much");
+				break;
+			case CUSTOM:
+				CustomDamageCause customCause = p.getCustomDamageCause();
+				if(customCause == null)
+					break;
+				switch(customCause) {
+					case ENEMY_SPAWN:
+						list.add("walked in the wrong spawn");
+						notByKiller = true;
+						break;
+					case FLAG_POISON:
+						list.add("died from flag poisoning");
+						notByKiller = true;
+						break;
+					case SPAWN_WITH_FLAG:
+						list.add("decided that he would bring the flag to his spawn");
+						notByKiller = true;
+						break;
+					default:
+						break;
+				}
+				break;
+			case DRAGON_BREATH:
+				list.add("was roasted in dragon's breath");
+				break;
+			case DROWNING:
+				list.add("drowned");
+				notByKiller = true;
+				break;
+			case DRYOUT:
+				list.add("died from dehydration");
+				notByKiller = true;
+				break;
+			case ENTITY_ATTACK:
+				list.add("was slain");
+				list.add("was killed");
+				break;
+			case ENTITY_EXPLOSION:
+				list.add("exploded into pieces");
+				list.add("was blown up");
+				break;
+			case ENTITY_SWEEP_ATTACK:
+				list.add("was sweeped");
+				break;
+			case FALL:
+				list.add("fell from too high");
+				list.add("forgot he can't fly");
+				list.add("broke his legs");
+				notByKiller = true;
+				break;
+			case FALLING_BLOCK:
+				break;
+			case FIRE:
+				break;
+			case FIRE_TICK:
+				break;
+			case FLY_INTO_WALL:
+				break;
+			case FREEZE:
+				break;
+			case HOT_FLOOR:
+				break;
+			case KILL:
+				break;
+			case LAVA:
+				break;
+			case LIGHTNING:
+				break;
+			case MAGIC:
+				break;
+			case MELTING:
+				break;
+			case POISON:
+				break;
+			case PROJECTILE:
+				break;
+			case SONIC_BOOM:
+				break;
+			case STARVATION:
+				break;
+			case SUFFOCATION:
+				break;
+			case SUICIDE:
+				break;
+			case THORNS:
+				break;
+			case VOID:
+				break;
+			case WITHER:
+				break;
+			case WORLD_BORDER:
+				break;
+			default:
+				break;
+		}
+		if(list.isEmpty())
+			list.add("died");
+		msg+=list.get((int) (Math.random()*list.size()));
+		if(killer != null) {
+			if(notByKiller)
+				msg+=" while running from ";
+			else
+				msg+=" by ";
+			msg+=killer.getColoredName()+ChatColor.RESET+".";
+			killer.getPlayer().sendMessage(msg);
+		} else
+			msg+=".";
+		p.getPlayer().sendMessage(msg);
 	}
 	
 	@EventHandler(ignoreCancelled=true)
@@ -109,8 +234,8 @@ public class EventListener implements Listener{
 			if(team.equals(t))
 				continue;
 			if(team.isSpawnBlock(b)) {
-				p.getPlayer().damage(999);
-				p.getPlayer().sendMessage("Don't walk in the enemy's spawn, dumbass");
+				p.setCustomDamageCause(CustomDamageCause.ENEMY_SPAWN);
+				p.getPlayer().damage(9999);
 			}
 		}
 	}

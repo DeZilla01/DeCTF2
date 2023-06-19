@@ -2,10 +2,19 @@ package net.dezilla.dectf2;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
+import java.util.UUID;
 
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.util.Vector;
+
+import com.mojang.authlib.GameProfile;
+import com.mojang.authlib.properties.Property;
 
 import net.dezilla.dectf2.util.GameConfig;
 
@@ -75,4 +84,56 @@ public class Util {
 		return BlockFace.NORTH;
 		
 	}
+	
+	public static ItemStack createTexturedHead(String texture) {
+		ItemStack head = new ItemStack(Material.PLAYER_HEAD);
+		SkullMeta meta = (SkullMeta) head.getItemMeta();
+
+		mutateItemMeta(meta, texture);
+		head.setItemMeta(meta);
+
+		return head;
+	}
+	
+	private static Method metaSetProfileMethod;
+	private static Field metaProfileField;
+	
+	private static void mutateItemMeta(SkullMeta meta, String b64) {
+		//This is not my code. I stole it from another plugin. I'm a terrible person
+		try {
+			if (metaSetProfileMethod == null) {
+				metaSetProfileMethod = meta.getClass().getDeclaredMethod("setProfile", GameProfile.class);
+				metaSetProfileMethod.setAccessible(true);
+			}
+			metaSetProfileMethod.invoke(meta, makeProfile(b64));
+		} catch (Exception ex) {
+			// if in an older API where there is no setProfile method,
+			// we set the profile field directly.
+			try {
+				if (metaProfileField == null) {
+					metaProfileField = meta.getClass().getDeclaredField("profile");
+					metaProfileField.setAccessible(true);
+				}
+				metaProfileField.set(meta, makeProfile(b64));
+
+			} catch (NoSuchFieldException | IllegalAccessException ex2) {
+				ex2.printStackTrace();
+			}
+		}
+	}
+	
+	private static GameProfile makeProfile(String b64) {
+		//This is not my code I stole it from another plugin. I'm a terrible person
+		// random uuid based on the b64 string
+		UUID id = new UUID(
+				b64.substring(b64.length() - 20).hashCode(),
+				b64.substring(b64.length() - 10).hashCode()
+		);
+		GameProfile profile = new GameProfile(id, "aaaaa");
+		profile.getProperties().put("textures", new Property("textures", b64));
+		return profile;
+	}
+	
+	
+	
 }

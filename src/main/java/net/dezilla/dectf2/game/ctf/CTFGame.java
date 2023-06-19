@@ -35,6 +35,7 @@ import net.dezilla.dectf2.game.GameTeam;
 import net.dezilla.dectf2.game.GameTimer;
 import net.dezilla.dectf2.game.GameMatch.GameState;
 import net.dezilla.dectf2.game.ctf.CTFFlag.FlagType;
+import net.dezilla.dectf2.util.CustomDamageCause;
 import net.dezilla.dectf2.util.GameConfig;
 
 public class CTFGame extends GameBase implements Listener{
@@ -92,8 +93,8 @@ public class CTFGame extends GameBase implements Listener{
 		GamePlayer p = GamePlayer.get(event.getPlayer());
 		CTFFlag held = getHeldFlag(p);
 		if(p.isSpawnProtected() && held != null) {
+			p.setCustomDamageCause(CustomDamageCause.SPAWN_WITH_FLAG);
 			p.getPlayer().damage(9999);
-			p.getPlayer().sendMessage("What did you expect? Let's just camp in the spawn with the flag to stall the game? As if I'd let you.");
 			held.resetFlag();
 		}
 		for(Entry<GameTeam, CTFFlag> entry : flags.entrySet()) {
@@ -155,6 +156,7 @@ public class CTFGame extends GameBase implements Listener{
 						for(Player pl : Bukkit.getOnlinePlayers()) {
 							GamePlayer.get(pl).notify(p.getColoredName()+ChatColor.RESET+" has taken "+f.getTeam().getColoredTeamName()+ChatColor.RESET+" "+f.getFlagType().flag());
 						}
+						break;
 					}
 				}
 			}
@@ -191,8 +193,6 @@ public class CTFGame extends GameBase implements Listener{
 		GamePlayer p = GamePlayer.get(event.getEntity());
 		CTFFlag held = getHeldFlag(p);
 		Location l = p.getLocation();
-		if(p.getDeathLocation()!=null)
-			l = p.getDeathLocation();
 		if(held != null) {
 			held.dropFlag(l.add(0,2,0), new Vector(0,0,0));
 			for(Player pl : Bukkit.getOnlinePlayers()) {

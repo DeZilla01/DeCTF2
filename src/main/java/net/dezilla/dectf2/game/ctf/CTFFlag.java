@@ -16,6 +16,8 @@ import org.bukkit.entity.Item;
 import org.bukkit.entity.Sheep;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 
 import net.dezilla.dectf2.GameMain;
@@ -25,6 +27,7 @@ import net.dezilla.dectf2.game.GameMatch;
 import net.dezilla.dectf2.game.GameMatch.GameState;
 import net.dezilla.dectf2.game.GameTeam;
 import net.dezilla.dectf2.game.GameTimer;
+import net.dezilla.dectf2.util.CustomDamageCause;
 import net.dezilla.dectf2.util.GameColor;
 import net.dezilla.dectf2.util.GameConfig;
 import net.dezilla.dectf2.util.ItemBuilder;
@@ -106,6 +109,9 @@ public class CTFFlag {
 				break;
 			}
 		}
+		if(flagEntity != null && GameConfig.flagGlow) {
+			flagEntity.setGlowing(true);
+		}
 		flagIsHome = true;
 	}
 	
@@ -118,6 +124,8 @@ public class CTFFlag {
 				as.setVisible(false);
 				as.setGravity(false);
 				as.setInvulnerable(true);
+				as.setMarker(true);
+				as.setVisible(false);
 				for(EquipmentSlot es : EquipmentSlot.values()) {
 					as.addEquipmentLock(es, LockType.ADDING_OR_CHANGING);
 					as.addEquipmentLock(es, LockType.REMOVING_OR_CHANGING);
@@ -184,6 +192,8 @@ public class CTFFlag {
 			Bukkit.getScheduler().cancelTask(woolTaskId);
 			woolTaskId = 0;
 		}
+		if(carrier.getPlayer().hasPotionEffect(PotionEffectType.GLOWING))
+			carrier.getPlayer().removePotionEffect(PotionEffectType.GLOWING);
 		final GamePlayer pl = carrier;
 		Bukkit.getScheduler().scheduleSyncDelayedTask(GameMain.getInstance(), () -> {
 			if(!pl.getPlayer().isOnline())
@@ -277,8 +287,45 @@ public class CTFFlag {
 		Material m = color.banner();
 		if(type == FlagType.WOOL)
 			m = color.wool();
-		else if(type == FlagType.SHEEP)
-			m = color.wool();
+		else if(type == FlagType.SHEEP) {
+			ItemStack s;
+			switch (color) {
+            	case BLACK:
+            		s = Util.createTexturedHead("eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMzI2NTIwODNmMjhlZDFiNjFmOWI5NjVkZjFhYmYwMTBmMjM0NjgxYzIxNDM1OTUxYzY3ZDg4MzY0NzQ5ODIyIn19fQ==");break;
+            	case BLUE:
+            		s = Util.createTexturedHead("eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZDllYzIyODE4ZDFmYmZjODE2N2ZiZTM2NzI4YjI4MjQwZTM0ZTE2NDY5YTI5MjlkMDNmZGY1MTFiZjJjYTEifX19");break;
+            	case BROWN:
+            		s = Util.createTexturedHead("eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYTU1YWQ2ZTVkYjU2OTJkODdmNTE1MTFmNGUwOWIzOWZmOWNjYjNkZTdiNDgxOWE3Mzc4ZmNlODU1M2I4In19fQ==");break;
+            	case CYAN:
+            		s = Util.createTexturedHead("eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNDZmNmM3ZTdmZDUxNGNlMGFjYzY4NTkzMjI5ZTQwZmNjNDM1MmI4NDE2NDZlNGYwZWJjY2NiMGNlMjNkMTYifX19");break;
+            	case DARK_GRAY:
+            		s = Util.createTexturedHead("eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvNDI4N2ViNTAxMzkxZjI3NTM4OWYxNjZlYzlmZWJlYTc1ZWM0YWU5NTFiODhiMzhjYWU4N2RmN2UyNGY0YyJ9fX0=");break;
+            	case DARK_GREEN:
+            		s = Util.createTexturedHead("eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYTAxNzIxNWM3ZjhkYjgyMDQwYWEyYzQ3Mjk4YjY2NTQxYzJlYjVmN2Y5MzA0MGE1ZDIzZDg4ZjA2ODdkNGIzNCJ9fX0=");break;
+            	case LIGHT_BLUE:
+            		s = Util.createTexturedHead("eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMWM4YTk3YTM4ODU2NTE0YTE2NDEzZTJjOTk1MjEyODlmNGM1MzYzZGM4MmZjOWIyODM0Y2ZlZGFjNzhiODkifX19");break;
+            	case GREEN:
+            		s = Util.createTexturedHead("eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvOTJhMjQ0OGY1OGE0OTEzMzI0MzRlODVjNDVkNzg2ZDg3NDM5N2U4MzBhM2E3ODk0ZTZkOTI2OTljNDJiMzAifX19");break;
+            	case MAGENTA:
+            		s = Util.createTexturedHead("eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMTgzNjU2NWM3ODk3ZDQ5YTcxYmMxODk4NmQxZWE2NTYxMzIxYTBiYmY3MTFkNDFhNTZjZTNiYjJjMjE3ZTdhIn19fQ==");break;
+            	case ORANGE:
+            		s = Util.createTexturedHead("eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZjA5ODM5N2EyNzBiNGMzZDJiMWU1NzRiOGNmZDNjYzRlYTM0MDkwNjZjZWZlMzFlYTk5MzYzM2M5ZDU3NiJ9fX0=");break;
+            	case PINK:
+            		s = Util.createTexturedHead("eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMmFjNzRhMmI5YjkxNDUyZTU2ZmExZGRhNWRiODEwNzc4NTZlNDlmMjdjNmUyZGUxZTg0MWU1Yzk1YTZmYzVhYiJ9fX0=");break;
+            	case PURPLE:
+            		s = Util.createTexturedHead("eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYWU1Mjg2N2FmZWYzOGJiMTRhMjZkMTQyNmM4YzBmMTE2YWQzNDc2MWFjZDkyZTdhYWUyYzgxOWEwZDU1Yjg1In19fQ==");break;
+            	case RED:
+            		s = Util.createTexturedHead("eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvODM5YWY0NzdlYjYyNzgxNWY3MjNhNTY2MjU1NmVjOWRmY2JhYjVkNDk0ZDMzOGJkMjE0MjMyZjIzZTQ0NiJ9fX0=");break;
+            	case GRAY:
+            		s = Util.createTexturedHead("eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvY2UxYWM2ODM5OTNiZTM1NTEyZTFiZTMxZDFmNGY5OGU1ODNlZGIxNjU4YTllMjExOTJjOWIyM2I1Y2NjZGMzIn19fQ==");break;
+            	case YELLOW:
+            		s = Util.createTexturedHead("eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMjZhNDExMmRmMWU0YmNlMmE1ZTI4NDE3ZjNhYWZmNzljZDY2ZTg4NWMzNzI0NTU0MTAyY2VmOGViOCJ9fX0=");break;
+            		//white
+            	default:
+            		s = Util.createTexturedHead("eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZjMxZjljY2M2YjNlMzJlY2YxM2I4YTExYWMyOWNkMzNkMThjOTVmYzczZGI4YTY2YzVkNjU3Y2NiOGJlNzAifX19");break;
+			}
+			return ItemBuilder.of(s).name(team.getTeamName()+" "+type.fName).data("flag").get();
+		}
 		else if(type == FlagType.CHEST)
 			m = color.spawnBlock();
 		return ItemBuilder.of(m).name(team.getTeamName()+" "+type.fName).data("flag").get();
@@ -286,6 +333,8 @@ public class CTFFlag {
 	
 	public void setCarrier(GamePlayer player) {
 		carrier = player;
+		if(GameConfig.flagGlow)
+			player.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, PotionEffect.INFINITE_DURATION, 0));
 		switch(type) {
 			case BANNER:{
 				ItemStack h = player.getPlayer().getEquipment().getHelmet();
@@ -319,6 +368,7 @@ public class CTFFlag {
 					Location l = carrier.getPlayer().getLocation().add(0,2.5,0);
 					Item i = l.getWorld().dropItem(l, new ItemStack(color.wool()));
 					i.setVelocity(i.getVelocity().multiply(new Vector(.3,2,.3)));
+					i.setGlowing(true);
 					Bukkit.getScheduler().scheduleSyncDelayedTask(GameMain.getInstance(), () -> i.remove(), 12);
 				}, 0, 4);
 				break;
@@ -380,6 +430,7 @@ public class CTFFlag {
 					carrier.getPlayer().sendMessage("The "+type.fName+" is poisoning you");
 					dmgWarned = true;
 				}
+				carrier.setCustomDamageCause(CustomDamageCause.FLAG_POISON);
 				carrier.getPlayer().damage(3);
 			}
 		});
@@ -392,6 +443,7 @@ public class CTFFlag {
 		if(type == FlagType.BANNER) {
 			flagEntity = spawnEntity(location, true);
 			ArmorStand as = (ArmorStand) flagEntity;
+			as.setMarker(false);
 			as.setGravity(true);
 			as.setSmall(true);
 			as.setVelocity(velocity);
@@ -414,6 +466,9 @@ public class CTFFlag {
 			Sheep s = (Sheep) flagEntity;
 			s.setLeashHolder(null);
 		}
+		if(flagEntity != null && GameConfig.flagGlow) {
+			flagEntity.setGlowing(true);
+		}
 		resetTimer = new GameTimer(GameConfig.flagReset);
 		resetTimer.unpause();
 		resetTimer.onTick((timer) -> {
@@ -430,6 +485,7 @@ public class CTFFlag {
 				if(as.isOnGround()) {
 					as.setGravity(false);
 					as.teleport(as.getLocation().add(0,-.9,0));
+					as.setMarker(true);
 					bannerGrounded = true;
 				}
 			}

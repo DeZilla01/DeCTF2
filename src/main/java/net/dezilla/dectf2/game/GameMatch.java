@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +31,7 @@ import net.dezilla.dectf2.GamePlayer;
 import net.dezilla.dectf2.Util;
 import net.dezilla.dectf2.util.WorldRunnable;
 import net.dezilla.dectf2.game.ctf.CTFGame;
+import net.dezilla.dectf2.gui.MapVoteGui;
 import net.dezilla.dectf2.util.GameColor;
 import net.dezilla.dectf2.util.GameConfig;
 import net.dezilla.dectf2.util.UnzipUtility;
@@ -64,15 +66,16 @@ public class GameMatch {
 	private Map<Integer, Location> teamSpawns = new HashMap<Integer, Location>();//this var is only used between sign parse and team creations, use GameTeam#getSpawn()
 	private Map<Integer, Material> spawnMat = new HashMap<Integer, Material>();
 	private boolean blockparsed = false;
+	private GameMapVote mapVote = null;
 	
 	public GameMatch(String levelName) throws FileNotFoundException {
 		//Set chosen level
 		if(levelName != null)
-			sourceZip = new File(Util.getGameMapFolder().getPath()+levelName);
+			sourceZip = new File(Util.getGameMapFolder().getPath()+File.separator+levelName);
 		//Set to default level if not valid or null
 		if(sourceZip == null || !sourceZip.exists()) {
 			if(GameConfig.defaultMap!=null)
-				sourceZip = new File(Util.getGameMapFolder().getPath()+GameConfig.defaultMap);
+				sourceZip = new File(Util.getGameMapFolder().getPath()+File.separator+GameConfig.defaultMap);
 		}
 		//Incase default level is not configured or not valid, choose a random map
 		if(sourceZip == null || !sourceZip.exists()) {
@@ -164,11 +167,12 @@ public class GameMatch {
 							if(p.getGameMode() == GameMode.SURVIVAL) 
 								respawnPlayer(GamePlayer.get(p));
 						}
+						createMapVote(true);
 					}
 					else if(state == GameState.POSTGAME) {
 						GameMatch.previousMatch = this;
 						try {
-							GameMatch m = new GameMatch(null);
+							GameMatch m = new GameMatch(mapVote.getWinner());
 							//trying to load a duplicate will cause a crash. This will send players to default world but at least avoid a crash
 							if(m.getSourceZip().equals(sourceZip))
 								unload();
@@ -244,6 +248,23 @@ public class GameMatch {
 			addPlayerToRandomTeam(player);
 		player.getPlayer().setGameMode(GameMode.SURVIVAL);
 		respawnPlayer(player);
+	}
+	
+	public void createMapVote(boolean openGui) {
+		List<File> files = Arrays.asList(Util.getWorldList());
+		List<String> choices = new ArrayList<String>();
+		while(choices.size() < GameConfig.mapVoteAmount && choices.size() < files.size()) {
+			File f = files.get((int) (Math.random()*files.size()));
+			if(choices.contains(f.getName()))
+				continue;
+			choices.add(f.getName());
+		}
+		mapVote = new GameMapVote(choices);
+		if(openGui) {
+			for(Player p : world.getPlayers()) {
+				new MapVoteGui(p, mapVote).display();
+			}
+		}
 	}
 	
 	public void respawnPlayer(GamePlayer player) {

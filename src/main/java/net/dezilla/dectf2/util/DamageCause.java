@@ -5,6 +5,7 @@ import org.bukkit.inventory.ItemStack;
 
 import net.dezilla.dectf2.GamePlayer;
 
+@Deprecated
 public class DamageCause {
 	GamePlayer damager;
 	GamePlayer victim;

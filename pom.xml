@@ -32,7 +32,15 @@
       <artifactId>spigot-api</artifactId>
       <version>1.20.1-R0.1-SNAPSHOT</version>
       <scope>provided</scope>
-    </dependency>   
+    </dependency>
+    <!-- Some libs I lazily added from system, deal with it -->   
+    <dependency>
+      <groupId>com.mojang</groupId>
+      <artifactId>authlib</artifactId>
+      <version>4.0.43</version>
+      <scope>system</scope>
+      <systemPath>/media/dezilla/Carrot/jars/spigot-1.20/META-INF/libraries/authlib-4.0.43.jar</systemPath>
+    </dependency>
   </dependencies>
 
   <build>

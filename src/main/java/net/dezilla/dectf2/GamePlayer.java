@@ -2,7 +2,6 @@ package net.dezilla.dectf2;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,6 +24,7 @@ import net.dezilla.dectf2.game.GameTeam;
 import net.dezilla.dectf2.game.GameTimer;
 import net.dezilla.dectf2.kits.BaseKit;
 import net.dezilla.dectf2.kits.HeavyKit;
+import net.dezilla.dectf2.util.CustomDamageCause;
 import net.dezilla.dectf2.util.DamageCause;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -49,10 +49,11 @@ public class GamePlayer {
 	private Scoreboard score;
 	private Map<String, Integer> stats = new HashMap<String, Integer>();
 	private DamageCause lastDamage = null;
+	private GamePlayer lastAttacker = null;
+	private CustomDamageCause damageCause= null;
 	private BaseKit kit;
 	private boolean spawnProtection = false;
 	private PlayerNotificationType notif = PlayerNotificationType.SUBTITLE;
-	private Location deathLocation = null;
 	
 	private GamePlayer(Player player) {
 		this.player = player;
@@ -60,7 +61,7 @@ public class GamePlayer {
 		score = Bukkit.getScoreboardManager().getNewScoreboard();
 		applyScoreboard();
 		updateScoreboardDisplay();
-		kit = new HeavyKit(this);
+		kit = new HeavyKit(this, 0);
 	}
 	
 	public Player getPlayer() {
@@ -122,20 +123,23 @@ public class GamePlayer {
 			display.getScore(i).setScore(s--);
 	}
 	
+	private int scoreid = Integer.MIN_VALUE;
 	public void updateScoreboardDisplay(List<String> list) {
 		List<String> displayList = new ArrayList<String>(list);
-		Objective display = score.getObjective("display");
-		if(display != null)
-			display.unregister();
-		display = score.registerNewObjective("display", Criteria.DUMMY, "display");
-		display.setDisplaySlot(DisplaySlot.SIDEBAR);
+		Objective oldDisplay = score.getObjective(""+(scoreid-1));
 		
-		display.setDisplayName(displayList.get(0));
+		Objective newDisplay = score.registerNewObjective(""+scoreid++, Criteria.DUMMY, "display");
+		
+		newDisplay.setDisplayName(displayList.get(0));
 		displayList.remove(0);
 		
 		int s = displayList.size()-1;
 		for(String i : displayList)
-			display.getScore(i).setScore(s--);
+			newDisplay.getScore(i).setScore(s--);
+		
+		newDisplay.setDisplaySlot(DisplaySlot.SIDEBAR);
+		if(oldDisplay != null)
+			oldDisplay.unregister();
 	}
 	
 	public void setStats(String key, int amount) {
@@ -162,14 +166,6 @@ public class GamePlayer {
 	
 	public Location getLocation() {
 		return player.getLocation();
-	}
-	
-	public Location getDeathLocation() {
-		return deathLocation;
-	}
-	
-	public void setDeathLocation(Location location) {
-		deathLocation = location;
 	}
 	
 	public void setSpawnProtection() {
@@ -228,6 +224,22 @@ public class GamePlayer {
 		return lastDamage;
 	}
 	
+	public CustomDamageCause getCustomDamageCause() {
+		return damageCause;
+	}
+	
+	public void setCustomDamageCause(CustomDamageCause cause) {
+		damageCause = cause;
+	}
+	
+	public GamePlayer getLastAttacker() {
+		return lastAttacker;
+	}
+	
+	public void setLastAttacker(GamePlayer attacker) {
+		lastAttacker = attacker;
+	}
+	
 	public GameTeam getTeam() {
 		if(GameMatch.currentMatch == null)
 			return null;
@@ -260,7 +272,7 @@ public class GamePlayer {
 				player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(msg));
 				break;
 			case SUBTITLE:
-				player.sendTitle(ChatColor.RESET+"", msg, 0, 20, 10);
+				player.sendTitle(ChatColor.RESET+"", msg, 0, 40, 10);
 				break;
 			case CHAT:
 				player.sendMessage(msg);
