@@ -501,6 +501,10 @@ public class GameMatch {
 		return sourceZip;
 	}
 	
+	public GameMapVote getMapVote() {
+		return mapVote;
+	}
+	
 	public List<String> preGameDisplay() {
 		List<String> list = new ArrayList<String>();
 		if(waitingForPlayers) 
@@ -527,9 +531,11 @@ public class GameMatch {
 		for(GameTeam t : getTeams()) 
 			list.add(" "+t.getColoredTeamName()+ChatColor.RESET+" "+t.getScore());
 		list.add(ChatColor.RESET+" ");
-		list.add("DeCTF2 is still in");
-		list.add("development. Enjoy");
-		list.add("your stay =)");
+		if(mapVote != null) {
+			list.add(ChatColor.BOLD+"Next Map "+ChatColor.RESET+"- /vote");
+			for(String s : mapVote.getZipList())
+				list.add(" "+s+" "+ChatColor.AQUA+mapVote.getVotes(s));
+		}
 		list.add(""+ChatColor.GRAY+ChatColor.ITALIC+GameConfig.serverName);
 		return list;
 	}

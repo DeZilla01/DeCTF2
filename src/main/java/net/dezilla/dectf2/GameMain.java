@@ -35,7 +35,7 @@ public class GameMain extends JavaPlugin{
 	}
 	
 	private List<Class<? extends BaseKit>> kits = new ArrayList<Class<? extends BaseKit>>();
-	Map<String, Class<? extends BaseKit>> kitMap = new HashMap<String, Class<? extends BaseKit>>();
+	private Map<String, Class<? extends BaseKit>> kitMap = new HashMap<String, Class<? extends BaseKit>>();
 	
 	@Override
 	public void onLoad() {
@@ -81,6 +81,7 @@ public class GameMain extends JavaPlugin{
 					new TimerCommand(),
 					new TeamCommand(),
 					new FlagCommand(),
+					new VoteCommand(),
 					kitCommand);
 			commandMap.registerAll("dectf2", commands);
 		} catch(Exception e) {
@@ -96,5 +97,9 @@ public class GameMain extends JavaPlugin{
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	public Map<String, Class<? extends BaseKit>> kitMap(){
+		return kitMap;
 	}
 }

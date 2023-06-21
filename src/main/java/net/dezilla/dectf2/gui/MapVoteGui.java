@@ -1,6 +1,7 @@
 package net.dezilla.dectf2.gui;
 
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -22,7 +23,9 @@ public class MapVoteGui extends GuiPage{
 			GuiItem item = new GuiItem(icon);
 			item.setRun((event) -> {
 				mapVote.vote(GamePlayer.get(player), mapVote.getZipList().indexOf(z));
-				player.sendMessage("voted for "+z);
+				player.sendMessage("You have voted for "+z);
+				player.playSound(player, Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
+				player.closeInventory();
 			});
 			setItem(row, col++, item);
 			if(col>8) {

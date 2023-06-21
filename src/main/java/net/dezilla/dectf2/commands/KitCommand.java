@@ -1,6 +1,5 @@
 package net.dezilla.dectf2.commands;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -8,9 +7,10 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 
-import net.dezilla.dectf2.game.GameMatch;
-import net.dezilla.dectf2.game.GameTimer;
+import net.dezilla.dectf2.GameMain;
+import net.dezilla.dectf2.GamePlayer;
 
 public class KitCommand extends Command implements CommandExecutor{
 
@@ -26,6 +26,14 @@ public class KitCommand extends Command implements CommandExecutor{
 
 	@Override
 	public boolean execute(CommandSender sender, String commandLabel, String[] args) {
+		if(!(sender instanceof Player)) {
+			sender.sendMessage(ChatColor.RED+"You must be a player to use this command.");
+			return false;
+		}
+		if(GameMain.getInstance().kitMap().containsKey(commandLabel.toLowerCase())) {
+			GamePlayer p = GamePlayer.get((Player) sender);
+			p.setKit(GameMain.getInstance().kitMap().get(commandLabel.toLowerCase()));
+		}
 		sender.sendMessage("Kit Command");
 		return true;
 	}

@@ -202,10 +202,10 @@ public class GamePlayer {
 		return kit;
 	}
 	
-	public void setKit(Class<BaseKit> kit) {
+	public void setKit(Class<? extends BaseKit> kit) {
 		try {
 			BaseKit oldkit = this.kit;
-			this.kit = kit.getConstructor(this.getClass()).newInstance(this);
+			this.kit = kit.getConstructor(this.getClass(), Integer.class).newInstance(this, 0);
 			oldkit.unregister();
 		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException
 				| NoSuchMethodException | SecurityException e) {

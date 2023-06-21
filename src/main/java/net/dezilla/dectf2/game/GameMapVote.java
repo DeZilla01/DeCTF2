@@ -28,6 +28,15 @@ public class GameMapVote {
 		return new ArrayList<String>(zips);
 	}
 	
+	public int getVotes(String name) {
+		int index = zips.indexOf(name);
+		int count = 0;
+		for(Entry<GamePlayer, Integer> e : votes.entrySet())
+			if(e.getValue() == index)
+				count++;
+		return count;
+	}
+	
 	public String getWinner() {
 		Map<Integer, Integer> counts = new HashMap<Integer, Integer>();
 		for(Entry<GamePlayer, Integer> e : votes.entrySet()) {
