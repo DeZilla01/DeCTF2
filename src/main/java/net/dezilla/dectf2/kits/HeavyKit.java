@@ -11,7 +11,7 @@ import net.dezilla.dectf2.util.ItemBuilder;
 
 public class HeavyKit extends BaseKit {
 	private static double attackSpeed = 40;
-	private static double movementSpeed = .09;
+	private static double movementSpeed = .12;
 	
 	private int variation = 0;
 
