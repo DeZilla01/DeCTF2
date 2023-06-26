@@ -53,5 +53,8 @@ Following kits are not a priority, but are planned:
 - Shade
 - Weirdo
 - Fashionista
+- Warlock
+
+This is not a final kit list. Some may be scrapped or added.
 
 (FYI, developing each kits alone will take considerable time. It will take a long while before ALL kits are developed)
