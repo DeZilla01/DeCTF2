@@ -74,6 +74,12 @@ public class EventListener implements Listener{
 		if(event.getEntityType() == EntityType.PLAYER && event.getDamager() instanceof Player) {
 			GamePlayer victim = GamePlayer.get((Player) event.getEntity());
 			GamePlayer damager = GamePlayer.get((Player) event.getDamager());
+			//friendly fire
+			if(victim.getTeam().equals(damager.getTeam())) {
+				event.setCancelled(true);
+				return;
+			}
+			
 			victim.setLastAttacker(damager);
 		}
 	}
@@ -220,8 +226,13 @@ public class EventListener implements Listener{
 	@EventHandler(ignoreCancelled=true)
 	public void onMove(PlayerMoveEvent event) {
 		GameMatch match = GameMatch.currentMatch;
-		if(match == null || match.getGameState() != GameState.INGAME)
+		if(match == null)
 			return;
+		if(match.getGameState() != GameState.INGAME) {
+			if(event.getTo().getBlockY() < match.getWorld().getMinHeight())
+				match.respawnPlayer(GamePlayer.get(event.getPlayer()));
+			return;
+		}
 		GamePlayer p = GamePlayer.get(event.getPlayer());
 		GameTeam t = match.getTeam(p);
 		if(t == null)

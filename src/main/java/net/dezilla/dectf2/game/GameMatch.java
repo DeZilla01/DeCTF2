@@ -505,6 +505,10 @@ public class GameMatch {
 		return mapVote;
 	}
 	
+	public World getWorld() {
+		return world;
+	}
+	
 	public List<String> preGameDisplay() {
 		List<String> list = new ArrayList<String>();
 		if(waitingForPlayers) 
