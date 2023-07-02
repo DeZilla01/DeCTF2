@@ -1,39 +1,43 @@
 package net.dezilla.dectf2.util;
 
 import org.bukkit.ChatColor;
+import org.bukkit.Color;
 import org.bukkit.DyeColor;
 import org.bukkit.Material;
 
 public enum GameColor {
-	WHITE("White", ChatColor.WHITE, "WHITE", DyeColor.WHITE),
-	ORANGE("Orange", ChatColor.GOLD, "ORANGE", DyeColor.ORANGE),
-	MAGENTA("Magenta", ChatColor.LIGHT_PURPLE, "MAGENTA", DyeColor.MAGENTA),
-	LIGHT_BLUE("Light Blue", ChatColor.AQUA, "LIGHT_BLUE", DyeColor.LIGHT_BLUE),
-	YELLOW("Yellow", ChatColor.YELLOW, "YELLOW", DyeColor.YELLOW),
-	GREEN("Green", ChatColor.GREEN, "LIME", DyeColor.LIME),
-	PINK("Pink", ChatColor.LIGHT_PURPLE, "PINK", DyeColor.PINK),
-	DARK_GRAY("Dark Gray", ChatColor.DARK_GRAY, "GRAY", DyeColor.GRAY),
-	GRAY("Gray", ChatColor.GRAY, "LIGHT_GRAY", DyeColor.LIGHT_GRAY),
-	CYAN("Cyan", ChatColor.DARK_AQUA, "CYAN", DyeColor.CYAN),
-	PURPLE("Purple", ChatColor.DARK_PURPLE, "PURPLE", DyeColor.PURPLE),
-	BLUE("Blue", ChatColor.BLUE, "BLUE", DyeColor.BLUE),
-	BROWN("Brown", ChatColor.GOLD, "BROWN", DyeColor.BROWN),
-	DARK_GREEN("Dark Green", ChatColor.DARK_GREEN, "GREEN", DyeColor.GREEN),
-	RED("Red", ChatColor.RED, "RED", DyeColor.RED),
-	BLACK("Black", ChatColor.BLACK, "BLACK", DyeColor.BLACK);
+	WHITE("White", ChatColor.WHITE, "WHITE", DyeColor.WHITE, Color.WHITE), //0
+	ORANGE("Orange", ChatColor.GOLD, "ORANGE", DyeColor.ORANGE, Color.ORANGE), //1
+	MAGENTA("Magenta", ChatColor.LIGHT_PURPLE, "MAGENTA", DyeColor.MAGENTA, Color.fromRGB(255, 85, 255)), //2
+	LIGHT_BLUE("Light Blue", ChatColor.AQUA, "LIGHT_BLUE", DyeColor.LIGHT_BLUE, Color.AQUA), //3
+	YELLOW("Yellow", ChatColor.YELLOW, "YELLOW", DyeColor.YELLOW, Color.YELLOW), //4
+	GREEN("Green", ChatColor.GREEN, "LIME", DyeColor.LIME, Color.LIME), //5
+	PINK("Pink", ChatColor.LIGHT_PURPLE, "PINK", DyeColor.PINK, Color.fromRGB(250, 134, 196)), //6
+	DARK_GRAY("Dark Gray", ChatColor.DARK_GRAY, "GRAY", DyeColor.GRAY, Color.GRAY), //7
+	GRAY("Gray", ChatColor.GRAY, "LIGHT_GRAY", DyeColor.LIGHT_GRAY, Color.SILVER), //8
+	CYAN("Cyan", ChatColor.DARK_AQUA, "CYAN", DyeColor.CYAN, Color.TEAL), //9
+	PURPLE("Purple", ChatColor.DARK_PURPLE, "PURPLE", DyeColor.PURPLE, Color.PURPLE), //10
+	BLUE("Blue", ChatColor.BLUE, "BLUE", DyeColor.BLUE, Color.fromRGB(85, 85, 255)), //11
+	BROWN("Brown", ChatColor.GOLD, "BROWN", DyeColor.BROWN, Color.fromRGB(150, 75, 0)), //12
+	DARK_GREEN("Dark Green", ChatColor.DARK_GREEN, "GREEN", DyeColor.GREEN, Color.GREEN), //13
+	RED("Red", ChatColor.RED, "RED", DyeColor.RED, Color.fromRGB(255, 85, 85)), //14
+	BLACK("Black", ChatColor.BLACK, "BLACK", DyeColor.BLACK, Color.BLACK), //15
+	CRIMSON("Crimson", ChatColor.DARK_RED, "RED", DyeColor.RED, Color.MAROON); //16
 	
 	String name;
 	ChatColor chatcolor;
 	String prefix;
 	String materialName;
 	DyeColor dye;
+	Color bukkitColor;
 	
-	GameColor(String name, ChatColor chatcolor, String materialName, DyeColor dye) {
+	GameColor(String name, ChatColor chatcolor, String materialName, DyeColor dye, Color bukkitColor) {
 		this.name = name;
 		this.chatcolor = chatcolor;
 		this.prefix = chatcolor+"";
 		this.materialName = materialName;
 		this.dye = dye;
+		this.bukkitColor = bukkitColor;
 	}
 	
 	public String getName() {
@@ -54,6 +58,10 @@ public enum GameColor {
 	
 	public String getMaterialName() {
 		return materialName;
+	}
+	
+	public Color getBukkitColor() {
+		return bukkitColor;
 	}
 	
 	public Material wool() {
@@ -137,7 +145,7 @@ public enum GameColor {
 			case GREEN:
 				return Material.EMERALD_BLOCK;
 			case PINK:
-				return Material.BRAIN_CORAL_BLOCK;
+				return Material.STRIPPED_CHERRY_WOOD;
 			case DARK_GRAY:
 				return Material.DEEPSLATE;
 			case GRAY:
@@ -156,6 +164,8 @@ public enum GameColor {
 				return Material.NETHERRACK;
 			case BLACK:
 				return Material.OBSIDIAN;
+			case CRIMSON:
+				return Material.RED_NETHER_BRICKS;
 		}
 		return Material.STONE;
 	}

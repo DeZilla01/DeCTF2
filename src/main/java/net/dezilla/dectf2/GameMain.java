@@ -17,14 +17,19 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import net.dezilla.dectf2.commands.*;
+import net.dezilla.dectf2.commands.mapmanager.*;
 import net.dezilla.dectf2.game.GameMatch;
+import net.dezilla.dectf2.game.GameTimer;
 import net.dezilla.dectf2.kits.BaseKit;
 import net.dezilla.dectf2.kits.HeavyKit;
 import net.dezilla.dectf2.kits.TestyKit;
+import net.dezilla.dectf2.listeners.CalloutListener;
 import net.dezilla.dectf2.listeners.EventListener;
 import net.dezilla.dectf2.listeners.GuiListener;
+import net.dezilla.dectf2.listeners.MapManagerListener;
 import net.dezilla.dectf2.listeners.SpongeListener;
 import net.dezilla.dectf2.util.GameConfig;
+import net.dezilla.dectf2.util.MapManagerWorld;
 
 public class GameMain extends JavaPlugin{
 	
@@ -56,11 +61,55 @@ public class GameMain extends JavaPlugin{
 	
 	@Override
 	public void onEnable() {
+		//Sponge
+		if(GameConfig.launchSponge)
+			getServer().getPluginManager().registerEvents(new SpongeListener(), this);
+		//Callouts
+		getServer().getPluginManager().registerEvents(new CalloutListener(), this);
+		//Map Manager
+		if(GameConfig.mapManager) {
+			getServer().getPluginManager().registerEvents(new MapManagerListener(), this);
+			try {
+				final Field bukkitCommandMap = Bukkit.getServer().getClass().getDeclaredField("commandMap");
+
+				bukkitCommandMap.setAccessible(true);
+				CommandMap commandMap = (CommandMap) bukkitCommandMap.get(Bukkit.getServer());
+				
+				List<Command> commands = Arrays.asList(
+						new LoadMapCommand(),
+						new WorldCommand(),
+						new UnloadCommand(),
+						new ParseSignsCommand(),
+						new SaveCommand(),
+						new SignFindCommand(),
+						new BrawlToDectfCommand(),
+						new SetWorldSpawnCommand());
+				commandMap.registerAll("dectf2", commands);
+			} catch(Exception e) {
+				e.printStackTrace();
+			}
+			GameTimer timer = new GameTimer(-1);
+			timer.onSecond((t) -> {
+				for(Player p : Bukkit.getOnlinePlayers()) {
+					GamePlayer pl = GamePlayer.get(p);
+					MapManagerWorld w = MapManagerWorld.get(p.getWorld());
+					List<String> display = new ArrayList<String>();
+					display.add("Map Manager Mode");
+					display.add("Welcome to Map");
+					display.add("Manager Mode.");
+					display.add("To get started, ");
+					display.add("use /loadmap");
+					if(w != null) {
+						display = w.getDisplay();
+					}
+					pl.updateScoreboardDisplay(display);
+				}
+			});
+			return;
+		}
 		// Listeners
 		getServer().getPluginManager().registerEvents(new EventListener(), this);
 		getServer().getPluginManager().registerEvents(new GuiListener(), this);
-		if(GameConfig.launchSponge)
-			getServer().getPluginManager().registerEvents(new SpongeListener(), this);
 		//Commands
 		try {
 			final Field bukkitCommandMap = Bukkit.getServer().getClass().getDeclaredField("commandMap");
@@ -82,6 +131,7 @@ public class GameMain extends JavaPlugin{
 					new TeamCommand(),
 					new FlagCommand(),
 					new VoteCommand(),
+					new ChangeMapCommand(),
 					kitCommand);
 			commandMap.registerAll("dectf2", commands);
 		} catch(Exception e) {

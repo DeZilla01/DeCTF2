@@ -30,6 +30,7 @@ import org.bukkit.util.Vector;
 import net.dezilla.dectf2.GameMain;
 import net.dezilla.dectf2.GamePlayer;
 import net.dezilla.dectf2.game.GameBase;
+import net.dezilla.dectf2.game.GameCallout;
 import net.dezilla.dectf2.game.GameMatch;
 import net.dezilla.dectf2.game.GameTeam;
 import net.dezilla.dectf2.game.GameTimer;
@@ -65,8 +66,7 @@ public class CTFGame extends GameBase implements Listener{
 	@Override
 	public void gameStart() {
 		for(Entry<String, Location> e : match.signConfigs().entrySet()) {
-			String s = e.getKey().replace("[", "");
-			s = s.replace("]", "");
+			String s = e.getKey();
 			if(s.contains("=")) {
 				String[] a = s.split("=");
 				if(a[0].equalsIgnoreCase("flag")) {
@@ -75,6 +75,7 @@ public class CTFGame extends GameBase implements Listener{
 						GameTeam team = match.getTeams()[id];
 						CTFFlag flag = new CTFFlag(team, e.getValue(), GameConfig.flagType);
 						flags.put(team, flag);
+						match.addCallout(new GameCallout(e.getValue(), team, "Flag"));
 					}catch(Exception ex) {}
 				}
 			}

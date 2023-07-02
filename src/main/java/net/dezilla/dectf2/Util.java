@@ -4,11 +4,17 @@ import java.io.File;
 import java.io.FileFilter;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
+import java.util.regex.Pattern;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.Sign;
+import org.bukkit.block.sign.Side;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.util.Vector;
@@ -40,6 +46,17 @@ public class Util {
 	
 	public static File CreateMatchFolder(int id) {
 		File folder = new File(GameConfig.gameFolderName+String.valueOf(id));
+		if(!folder.exists() || !folder.isDirectory())
+			folder.mkdir();
+		else {
+			deleteFolder(folder);
+			folder.mkdir();
+		}
+		return folder;
+	}
+	
+	public static File CreateFolder(String name) {
+		File folder = new File(name);
 		if(!folder.exists() || !folder.isDirectory())
 			folder.mkdir();
 		else {
@@ -83,6 +100,21 @@ public class Util {
 			return BlockFace.WEST;
 		return BlockFace.NORTH;
 		
+	}
+	
+	public static String grabConfigText(Sign sign) {
+		String pattern1 = Pattern.quote("{") + "(.*)" + Pattern.quote("}");
+		String pattern2 = Pattern.quote("{") + "(.*)=(.*)" + Pattern.quote("}");
+		List<String> lines = new ArrayList<String>();
+		lines.addAll(Arrays.asList(sign.getSide(Side.FRONT).getLines()));
+		lines.addAll(Arrays.asList(sign.getSide(Side.BACK).getLines()));
+		String s = "";
+		for(String i : lines) {
+			if(i.matches(pattern1) || i.matches(pattern2))
+				continue;
+			s+=i;
+		}
+		return s;
 	}
 	
 	public static ItemStack createTexturedHead(String texture) {

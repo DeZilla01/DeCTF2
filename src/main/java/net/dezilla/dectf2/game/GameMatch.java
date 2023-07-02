@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -24,17 +25,18 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Sign;
 import org.bukkit.block.data.Rotatable;
+import org.bukkit.block.sign.Side;
 import org.bukkit.entity.Player;
 
 import net.dezilla.dectf2.GameMain;
 import net.dezilla.dectf2.GamePlayer;
 import net.dezilla.dectf2.Util;
 import net.dezilla.dectf2.util.WorldRunnable;
+import net.dezilla.dectf2.util.ZipUtility;
 import net.dezilla.dectf2.game.ctf.CTFGame;
 import net.dezilla.dectf2.gui.MapVoteGui;
 import net.dezilla.dectf2.util.GameColor;
 import net.dezilla.dectf2.util.GameConfig;
-import net.dezilla.dectf2.util.UnzipUtility;
 
 public class GameMatch {
 	private static int GAMEID = 0;
@@ -62,11 +64,12 @@ public class GameMatch {
 	private GameTimer timer = new GameTimer(30);
 	private boolean waitingForPlayers = true;
 	private int scoreToWin = 0;
-	private int yBottom = -64;
 	private Map<Integer, Location> teamSpawns = new HashMap<Integer, Location>();//this var is only used between sign parse and team creations, use GameTeam#getSpawn()
-	private Map<Integer, Material> spawnMat = new HashMap<Integer, Material>();
+	private Map<Integer, Material> spawnMat = new HashMap<Integer, Material>();//this var is only used between sign parse and team creations
+	private Map<Integer, GameColor> teamColor = new HashMap<Integer, GameColor>();//this var is only used between sign parse and team creations
 	private boolean blockparsed = false;
 	private GameMapVote mapVote = null;
+	private List<GameCallout> callouts = new ArrayList<GameCallout>();
 	
 	public GameMatch(String levelName) throws FileNotFoundException {
 		//Set chosen level
@@ -98,10 +101,11 @@ public class GameMatch {
 			gameFolder = Util.CreateMatchFolder(gameId);
 			//unzip the world
 			try {
-				UnzipUtility.unzip(sourceZip.getPath(), gameFolder.getPath());
+				//UnzipUtility.unzip(sourceZip.getPath(), gameFolder.getPath());
+				ZipUtility.unzipMap(sourceZip, gameFolder);
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
+				return;
 			}
 			Bukkit.getScheduler().runTask(GameMain.getInstance(), () -> {
 				scoreboardNotif("Creating world");
@@ -129,10 +133,8 @@ public class GameMatch {
 				createTeams();
 				if(mode.equalsIgnoreCase("ctf"))
 					game = new CTFGame(this);
-				else if(mode.equalsIgnoreCase("zones"))
-					{}//TODO
 				else if(mode.equalsIgnoreCase("tdm"))
-					{}//TODO
+					game = new CTFGame(this);//TODO replace this with tdm eventually
 				if(scoreToWin <= 0) {
 					scoreToWin = game.getDefaultScoreToWin();
 				}
@@ -149,44 +151,13 @@ public class GameMatch {
 				});
 				timer.onEnd((timer) -> {
 					if(state == GameState.PREGAME) {
-						state = GameState.INGAME;
-						timer.setSeconds(timeLimit);
-						game.gameStart();
-						timer.unpause();
-						for(Player p : Bukkit.getOnlinePlayers()) {
-							if(p.getGameMode() == GameMode.SURVIVAL) 
-								respawnPlayer(GamePlayer.get(p));
-						}
+						startGame();
 					}
 					else if(state == GameState.INGAME) {
-						state = GameState.POSTGAME;
-						timer.setSeconds(20);
-						game.unregister();
-						timer.unpause();
-						for(Player p : Bukkit.getOnlinePlayers()) {
-							if(p.getGameMode() == GameMode.SURVIVAL) 
-								respawnPlayer(GamePlayer.get(p));
-						}
-						createMapVote(true);
+						endGame();
 					}
 					else if(state == GameState.POSTGAME) {
-						GameMatch.previousMatch = this;
-						try {
-							GameMatch m = new GameMatch(mapVote.getWinner());
-							//trying to load a duplicate will cause a crash. This will send players to default world but at least avoid a crash
-							if(m.getSourceZip().equals(sourceZip))
-								unload();
-							m.Load((world) -> {
-								for(Player p : Bukkit.getOnlinePlayers())
-									m.addPlayer(GamePlayer.get(p));
-								if(isLoaded()) {
-									unload();
-									currentMatch = m;
-								}
-							});
-						} catch (FileNotFoundException e) {
-							e.printStackTrace();
-						}
+						endPostGame();
 					}
 				});
 				gameLoaded = true;
@@ -218,6 +189,54 @@ public class GameMatch {
 		});
 	}
 	
+	public void startGame() {
+		state = GameState.INGAME;
+		timer.setSeconds(timeLimit);
+		game.gameStart();
+		timer.unpause();
+		for(Player p : Bukkit.getOnlinePlayers()) {
+			if(p.getGameMode() == GameMode.SURVIVAL) 
+				respawnPlayer(GamePlayer.get(p));
+		}
+	}
+	
+	public void endGame() {
+		state = GameState.POSTGAME;
+		timer.setSeconds(20);
+		game.unregister();
+		timer.unpause();
+		for(Player p : Bukkit.getOnlinePlayers()) {
+			if(p.getGameMode() == GameMode.SURVIVAL) 
+				respawnPlayer(GamePlayer.get(p));
+		}
+		createMapVote(true);
+	}
+	
+	public void endPostGame() {
+		GameMatch.previousMatch = this;
+		try {
+			GameMatch m;
+			if(GameMatch.nextMatch == null)
+				m = new GameMatch(mapVote.getWinner());
+			else
+				m = GameMatch.nextMatch;
+			//trying to load a duplicate will cause a crash. This will send players to default world but at least avoid a crash
+			if(m.getSourceZip().equals(sourceZip))
+				unload();
+			m.Load((world) -> {
+				for(Player p : Bukkit.getOnlinePlayers())
+					m.addPlayer(GamePlayer.get(p));
+				if(isLoaded()) {
+					unload();
+					currentMatch = m;
+				}
+			});
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+		nextMatch = null;
+	}
+	
 	//currently used for debug
 	private void scoreboardNotif(String msg) {
 		List<String> l = new ArrayList<String>();
@@ -231,11 +250,13 @@ public class GameMatch {
 		timer.unregister();
 		gameLoaded = false;
 		game.unregister();
+		File worldFolder = world.getWorldFolder();
 		if(currentMatch.equals(this))
 			currentMatch = null;
 		for(Player p : world.getPlayers()) 
 			p.teleport(Bukkit.getWorlds().get(0).getSpawnLocation());
 		Bukkit.getServer().unloadWorld(world, false);
+		Util.deleteFolder(worldFolder);
 	}
 	
 	//When joining the server or switching match
@@ -283,6 +304,8 @@ public class GameMatch {
 	private void parseSigns() {
 		int spawnx = world.getSpawnLocation().getChunk().getX();
 		int spawnz = world.getSpawnLocation().getChunk().getZ();
+		String pattern1 = Pattern.quote("{") + "(.*)" + Pattern.quote("}");
+		String pattern2 = Pattern.quote("{") + "(.*)=(.*)" + Pattern.quote("}");
 		List<Block> toRemove = new ArrayList<Block>();
 		for(int x = spawnx-16 ; x <= spawnx+16 ; x++) {
 			for(int z = spawnz-16 ; z <= spawnz+16 ; z++) {
@@ -301,61 +324,88 @@ public class GameMatch {
 					boolean removeSign = false;
 					Location loc = sign.getLocation().add(0.5, 0, 0.5);
 					loc.setYaw(Util.getYaw(face.getDirection()));
-					for(String i : sign.getLines()) {
-						if(i.startsWith("[") && i.endsWith("]")) {
+					List<String> lines = new ArrayList<String>();
+					lines.addAll(Arrays.asList(sign.getSide(Side.FRONT).getLines()));
+					lines.addAll(Arrays.asList(sign.getSide(Side.BACK).getLines()));
+					for(String i : lines) {
+						if(i.matches(pattern1) || i.matches(pattern2)) {
 							removeSign = true;
-							String line = i.replace("[", "");
-							line = line.replace("]", "");
+							String line = i.replaceAll(pattern1, "$1").toLowerCase();
 							signConfig.put(line, loc);
-							//spawn
-							if(line.equalsIgnoreCase("spawn")) {
-								spawn = loc;
-							//name
-							} else if(line.equalsIgnoreCase("name")) {
-								String n = "";
-								for(String ii : sign.getLines()) {
-									if(ii.equalsIgnoreCase("[name]"))
-										continue;
-									n+=ii;
-								}
-								name = n;
-							//author
-							} else if(line.equalsIgnoreCase("author")) {
-								String n = "";
-								for(String ii : sign.getLines()) {
-									if(ii.equalsIgnoreCase("[author]"))
-										continue;
-									n+=ii;
-								}
-								author = n;
-							}
-							if(line.contains("=")) {
-								String[] a = line.split("=");
-								if(a[0].equalsIgnoreCase("spawn")) {
+							if(i.matches(pattern2)) {
+								String key = i.replaceAll(pattern2, "$1").toLowerCase();
+								String value = i.replaceAll(pattern2, "$2").toLowerCase();
+								//Team Amount
+								if(key.equals("teams")) {
 									try {
-										int team = Integer.parseInt(a[1]);
+										teamAmount = Integer.parseInt(value);
+										if(teamAmount<1)
+											teamAmount=1;
+										else if(teamAmount>16)
+											teamAmount=16;
+									}catch(Exception e) {}
+								}
+								//Time Limit
+								else if(key.equals("time")) {
+									try {
+										timeLimit = Integer.parseInt(value);
+									}catch(Exception e) {}
+								}
+								//Score to win
+								else if(key.equals("score")) {
+									try {
+										scoreToWin = Integer.parseInt(value);
+									}catch(Exception e) {}
+								}
+								//Game Mode
+								else if(key.equals("mode")) {
+									mode = value;
+								}
+								//Team Spawns
+								else if(key.equals("spawn")) {
+									try {
+										int team = Integer.parseInt(value);
 										teamSpawns.put(team, loc);
 										spawnMat.put(team, loc.getBlock().getRelative(BlockFace.DOWN).getType());
 									}catch(Exception e) {}
-								} else if(a[0].equalsIgnoreCase("time")) {
-									try {
-										timeLimit = Integer.parseInt(a[1]);
-									}catch(Exception e) {}
-								} else if(a[0].equalsIgnoreCase("score")) {
-									try {
-										scoreToWin = Integer.parseInt(a[1]);
-									}catch(Exception e) {}
-								} else if(a[0].equalsIgnoreCase("mode")) {
-									mode = a[1];
-								} else if(a[0].equalsIgnoreCase("teams")) {
-									try {
-										teamAmount = Integer.parseInt(a[1]);
-										if(teamAmount>16)
-											teamAmount = 16;
-										else if(teamAmount<1)
-											teamAmount = 1;
-									} catch(Exception e){}
 								}
+								//Callout
+								else if(key.equals("callout")) {
+									try {
+										int team = Integer.parseInt(value);
+										callouts.add(new GameCallout(loc, team, Util.grabConfigText(sign)));
+									}catch(Exception e) {}
+								}
+								//Team Color
+								else if(key.startsWith("color")) {
+									try {
+										int team = Integer.parseInt(key.replace("color", ""));
+										GameColor color;
+										try {
+											color = GameColor.values()[Integer.parseInt(value)];
+										}catch(Exception e) {
+											color = GameColor.valueOf(value.toUpperCase());
+										}
+										teamColor.put(team, color);
+									}catch(Exception e) {}
+								}
+								continue;
+							}
+							//Main spawnpoint (pre/post game spawn)
+							if(line.equals("spawn")) {
+								spawn = loc;
+							}
+							//Map Name
+							else if(line.equals("name")) {
+								name = Util.grabConfigText(sign);
+							}
+							//Map Author
+							else if(line.equals("author")) {
+								author = Util.grabConfigText(sign);
+							}
+							//Neutral Callout (not team sided)
+							else if(line.equals("callout")) {
+								callouts.add(new GameCallout(loc, Util.grabConfigText(sign)));
 							}
 						}
 					}
@@ -370,6 +420,8 @@ public class GameMatch {
 	private void createTeams() {
 		for(int i = 0; i<teamAmount;i++) {
 			GameColor c = GameColor.defaultColorOrder()[i];
+			if(teamColor.containsKey(i))
+				c = teamColor.get(i);
 			Location l = spawn.clone();
 			boolean teamSpawnSet = false;
 			if(teamSpawns.containsKey(i)) {
@@ -382,6 +434,11 @@ public class GameMatch {
 			if(spawnMat.containsKey(i))
 				t.setSpawnMaterial(spawnMat.get(i));
 			teams.add(t);
+			for(GameCallout call : callouts) {
+				if(call.getTeamId() == t.getId())
+					call.setTeam(t);
+			}
+			callouts.add(new GameCallout(l, t, "Spawn"));
 		}
 	}
 	
@@ -443,6 +500,25 @@ public class GameMatch {
 			if(t.getTeamName().equalsIgnoreCase(name))
 				return t;
 		return null;
+	}
+	
+	public void addCallout(GameCallout callout) {
+		callouts.add(callout);
+	}
+	
+	public GameCallout getCalloutNear(Location loc) {
+		GameCallout call = null;
+		double distance = 99999;
+		for(GameCallout c : callouts) {
+			if(c.isNear(loc)) {
+				double d = c.getLocation().distance(loc);
+				if(d < distance) {
+					call = c;
+					distance = d;
+				}
+			}
+		}
+		return call;
 	}
 	
 	public boolean isLoaded() {

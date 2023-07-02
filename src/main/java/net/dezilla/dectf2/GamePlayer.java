@@ -1,6 +1,7 @@
 package net.dezilla.dectf2;
 
 import java.lang.reflect.InvocationTargetException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -53,6 +54,7 @@ public class GamePlayer {
 	private CustomDamageCause damageCause= null;
 	private BaseKit kit;
 	private boolean spawnProtection = false;
+	private Timestamp lastItemDrop = null;
 	private PlayerNotificationType notif = PlayerNotificationType.SUBTITLE;
 	
 	private GamePlayer(Player player) {
@@ -166,6 +168,14 @@ public class GamePlayer {
 	
 	public Location getLocation() {
 		return player.getLocation();
+	}
+	
+	public Timestamp getLastItemDrop() {
+		return lastItemDrop;
+	}
+	
+	public void setLastItemDrop(Timestamp timestamp) {
+		lastItemDrop = timestamp;
 	}
 	
 	public void setSpawnProtection() {

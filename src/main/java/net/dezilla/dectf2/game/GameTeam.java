@@ -21,6 +21,7 @@ import org.bukkit.block.data.type.Candle;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 
+import net.dezilla.dectf2.GameMain;
 import net.dezilla.dectf2.GamePlayer;
 import net.dezilla.dectf2.game.ctf.CTFGame;
 import net.dezilla.dectf2.util.GameColor;
@@ -60,6 +61,14 @@ public class GameTeam {
 	
 	public int incrementScore(int amount) {
 		score+=amount;
+		Bukkit.getScheduler().runTask(GameMain.getInstance(), () -> {
+			GameMatch match = GameMatch.currentMatch;
+			if(match == null)
+				return;
+			if(score >= match.getScoreToWin()) {
+				match.endGame();
+			}
+		});
 		return score;
 	}
 	
