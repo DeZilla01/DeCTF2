@@ -64,9 +64,10 @@ public class GameMatch {
 	private GameTimer timer = new GameTimer(30);
 	private boolean waitingForPlayers = true;
 	private int scoreToWin = 0;
-	private Map<Integer, Location> teamSpawns = new HashMap<Integer, Location>();//this var is only used between sign parse and team creations, use GameTeam#getSpawn()
+	private Map<Integer, List<Location>> teamSpawns = new HashMap<Integer, List<Location>>();//this var is only used between sign parse and team creations, use GameTeam#getSpawn()
 	private Map<Integer, Material> spawnMat = new HashMap<Integer, Material>();//this var is only used between sign parse and team creations
 	private Map<Integer, GameColor> teamColor = new HashMap<Integer, GameColor>();//this var is only used between sign parse and team creations
+	private Map<Integer, String> teamName = new HashMap<Integer, String>();//this var is only used between sign parse and team creations
 	private boolean blockparsed = false;
 	private GameMapVote mapVote = null;
 	private List<GameCallout> callouts = new ArrayList<GameCallout>();
@@ -365,7 +366,9 @@ public class GameMatch {
 								else if(key.equals("spawn")) {
 									try {
 										int team = Integer.parseInt(value);
-										teamSpawns.put(team, loc);
+										if(!teamSpawns.containsKey(team))
+											teamSpawns.put(team, new ArrayList<Location>());
+										teamSpawns.get(team).add(loc);
 										spawnMat.put(team, loc.getBlock().getRelative(BlockFace.DOWN).getType());
 									}catch(Exception e) {}
 								}
@@ -387,6 +390,13 @@ public class GameMatch {
 											color = GameColor.valueOf(value.toUpperCase());
 										}
 										teamColor.put(team, color);
+									}catch(Exception e) {}
+								}
+								//Team Name
+								else if(key.equals("name")) {
+									try {
+										int team = Integer.parseInt(value);
+										teamName.put(team, Util.grabConfigText(sign));
 									}catch(Exception e) {}
 								}
 								continue;
@@ -422,15 +432,20 @@ public class GameMatch {
 			GameColor c = GameColor.defaultColorOrder()[i];
 			if(teamColor.containsKey(i))
 				c = teamColor.get(i);
-			Location l = spawn.clone();
-			boolean teamSpawnSet = false;
-			if(teamSpawns.containsKey(i)) {
-				l = teamSpawns.get(i);
-				teamSpawnSet = true;
-			}
-			GameTeam t = new GameTeam(i, c, l);
-			if(!teamSpawnSet)
+			
+			GameTeam t = new GameTeam(i, c);
+			
+			if(!teamSpawns.containsKey(i))
 				System.out.println("Missing configuration for spawn "+t.getTeamName());
+			else {
+				for(Location l : teamSpawns.get(i)) {
+					t.addSpawn(l);
+					callouts.add(new GameCallout(l, t, "Spawn"));
+				}
+			}
+			if(teamName.containsKey(i)) {
+				t.setTeamName(teamName.get(i));
+			}
 			if(spawnMat.containsKey(i))
 				t.setSpawnMaterial(spawnMat.get(i));
 			teams.add(t);
@@ -438,7 +453,6 @@ public class GameMatch {
 				if(call.getTeamId() == t.getId())
 					call.setTeam(t);
 			}
-			callouts.add(new GameCallout(l, t, "Spawn"));
 		}
 	}
 	

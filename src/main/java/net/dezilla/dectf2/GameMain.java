@@ -22,6 +22,7 @@ import net.dezilla.dectf2.game.GameMatch;
 import net.dezilla.dectf2.game.GameTimer;
 import net.dezilla.dectf2.kits.BaseKit;
 import net.dezilla.dectf2.kits.HeavyKit;
+import net.dezilla.dectf2.kits.SoldierKit;
 import net.dezilla.dectf2.kits.TestyKit;
 import net.dezilla.dectf2.listeners.CalloutListener;
 import net.dezilla.dectf2.listeners.EventListener;
@@ -47,9 +48,10 @@ public class GameMain extends JavaPlugin{
 		instance = this;
 		kits.add(HeavyKit.class);
 		kits.add(TestyKit.class);
+		kits.add(SoldierKit.class);
 		for(Class<? extends BaseKit> c : kits) {
 			try {
-				BaseKit k = c.getConstructor(new Class[] {GamePlayer.class, int.class}).newInstance(null, 0);
+				BaseKit k = c.getConstructor(new Class[] {GamePlayer.class}).newInstance(GamePlayer.get(null));
 				kitMap.put(k.getName().toLowerCase(), c);
 			} catch (InstantiationException | IllegalAccessException | IllegalArgumentException
 					| InvocationTargetException | NoSuchMethodException | SecurityException e) {

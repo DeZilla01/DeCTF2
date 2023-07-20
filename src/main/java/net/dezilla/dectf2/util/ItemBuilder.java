@@ -7,7 +7,11 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ArmorMeta;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.trim.ArmorTrim;
+import org.bukkit.inventory.meta.trim.TrimMaterial;
+import org.bukkit.inventory.meta.trim.TrimPattern;
 import org.bukkit.persistence.PersistentDataType;
 
 import net.dezilla.dectf2.GameMain;
@@ -82,6 +86,11 @@ public class ItemBuilder {
 		return this;
 	}
 	
-	
+	public ItemBuilder armorTrim(TrimPattern pattern, TrimMaterial material) {
+		if(meta instanceof ArmorMeta) {
+			((ArmorMeta) meta).setTrim(new ArmorTrim(material, pattern));
+		}
+		return this;
+	}
 
 }

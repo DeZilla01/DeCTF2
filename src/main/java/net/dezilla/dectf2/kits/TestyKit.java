@@ -11,10 +11,10 @@ import net.dezilla.dectf2.util.ItemBuilder;
 
 public class TestyKit extends BaseKit{
 	private static double attackSpeed = 40;
-	private static double movementSpeed = 2;
+	private static double movementSpeed = .3;
 
-	public TestyKit(GamePlayer player, int variation) {
-		super(player, variation);
+	public TestyKit(GamePlayer player) {
+		super(player);
 	}
 
 	@Override
@@ -23,7 +23,7 @@ public class TestyKit extends BaseKit{
 		PlayerInventory inv = player.getPlayer().getInventory();
 		inv.clear();
 		inv.setItem(0, ItemBuilder.of(Material.DEBUG_STICK).name("test").unbreakable().get());
-		inv.setItem(1, ItemBuilder.of(GameConfig.foodMaterial).name("Heavy Steak").amount(64).get());
+		inv.setItem(1, ItemBuilder.of(GameConfig.foodMaterial).name("Steak").amount(64).get());
 	}
 
 	@Override

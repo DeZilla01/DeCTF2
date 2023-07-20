@@ -4,6 +4,7 @@ import org.bukkit.Material;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.meta.trim.TrimPattern;
 
 import net.dezilla.dectf2.GamePlayer;
 import net.dezilla.dectf2.util.GameConfig;
@@ -13,11 +14,10 @@ public class HeavyKit extends BaseKit {
 	private static double attackSpeed = 40;
 	private static double movementSpeed = .12;
 	
-	private int variation = 0;
+	private boolean powerup = false;
 
-	public HeavyKit(GamePlayer player, int variation) {
-		super(player, variation);
-		this.variation = variation;
+	public HeavyKit(GamePlayer player) {
+		super(player);
 	}
 
 	@Override
@@ -25,12 +25,13 @@ public class HeavyKit extends BaseKit {
 		super.setInventory();
 		PlayerInventory inv = player.getPlayer().getInventory();
 		inv.clear();
-		inv.setHelmet(ItemBuilder.of(Material.DIAMOND_HELMET).name("Heavy Helmet").unbreakable().get());
-		inv.setChestplate(ItemBuilder.of(Material.DIAMOND_CHESTPLATE).name("Heavy Chestplate").unbreakable().get());
-		inv.setLeggings(ItemBuilder.of(Material.DIAMOND_LEGGINGS).name("Heavy Leggings").unbreakable().get());
-		inv.setBoots(ItemBuilder.of(Material.DIAMOND_BOOTS).name("Heavy Boots").unbreakable().get());
+		inv.setHelmet(ItemBuilder.of(Material.DIAMOND_HELMET).name("Heavy Helmet").unbreakable().armorTrim(TrimPattern.SILENCE, color().getTrimMaterial()).get());
+		inv.setChestplate(ItemBuilder.of(Material.DIAMOND_CHESTPLATE).name("Heavy Chestplate").unbreakable().armorTrim(TrimPattern.HOST, color().getTrimMaterial()).get());
+		inv.setLeggings(ItemBuilder.of(Material.DIAMOND_LEGGINGS).name("Heavy Leggings").unbreakable().armorTrim(TrimPattern.SENTRY, color().getTrimMaterial()).get());
+		inv.setBoots(ItemBuilder.of(Material.DIAMOND_BOOTS).name("Heavy Boots").unbreakable().armorTrim(TrimPattern.SENTRY, color().getTrimMaterial()).get());
 		inv.setItem(0, ItemBuilder.of(Material.DIAMOND_SWORD).name("Heavy Sword").unbreakable().get());
 		inv.setItem(1, ItemBuilder.of(GameConfig.foodMaterial).name("Heavy Steak").amount(3).get());
+		inv.setItemInOffHand(new ItemStack(Material.SHIELD));
 	}
 	
 	@Override
@@ -59,4 +60,5 @@ public class HeavyKit extends BaseKit {
 		String[] variations = {"Default", "Powerup"};
 		return variations;
 	}
+	
 }

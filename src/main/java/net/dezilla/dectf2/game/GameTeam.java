@@ -31,18 +31,17 @@ public class GameTeam {
 	private GameColor teamColor;
 	private String teamName;
 	private List<GamePlayer> players = new ArrayList<GamePlayer>();
-	private Location spawn;
+	private List<Location> spawns = new ArrayList<Location>();
 	private Material spawnMaterial;
 	private int score = 0;
 	private List<Block> spawnBlocks = new ArrayList<Block>();
 	private List<Block> coloredBlocks = new ArrayList<Block>();
 	
 	
-	public GameTeam(int id, GameColor color, Location spawn) {
+	public GameTeam(int id, GameColor color) {
 		this.id = id;
 		teamColor = color;
 		teamName = color.getName();
-		this.spawn = spawn;
 		this.spawnMaterial = color.spawnBlock();
 	}
 	
@@ -55,8 +54,36 @@ public class GameTeam {
 		return id;
 	}
 	
+	public void addSpawn(Location spawn) {
+		spawns.add(spawn);
+	}
+	
 	public Location getSpawn() {
-		return spawn.clone();
+		if(spawns.size() == 0) {
+			if(GameMatch.currentMatch != null)
+				return GameMatch.currentMatch.getSpawn();
+			else
+				return null;
+		}
+		if(spawns.size() == 1) {
+			return spawns.get(0);
+		}
+		List<Location> selectFrom = new ArrayList<Location>();
+		int low = 999;
+		for(Location l : spawns) {
+			int a = 0;
+			for(Player p : l.getWorld().getPlayers()) {
+				if(p.getLocation().distance(l)<1)
+					a++;
+			}
+			if(low>a) {
+				selectFrom.clear();
+				low=a;
+			}
+			if(a==low)
+				selectFrom.add(l);
+		}
+		return selectFrom.get((int) (Math.random()*selectFrom.size())).clone();
 	}
 	
 	public int incrementScore(int amount) {

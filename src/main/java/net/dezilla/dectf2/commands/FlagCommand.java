@@ -9,6 +9,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 
 import net.dezilla.dectf2.game.GameMatch;
+import net.dezilla.dectf2.game.GameMatch.GameState;
 import net.dezilla.dectf2.game.GameTeam;
 import net.dezilla.dectf2.game.ctf.CTFFlag;
 import net.dezilla.dectf2.game.ctf.CTFFlag.FlagType;
@@ -31,6 +32,10 @@ public class FlagCommand extends Command {
 		}
 		if(!(match.getGame() instanceof CTFGame)) {
 			sender.sendMessage(ChatColor.RED+"This command can only be used during a CTF match.");
+			return false;
+		}
+		if(match.getGameState() != GameState.INGAME) {
+			sender.sendMessage(ChatColor.RED+"This command can only be used during the game.");
 			return false;
 		}
 		CTFGame game = (CTFGame) match.getGame();

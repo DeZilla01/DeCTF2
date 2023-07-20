@@ -15,7 +15,14 @@ import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.Sign;
 import org.bukkit.block.sign.Side;
+import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Arrow;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
+import org.bukkit.entity.Snowball;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.util.Vector;
 
@@ -100,6 +107,84 @@ public class Util {
 			return BlockFace.WEST;
 		return BlockFace.NORTH;
 		
+	}
+	
+	//used for shields
+	public static Vector getKnockback(LivingEntity victim, Entity attacker) {
+		double x = attacker.getLocation().getX() - victim.getLocation().getX();
+		double z = attacker.getLocation().getZ() - victim.getLocation().getZ();
+		double distance = Math.sqrt((x*x)+(z*z));
+		x = (.3/distance)*-x;
+		z = (.3/distance)*-z;
+		return new Vector(x, .37, z);
+	}
+	
+	public static double getDamageReduced(Player player) {
+		List<ItemStack> armorItems = new ArrayList<ItemStack>();
+		armorItems.add(player.getInventory().getHelmet());
+		armorItems.add(player.getInventory().getChestplate());
+		armorItems.add(player.getInventory().getLeggings());
+		armorItems.add(player.getInventory().getBoots());
+		while(armorItems.contains(null))
+			armorItems.remove(null);
+		int armorPoint = 0;
+		double protection = 0.0;
+		for(ItemStack item : armorItems) {
+			switch(item.getType()) {
+				case LEATHER_HELMET: case LEATHER_BOOTS: case GOLDEN_BOOTS: case CHAINMAIL_BOOTS:
+					armorPoint+=1;break;
+				case GOLDEN_HELMET: case CHAINMAIL_HELMET: case IRON_HELMET: case TURTLE_HELMET:
+				case LEATHER_LEGGINGS: case IRON_BOOTS:
+					armorPoint+=2;break;
+				case DIAMOND_HELMET: case NETHERITE_HELMET: case LEATHER_CHESTPLATE:
+				case GOLDEN_LEGGINGS: case DIAMOND_BOOTS: case NETHERITE_BOOTS:
+					armorPoint+=3;break;
+				case CHAINMAIL_LEGGINGS:
+					armorPoint+=4;break;
+				case GOLDEN_CHESTPLATE: case CHAINMAIL_CHESTPLATE: case IRON_LEGGINGS:
+					armorPoint+=5;break;
+				case IRON_CHESTPLATE: case DIAMOND_LEGGINGS: case NETHERITE_LEGGINGS:
+					armorPoint+=6;break;
+				case DIAMOND_CHESTPLATE: case NETHERITE_CHESTPLATE:
+					armorPoint+=8;break;
+				default: {}
+			}
+			if(item.containsEnchantment(Enchantment.PROTECTION_ENVIRONMENTAL)) {
+				player.sendMessage(""+item.getEnchantmentLevel(Enchantment.PROTECTION_ENVIRONMENTAL));
+				protection+=(item.getEnchantmentLevel(Enchantment.PROTECTION_ENVIRONMENTAL)+1)*4;
+			}
+		}
+		if(protection != 0)
+			protection/=100;
+		double result = 0.0;
+		while(armorPoint!=0) {
+			if(result==0)
+				result+=.02;
+			else
+				result+=.04;
+			armorPoint--;
+		}
+		double a = 1.0-result;
+		result += (a*protection);
+		return result;
+    }
+	
+	public static GamePlayer getOwner(Entity entity) {
+		if(entity instanceof Arrow) {
+			Arrow a = (Arrow) entity;
+			if(a.getShooter() != null && a.getShooter() instanceof Entity)
+				entity = (Entity) a.getShooter();
+		}
+		if(entity instanceof Snowball) {
+			Snowball s = (Snowball) entity;
+			if(s.getShooter() != null && s.getShooter() instanceof Entity)
+				entity = (Entity) s.getShooter();
+		}
+		if(entity instanceof Player) {
+			Player p = (Player) entity;
+			return GamePlayer.get(p);
+		}
+		return null;
 	}
 	
 	public static String grabConfigText(Sign sign) {

@@ -2,6 +2,7 @@ package net.dezilla.dectf2.commands;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map.Entry;
 
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -11,6 +12,7 @@ import org.bukkit.entity.Player;
 
 import net.dezilla.dectf2.GameMain;
 import net.dezilla.dectf2.GamePlayer;
+import net.dezilla.dectf2.kits.BaseKit;
 
 public class KitCommand extends Command implements CommandExecutor{
 
@@ -33,6 +35,12 @@ public class KitCommand extends Command implements CommandExecutor{
 		if(GameMain.getInstance().kitMap().containsKey(commandLabel.toLowerCase())) {
 			GamePlayer p = GamePlayer.get((Player) sender);
 			p.setKit(GameMain.getInstance().kitMap().get(commandLabel.toLowerCase()));
+			System.out.println("set");
+		}else {
+			System.out.println(commandLabel+" - "+"stuff");
+			for(Entry<String, Class<? extends BaseKit>> entry : GameMain.getInstance().kitMap().entrySet()) {
+				System.out.println(entry.getKey());
+			}
 		}
 		sender.sendMessage("Kit Command");
 		return true;

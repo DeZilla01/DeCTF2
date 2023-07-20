@@ -8,11 +8,18 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
+import org.bukkit.event.entity.EntityDamageEvent.DamageModifier;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 
 import net.dezilla.dectf2.GameMain;
 import net.dezilla.dectf2.GamePlayer;
+import net.dezilla.dectf2.Util;
+import net.dezilla.dectf2.game.GameTeam;
+import net.dezilla.dectf2.util.CustomDamageCause;
+import net.dezilla.dectf2.util.GameColor;
 import net.dezilla.dectf2.util.GameConfig;
 
 public abstract class BaseKit implements Listener{
@@ -25,7 +32,7 @@ public abstract class BaseKit implements Listener{
 	
 	public abstract String[] getVariations();
 	
-	public BaseKit(GamePlayer player, int variation) {
+	public BaseKit(GamePlayer player) {
 		this.player = player;
 		//player can be null, mainly to access kit name, icons, desc, etc...
 		if(player != null)
@@ -70,6 +77,36 @@ public abstract class BaseKit implements Listener{
 				p.playSound(p, Sound.ENTITY_PLAYER_BURP, 1, 1);
 			}
 		}
+	}
+	
+	@EventHandler
+	public void onDamageEntity(EntityDamageByEntityEvent event) {
+		if(!(event.getEntity() instanceof Player) || !((Player) event.getEntity()).equals(player.getPlayer()))
+			return;
+		
+		if(event.getDamager() != null && player.getPlayer().isBlocking() && event.getCause() != DamageCause.CUSTOM) {
+			event.setCancelled(true);
+			GamePlayer killer = Util.getOwner(event.getDamager());
+			if(killer != null)
+				player.setLastAttacker(killer);
+			player.setCustomDamageCause(CustomDamageCause.SHIELDED_DAMAGE);
+			double dmg = event.getDamage() - (Util.getDamageReduced(player.getPlayer())*event.getDamage());
+			player.getPlayer().sendMessage(event.getFinalDamage()+ " - " + event.getDamage()+" - "+dmg);
+			player.getPlayer().damage(dmg*.5);
+			Bukkit.getScheduler().runTask(GameMain.getInstance(), () -> {
+				player.getPlayer().setVelocity(Util.getKnockback(player.getPlayer(), event.getDamager()));
+				player.getPlayer().playSound(player.getPlayer(), Sound.ITEM_SHIELD_BLOCK, 1, 1);
+			});
+		}
+	}
+	
+	protected GameColor color() {
+		if(player != null) {
+			GameTeam team = player.getTeam();
+			if(team != null)
+				return team.getColor();
+		}
+		return GameColor.WHITE;
 	}
 
 }

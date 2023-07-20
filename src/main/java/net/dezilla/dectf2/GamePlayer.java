@@ -9,6 +9,7 @@ import java.util.Map;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
@@ -26,7 +27,6 @@ import net.dezilla.dectf2.game.GameTimer;
 import net.dezilla.dectf2.kits.BaseKit;
 import net.dezilla.dectf2.kits.HeavyKit;
 import net.dezilla.dectf2.util.CustomDamageCause;
-import net.dezilla.dectf2.util.DamageCause;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 
@@ -35,6 +35,8 @@ public class GamePlayer {
 	private static List<GamePlayer> PLAYERS = new ArrayList<GamePlayer>();
 	
 	public static GamePlayer get(Player player) {
+		if(player == null)
+			return null;
 		for(GamePlayer i : PLAYERS) {
 			if(i.getPlayer().equals(player))
 				return i;
@@ -49,7 +51,6 @@ public class GamePlayer {
 	private Player player;
 	private Scoreboard score;
 	private Map<String, Integer> stats = new HashMap<String, Integer>();
-	private DamageCause lastDamage = null;
 	private GamePlayer lastAttacker = null;
 	private CustomDamageCause damageCause= null;
 	private BaseKit kit;
@@ -63,7 +64,7 @@ public class GamePlayer {
 		score = Bukkit.getScoreboardManager().getNewScoreboard();
 		applyScoreboard();
 		updateScoreboardDisplay();
-		kit = new HeavyKit(this, 0);
+		kit = new HeavyKit(this);
 	}
 	
 	public Player getPlayer() {
@@ -86,6 +87,7 @@ public class GamePlayer {
 				team = score.registerNewTeam(""+t.getId());
 				team.setPrefix(t.getColor().getPrefix());
 				team.setColor(t.getColor().getChatColor());
+				team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
 			}
 			if(team.getColor() != t.getColor().getChatColor()) {
 				team.setPrefix(t.getColor().getPrefix());
@@ -101,10 +103,10 @@ public class GamePlayer {
 	public void updateScoreboardDisplay() {
 		GameMatch match = GameMatch.currentMatch;
 		Objective display = score.getObjective("display");
-		if(display != null)
-			display.unregister();
-		display = score.registerNewObjective("display", Criteria.DUMMY, "display");
-		display.setDisplaySlot(DisplaySlot.SIDEBAR);
+		if(display == null){
+			display = score.registerNewObjective("display", Criteria.DUMMY, "display");
+			display.setDisplaySlot(DisplaySlot.SIDEBAR);
+		}
 		
 		List<String> displayList = new ArrayList<String>();
 		displayList.add("DeCTF2");
@@ -120,28 +122,46 @@ public class GamePlayer {
 		display.setDisplayName(displayList.get(0));
 		displayList.remove(0);
 		
+		List<String> oldDisplay = new ArrayList<String>();
+		oldDisplay.addAll(score.getEntries());
 		int s = displayList.size()-1;
-		for(String i : displayList)
+		for(String i : displayList) {
+			if(oldDisplay.contains(i) && display.getScore(i).getScore() == s) {
+				s--;
+				oldDisplay.remove(i);
+				continue;
+			}
 			display.getScore(i).setScore(s--);
+		}
+		for(String i : oldDisplay)
+			score.resetScores(i);
 	}
 	
-	private int scoreid = Integer.MIN_VALUE;
 	public void updateScoreboardDisplay(List<String> list) {
+		Objective display = score.getObjective("display");
+		if(display == null){
+			display = score.registerNewObjective("display", Criteria.DUMMY, "display");
+			display.setDisplaySlot(DisplaySlot.SIDEBAR);
+		}
+		
 		List<String> displayList = new ArrayList<String>(list);
-		Objective oldDisplay = score.getObjective(""+(scoreid-1));
 		
-		Objective newDisplay = score.registerNewObjective(""+scoreid++, Criteria.DUMMY, "display");
-		
-		newDisplay.setDisplayName(displayList.get(0));
+		display.setDisplayName(displayList.get(0));
 		displayList.remove(0);
 		
+		List<String> oldDisplay = new ArrayList<String>();
+		oldDisplay.addAll(score.getEntries());
 		int s = displayList.size()-1;
-		for(String i : displayList)
-			newDisplay.getScore(i).setScore(s--);
-		
-		newDisplay.setDisplaySlot(DisplaySlot.SIDEBAR);
-		if(oldDisplay != null)
-			oldDisplay.unregister();
+		for(String i : displayList) {
+			if(oldDisplay.contains(i) && display.getScore(i).getScore() == s) {
+				s--;
+				oldDisplay.remove(i);
+				continue;
+			}
+			display.getScore(i).setScore(s--);
+		}
+		for(String i : oldDisplay)
+			score.resetScores(i);
 	}
 	
 	public void setStats(String key, int amount) {
@@ -215,23 +235,22 @@ public class GamePlayer {
 	public void setKit(Class<? extends BaseKit> kit) {
 		try {
 			BaseKit oldkit = this.kit;
-			this.kit = kit.getConstructor(this.getClass(), Integer.class).newInstance(this, 0);
+			this.kit = kit.getConstructor(this.getClass()).newInstance(this);
 			oldkit.unregister();
+			GameMatch match = GameMatch.currentMatch;
+			if(match != null && match.getGameState() == GameState.INGAME && player.getGameMode() == GameMode.SURVIVAL) {
+				if(player.getHealth() < player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue() && !isSpawnProtected()) {
+					this.setCustomDamageCause(CustomDamageCause.KIT_SWITCH);
+					player.damage(999);
+				} else {
+					match.respawnPlayer(this);
+				}
+			}
 		} catch (InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException
 				| NoSuchMethodException | SecurityException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-	}
-	
-	public void setLastDamage(DamageCause cause) {
-		lastDamage = cause;
-	}
-	
-	public DamageCause getLastDamage() {
-		if(lastDamage != null && !lastDamage.isDamagerOnline())
-			return null;
-		return lastDamage;
 	}
 	
 	public CustomDamageCause getCustomDamageCause() {

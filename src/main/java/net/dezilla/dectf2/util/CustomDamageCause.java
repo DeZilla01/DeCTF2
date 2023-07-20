@@ -4,5 +4,7 @@ public enum CustomDamageCause {
 	
 	ENEMY_SPAWN,
 	SPAWN_WITH_FLAG,
-	FLAG_POISON;
+	FLAG_POISON,
+	KIT_SWITCH,
+	SHIELDED_DAMAGE;
 }

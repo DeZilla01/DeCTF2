@@ -1,4 +1,4 @@
-package net.dezilla.dectf2.game.ctf;
+package net.dezilla.dectf2.game.tdm;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -39,13 +39,12 @@ import net.dezilla.dectf2.game.ctf.CTFFlag.FlagType;
 import net.dezilla.dectf2.util.CustomDamageCause;
 import net.dezilla.dectf2.util.GameConfig;
 
-public class CTFGame extends GameBase implements Listener{
+public class TDMGame extends GameBase implements Listener{
 	private GameMatch match;
-	private Map<GameTeam, CTFFlag> flags = new HashMap<GameTeam, CTFFlag>();
 	private int onTickTaskId = 0;
 	Map<GamePlayer, GameTimer> stealDelays = new HashMap<GamePlayer, GameTimer>();
 	
-	public CTFGame(GameMatch match) {
+	public TDMGame(GameMatch match) {
 		this.match = match;
 		Bukkit.getPluginManager().registerEvents(this, GameMain.getInstance());
 		onTickTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(GameMain.getInstance(), () -> onTick(), 0, 1);
@@ -65,7 +64,7 @@ public class CTFGame extends GameBase implements Listener{
 	
 	@Override
 	public void gameStart() {
-		for(Entry<String, Location> e : match.signConfigs().entrySet()) {
+		/*for(Entry<String, Location> e : match.signConfigs().entrySet()) {
 			String s = e.getKey();
 			if(s.contains("=")) {
 				String[] a = s.split("=");
@@ -86,12 +85,12 @@ public class CTFGame extends GameBase implements Listener{
 				CTFFlag flag = new CTFFlag(team, team.getSpawn(), GameConfig.flagType);
 				flags.put(team, flag);
 			}
-		}
+		}*/
 	}
 	
 	@EventHandler
 	public void onPlayerMove(PlayerMoveEvent event) {
-		GamePlayer p = GamePlayer.get(event.getPlayer());
+		/*GamePlayer p = GamePlayer.get(event.getPlayer());
 		CTFFlag held = getHeldFlag(p);
 		if(p.isSpawnProtected() && held != null) {
 			p.setCustomDamageCause(CustomDamageCause.SPAWN_WITH_FLAG);
@@ -161,12 +160,12 @@ public class CTFGame extends GameBase implements Listener{
 					}
 				}
 			}
-		}
+		}*/
 	}
 	
 	@EventHandler
 	public void onPlayerDropItem(PlayerDropItemEvent event) {
-		GamePlayer p = GamePlayer.get(event.getPlayer());
+		/*GamePlayer p = GamePlayer.get(event.getPlayer());
 		CTFFlag held = getHeldFlag(p);
 		Item item = event.getItemDrop();
 		if(held != null && held.isFlag(item.getItemStack())) {
@@ -174,24 +173,24 @@ public class CTFGame extends GameBase implements Listener{
 			for(Player pl : Bukkit.getOnlinePlayers()) {
 				GamePlayer.get(pl).notify(p.getColoredName()+ChatColor.RESET+" has dropped "+held.getTeam().getColoredTeamName()+ChatColor.RESET+" "+held.getFlagType().flag());
 			}
-		}
+		}*/
 	}
 	
 	@EventHandler
 	public void onPlayerLeave(PlayerQuitEvent event) {
-		GamePlayer p = GamePlayer.get(event.getPlayer());
+		/*GamePlayer p = GamePlayer.get(event.getPlayer());
 		CTFFlag f = getHeldFlag(p);
 		if(f != null) {
 			f.dropFlag(p.getLocation().add(0,2,0), new Vector(0,0,0));
 			for(Player pl : Bukkit.getOnlinePlayers()) {
 				GamePlayer.get(pl).notify(p.getColoredName()+ChatColor.RESET+" has dropped "+f.getTeam().getColoredTeamName()+ChatColor.RESET+" "+f.getFlagType().flag());
 			}
-		}
+		}*/
 	}
 	
 	@EventHandler(priority=EventPriority.LOW)
 	public void onDeath(PlayerDeathEvent event) {
-		GamePlayer p = GamePlayer.get(event.getEntity());
+		/*GamePlayer p = GamePlayer.get(event.getEntity());
 		CTFFlag held = getHeldFlag(p);
 		Location l = p.getLocation();
 		if(held != null) {
@@ -199,7 +198,7 @@ public class CTFGame extends GameBase implements Listener{
 			for(Player pl : Bukkit.getOnlinePlayers()) {
 				GamePlayer.get(pl).notify(p.getColoredName()+ChatColor.RESET+" has dropped "+held.getTeam().getColoredTeamName()+ChatColor.RESET+" "+held.getFlagType().flag());
 			}
-		}
+		}*/
 	}
 	
 	@EventHandler(ignoreCancelled=true)
@@ -211,7 +210,7 @@ public class CTFGame extends GameBase implements Listener{
 	
 	@EventHandler
 	public void onInteract(PlayerInteractEvent event) {
-		Block b = event.getClickedBlock();
+		/*Block b = event.getClickedBlock();
 		if(b == null || event.getAction() != Action.RIGHT_CLICK_BLOCK)
 			return;
 		for(Entry<GameTeam, CTFFlag> entry : flags.entrySet()) {
@@ -219,12 +218,12 @@ public class CTFGame extends GameBase implements Listener{
 			if(f.getFlagType() == FlagType.CHEST && f.getHomeChest() != null && f.getHomeChest().getBlock().equals(b)) {
 				event.getPlayer().openInventory(f.getHomeChest().getInventory());
 			}
-		}
+		}*/
 	}
 	
 	@EventHandler
 	public void onInventoryClick(InventoryClickEvent event) {
-		GamePlayer p = GamePlayer.get((Player) event.getWhoClicked());
+		/*GamePlayer p = GamePlayer.get((Player) event.getWhoClicked());
 		for(Entry<GameTeam, CTFFlag> entry : flags.entrySet()) {
 			CTFFlag f = entry.getValue();
 			if(f.getFlagType() == FlagType.CHEST && f.getHomeChest() != null && p.getPlayer().getOpenInventory().getTopInventory().equals(f.getHomeChest().getInventory())) {
@@ -243,27 +242,7 @@ public class CTFGame extends GameBase implements Listener{
 					Bukkit.getScheduler().runTask(GameMain.getInstance(), () -> p.getPlayer().closeInventory());
 				}
 			}
-		}
-	}
-	
-	public CTFFlag getHeldFlag(GamePlayer player) {
-		for(Entry<GameTeam, CTFFlag> entry : flags.entrySet()) {
-			CTFFlag f = entry.getValue();
-			if(f.getCarrier() != null && f.getCarrier().equals(player))
-				return f;
-		}
-		return null;
-	}
-	
-	public void updateFlagColors() {
-		for(Entry<GameTeam, CTFFlag> entry : flags.entrySet()) {
-			if(entry.getKey().getColor() != entry.getValue().getColor())
-				entry.getValue().changeColor(entry.getKey().getColor());
-		}
-	}
-	
-	public CTFFlag getFlag(GameTeam team) {
-		return flags.get(team);
+		}*/
 	}
 
 	@Override
@@ -279,7 +258,7 @@ public class CTFGame extends GameBase implements Listener{
 	@Override
 	public List<String> getScoreboardDisplay(GamePlayer player) {
 		List<String> display = new ArrayList<String>();
-		display.add("Ends in "+match.getTimer().getTimeLeftDisplay());
+		/*display.add("Ends in "+match.getTimer().getTimeLeftDisplay());
 		GameTeam t = match.getTeam(player);
 		if(t != null) {
 			display.addAll(teamDisplay(t, true));
@@ -295,12 +274,12 @@ public class CTFGame extends GameBase implements Listener{
 		display.add(ChatColor.GOLD+" Streak "+ChatColor.RESET+player.getStats("streak"));
 		display.add(ChatColor.GOLD+" Recoveries "+ChatColor.RESET+player.getStats("recoveries"));
 		display.add(ChatColor.GOLD+" Captures "+ChatColor.RESET+player.getStats("captures"));
-		display.add(""+ChatColor.GRAY+ChatColor.ITALIC+GameConfig.serverName);
+		display.add(""+ChatColor.GRAY+ChatColor.ITALIC+GameConfig.serverName);*/
 		return display;
 	}
 	
-	private List<String> teamDisplay(GameTeam team, boolean yourTeam){
-		List<String> display = new ArrayList<String>();
+	private void teamDisplay(GameTeam team, boolean yourTeam){
+		/*List<String> display = new ArrayList<String>();
 		CTFFlag f = flags.get(team);
 		if(match.getTeamAmount()<=2) {
 			if(yourTeam)
@@ -345,6 +324,6 @@ public class CTFGame extends GameBase implements Listener{
 			display.add(stats);
 		}
 		
-		return display;
+		return display;*/
 	}
 }

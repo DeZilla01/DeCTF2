@@ -26,6 +26,7 @@ import org.bukkit.event.player.PlayerGameModeChangeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.server.ServerListPingEvent;
 
 import net.dezilla.dectf2.GameMain;
 import net.dezilla.dectf2.GamePlayer;
@@ -33,6 +34,7 @@ import net.dezilla.dectf2.game.GameMatch;
 import net.dezilla.dectf2.game.GameMatch.GameState;
 import net.dezilla.dectf2.game.GameTeam;
 import net.dezilla.dectf2.util.CustomDamageCause;
+import net.dezilla.dectf2.util.GameConfig;
 import net.md_5.bungee.api.ChatColor;
 
 public class EventListener implements Listener{
@@ -52,17 +54,10 @@ public class EventListener implements Listener{
 		if(match == null)
 			return;
 		if(event.getEntityType() == EntityType.PLAYER) {
-			if(match.getGameState() == GameState.PREGAME || match.getGameState() == GameState.POSTGAME)
+			if(match.getGameState() == GameState.PREGAME || match.getGameState() == GameState.POSTGAME) {
 				event.setCancelled(true);
-		}
-	}
-	
-	@EventHandler(ignoreCancelled=true)
-	public void onDamageEntity(EntityDamageByEntityEvent event) {
-		GameMatch match = GameMatch.currentMatch;
-		if(match == null || match.getGameState() != GameState.INGAME)
-			return;
-		if(event.getEntityType() == EntityType.PLAYER) {
+				return;
+			}
 			GamePlayer victim = GamePlayer.get((Player) event.getEntity());
 			GameTeam victimTeam = match.getTeam(victim);
 			//spawn protection
@@ -71,6 +66,13 @@ public class EventListener implements Listener{
 				return;
 			}
 		}
+	}
+	
+	@EventHandler(ignoreCancelled=true)
+	public void onDamageEntity(EntityDamageByEntityEvent event) {
+		GameMatch match = GameMatch.currentMatch;
+		if(match == null || match.getGameState() != GameState.INGAME)
+			return;
 		if(event.getEntityType() == EntityType.PLAYER && event.getDamager() instanceof Player) {
 			GamePlayer victim = GamePlayer.get((Player) event.getEntity());
 			GamePlayer damager = GamePlayer.get((Player) event.getDamager());
@@ -131,6 +133,9 @@ public class EventListener implements Listener{
 						list.add("decided that he would bring the flag to his spawn");
 						notByKiller = true;
 						break;
+					case KIT_SWITCH:
+						list.add("switched kit");
+						notByKiller = true;
 					default:
 						break;
 				}
@@ -196,10 +201,16 @@ public class EventListener implements Listener{
 			case SUFFOCATION:
 				break;
 			case SUICIDE:
+				list.add("killed himself");
+				list.add("commited sudoku");
+				notByKiller = true;
 				break;
 			case THORNS:
 				break;
 			case VOID:
+				list.add("felled off the map");
+				list.add("felled in the void");
+				notByKiller=true;
 				break;
 			case WITHER:
 				break;
@@ -268,6 +279,32 @@ public class EventListener implements Listener{
 			//idk
 		}
 			
+	}
+	
+	@EventHandler
+	public void onServerListPing(ServerListPingEvent e) {
+		if(!GameConfig.displayServerListMotd)
+			return;
+		GameMatch match = GameMatch.currentMatch;
+		if(match == null || !match.isLoaded()) {
+			e.setMotd(GameConfig.serverName + " DeCTF2 "+GameMain.getInstance().getDescription().getVersion());
+			return;
+		}
+		String status = (match.getGameState() == GameState.PREGAME ? "Pre-game" : "Post-game");
+		String scores = "";
+		if(match.getGameState() == GameState.INGAME) {
+			status = "Time left: "+ChatColor.GOLD+match.getTimer().getTimeLeftDisplay()+" ";
+			scores = ChatColor.WHITE+"Scores ";
+			for(GameTeam team : match.getTeams()) {
+				scores += team.getColor().getPrefix()+team.getScore()+"/"+match.getScoreToWin()+" ";
+			}
+		}
+		
+		String motd = "";
+		motd+=ChatColor.WHITE+"Mode: "+ChatColor.GOLD+match.getGame().getGamemodeName()+ChatColor.WHITE+" - "+status+"\n";
+		motd+=ChatColor.WHITE+"Map: "+ChatColor.GOLD+match.getMapName()+ChatColor.WHITE+" by "+ChatColor.GOLD+match.getMapAuthor()+" "+scores;
+		e.setMotd(motd);
+		
 	}
 	
 	@EventHandler(ignoreCancelled=true)

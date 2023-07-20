@@ -277,10 +277,15 @@ public class CTFFlag {
 		return homeChest;
 	}
 	
+	@Deprecated
 	public boolean isFlagMaterial(Material material) {
 		if(material == color.banner() || material == color.wool() || material == color.spawnBlock())
 			return true;
 		return false;
+	}
+	
+	public boolean isFlag(ItemStack item) {
+		return ItemBuilder.getData(item).equals("flag");
 	}
 	
 	public ItemStack getFlagItem() {
