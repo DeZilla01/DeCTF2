@@ -40,6 +40,12 @@ public class GameMain extends JavaPlugin{
 		return instance;
 	}
 	
+	static long serverTick = 0;
+	
+	public static long getServerTick() {
+		return serverTick;
+	}
+	
 	private List<Class<? extends BaseKit>> kits = new ArrayList<Class<? extends BaseKit>>();
 	private Map<String, Class<? extends BaseKit>> kitMap = new HashMap<String, Class<? extends BaseKit>>();
 	
@@ -149,6 +155,7 @@ public class GameMain extends JavaPlugin{
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
+		Bukkit.getScheduler().scheduleSyncRepeatingTask(instance, () -> serverTick++, 1, 1);
 	}
 	
 	public Map<String, Class<? extends BaseKit>> kitMap(){

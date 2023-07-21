@@ -8,6 +8,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -30,9 +31,11 @@ import org.bukkit.event.server.ServerListPingEvent;
 
 import net.dezilla.dectf2.GameMain;
 import net.dezilla.dectf2.GamePlayer;
+import net.dezilla.dectf2.Util;
 import net.dezilla.dectf2.game.GameMatch;
 import net.dezilla.dectf2.game.GameMatch.GameState;
 import net.dezilla.dectf2.game.GameTeam;
+import net.dezilla.dectf2.game.tdm.TDMGame;
 import net.dezilla.dectf2.util.CustomDamageCause;
 import net.dezilla.dectf2.util.GameConfig;
 import net.md_5.bungee.api.ChatColor;
@@ -61,7 +64,7 @@ public class EventListener implements Listener{
 			GamePlayer victim = GamePlayer.get((Player) event.getEntity());
 			GameTeam victimTeam = match.getTeam(victim);
 			//spawn protection
-			if(victimTeam.isSpawnBlock(victim.getPlayer().getLocation().add(0,-1,0).getBlock())) {
+			if(victimTeam.isSpawnBlock(victim.getPlayer().getLocation().add(0,-1,0).getBlock()) && event.getDamage() < 999) {
 				event.setCancelled(true);
 				return;
 			}
@@ -73,13 +76,18 @@ public class EventListener implements Listener{
 		GameMatch match = GameMatch.currentMatch;
 		if(match == null || match.getGameState() != GameState.INGAME)
 			return;
-		if(event.getEntityType() == EntityType.PLAYER && event.getDamager() instanceof Player) {
+		GamePlayer damager = Util.getOwner(event.getDamager());
+		if(event.getEntityType() == EntityType.PLAYER && damager != null) {
 			GamePlayer victim = GamePlayer.get((Player) event.getEntity());
-			GamePlayer damager = GamePlayer.get((Player) event.getDamager());
 			//friendly fire
 			if(victim.getTeam().equals(damager.getTeam())) {
 				event.setCancelled(true);
 				return;
+			}
+			damager.incrementDamageDealt(event.getFinalDamage());
+			if(match.getGame() instanceof TDMGame && damager.getTeam() != null) {
+				TDMGame g = (TDMGame) match.getGame();
+				g.addDamage(damager.getTeam(), event.getFinalDamage());
 			}
 			
 			victim.setLastAttacker(damager);
@@ -98,6 +106,10 @@ public class EventListener implements Listener{
 			killer.incrementStats("kills", 1);
 			killer.incrementStats("streak", 1);
 			p.setLastAttacker(null);
+			if(match.getGame() instanceof TDMGame && killer.getTeam() != null) {
+				TDMGame game = (TDMGame) match.getGame();
+				game.addKill(killer.getTeam());
+			}
 		}
 		Bukkit.getScheduler().scheduleSyncDelayedTask(GameMain.getInstance(), () -> match.respawnPlayer(p));
 		//Death Message
@@ -136,6 +148,11 @@ public class EventListener implements Listener{
 					case KIT_SWITCH:
 						list.add("switched kit");
 						notByKiller = true;
+					case SHIELDED_DAMAGE:
+						list.add("was pierced");
+						list.add("was killed");
+						list.add("was slain");
+						list.add("relied too much on his shield and got killed");
 					default:
 						break;
 				}
@@ -154,6 +171,11 @@ public class EventListener implements Listener{
 			case ENTITY_ATTACK:
 				list.add("was slain");
 				list.add("was killed");
+				if(killer.getPlayer().getInventory().getItemInMainHand() == null || killer.getPlayer().getInventory().getItemInMainHand().getType() == Material.AIR) {
+					list.clear();
+					list.add("was punched");
+					list.add("was fisted");
+				}
 				break;
 			case ENTITY_EXPLOSION:
 				list.add("exploded into pieces");
@@ -169,8 +191,13 @@ public class EventListener implements Listener{
 				notByKiller = true;
 				break;
 			case FALLING_BLOCK:
+				list.add("didn't look above");
+				list.add("was killed by a block from above");
+				notByKiller = true;
 				break;
 			case FIRE:
+				list.add("burned to death");
+				notByKiller = true;
 				break;
 			case FIRE_TICK:
 				break;
@@ -181,8 +208,14 @@ public class EventListener implements Listener{
 			case HOT_FLOOR:
 				break;
 			case KILL:
+				list.add("was killed by console");
+				list.add("was killed by the magic of administrators' power");
+				notByKiller = true;
 				break;
 			case LAVA:
+				list.add("swimmed in lava");
+				list.add("mistook lava for water");
+				notByKiller = true;
 				break;
 			case LIGHTNING:
 				break;

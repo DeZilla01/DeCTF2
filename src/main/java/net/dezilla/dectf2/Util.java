@@ -114,9 +114,9 @@ public class Util {
 		double x = attacker.getLocation().getX() - victim.getLocation().getX();
 		double z = attacker.getLocation().getZ() - victim.getLocation().getZ();
 		double distance = Math.sqrt((x*x)+(z*z));
-		x = (.3/distance)*-x;
-		z = (.3/distance)*-z;
-		return new Vector(x, .37, z);
+		x = (.28/distance)*-x;
+		z = (.28/distance)*-z;
+		return new Vector(x, .34, z);
 	}
 	
 	public static double getDamageReduced(Player player) {

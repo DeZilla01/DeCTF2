@@ -17,12 +17,16 @@ import org.bukkit.inventory.ItemStack;
 import net.dezilla.dectf2.GameMain;
 import net.dezilla.dectf2.GamePlayer;
 import net.dezilla.dectf2.Util;
+import net.dezilla.dectf2.game.GameMatch;
 import net.dezilla.dectf2.game.GameTeam;
+import net.dezilla.dectf2.game.tdm.TDMGame;
 import net.dezilla.dectf2.util.CustomDamageCause;
 import net.dezilla.dectf2.util.GameColor;
 import net.dezilla.dectf2.util.GameConfig;
 
 public abstract class BaseKit implements Listener{
+	protected static double defaultAttackSpeed = 40;
+	protected static double defaultMovementSpeed = .12;
 	
 	GamePlayer player;
 	
@@ -31,6 +35,8 @@ public abstract class BaseKit implements Listener{
 	public abstract ItemStack getIcon();
 	
 	public abstract String[] getVariations();
+	
+	public void setVariation(String variation) {};
 	
 	public BaseKit(GamePlayer player) {
 		this.player = player;
@@ -46,11 +52,28 @@ public abstract class BaseKit implements Listener{
 	public void setInventory() {
 		setAttributes();
 		setEffects();
+		setLevel();
 	}
 	
-	public void setAttributes() {}
+	public void setAttributes() {
+		player.getPlayer().getAttribute(Attribute.GENERIC_ATTACK_SPEED).setBaseValue(getAttackSpeed());
+		player.getPlayer().getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).setBaseValue(getMovementSpeed());
+	}
 	
 	public void setEffects() {}
+	
+	public void setLevel() {
+		player.getPlayer().setExp(0);
+		player.getPlayer().setLevel(0);
+	}
+	
+	public double getAttackSpeed() {
+		return defaultAttackSpeed;
+	}
+	
+	public double getMovementSpeed() {
+		return defaultMovementSpeed;
+	}
 	
 	@EventHandler
 	public void onItemUse(PlayerInteractEvent event) {
@@ -79,25 +102,32 @@ public abstract class BaseKit implements Listener{
 		}
 	}
 	
+	long lastAttack = 0;
 	@EventHandler
 	public void onDamageEntity(EntityDamageByEntityEvent event) {
 		if(!(event.getEntity() instanceof Player) || !((Player) event.getEntity()).equals(player.getPlayer()))
 			return;
-		
-		if(event.getDamager() != null && player.getPlayer().isBlocking() && event.getCause() != DamageCause.CUSTOM) {
+		long now = GameMain.getServerTick();
+		if(event.getDamager() != null && player.getPlayer().isBlocking() && event.getCause() != DamageCause.CUSTOM && now-lastAttack >= 10) {
 			event.setCancelled(true);
 			GamePlayer killer = Util.getOwner(event.getDamager());
 			if(killer != null)
 				player.setLastAttacker(killer);
 			player.setCustomDamageCause(CustomDamageCause.SHIELDED_DAMAGE);
 			double dmg = event.getDamage() - (Util.getDamageReduced(player.getPlayer())*event.getDamage());
-			player.getPlayer().sendMessage(event.getFinalDamage()+ " - " + event.getDamage()+" - "+dmg);
 			player.getPlayer().damage(dmg*.5);
+			killer.incrementDamageDealt(dmg*.5);
+			if(GameMatch.currentMatch != null && killer.getTeam() != null && GameMatch.currentMatch.getGame() instanceof TDMGame) {
+				TDMGame game = (TDMGame) GameMatch.currentMatch.getGame();
+				game.addDamage(killer.getTeam(), dmg*.5);
+			}
 			Bukkit.getScheduler().runTask(GameMain.getInstance(), () -> {
 				player.getPlayer().setVelocity(Util.getKnockback(player.getPlayer(), event.getDamager()));
 				player.getPlayer().playSound(player.getPlayer(), Sound.ITEM_SHIELD_BLOCK, 1, 1);
 			});
 		}
+		if(now-lastAttack >= 10)
+			lastAttack = now;
 	}
 	
 	protected GameColor color() {

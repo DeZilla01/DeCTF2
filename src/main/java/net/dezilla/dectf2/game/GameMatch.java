@@ -34,6 +34,7 @@ import net.dezilla.dectf2.Util;
 import net.dezilla.dectf2.util.WorldRunnable;
 import net.dezilla.dectf2.util.ZipUtility;
 import net.dezilla.dectf2.game.ctf.CTFGame;
+import net.dezilla.dectf2.game.tdm.TDMGame;
 import net.dezilla.dectf2.gui.MapVoteGui;
 import net.dezilla.dectf2.util.GameColor;
 import net.dezilla.dectf2.util.GameConfig;
@@ -134,8 +135,8 @@ public class GameMatch {
 				createTeams();
 				if(mode.equalsIgnoreCase("ctf"))
 					game = new CTFGame(this);
-				else if(mode.equalsIgnoreCase("tdm"))
-					game = new CTFGame(this);//TODO replace this with tdm eventually
+				else 
+					game = new TDMGame(this); //fallback gamemode incase mode is not valid
 				if(scoreToWin <= 0) {
 					scoreToWin = game.getDefaultScoreToWin();
 				}

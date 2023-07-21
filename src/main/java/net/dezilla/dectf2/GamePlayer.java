@@ -51,6 +51,7 @@ public class GamePlayer {
 	private Player player;
 	private Scoreboard score;
 	private Map<String, Integer> stats = new HashMap<String, Integer>();
+	private double damageDealt = 0.0;
 	private GamePlayer lastAttacker = null;
 	private CustomDamageCause damageCause= null;
 	private BaseKit kit;
@@ -178,6 +179,14 @@ public class GamePlayer {
 		return stats.get(key);
 	}
 	
+	public double getDamageDealt() {
+		return damageDealt;
+	}
+	
+	public void incrementDamageDealt(double amount) {
+		damageDealt+=amount;
+	}
+	
 	public boolean isSpawnProtected() {
 		return spawnProtection;
 	}
@@ -233,9 +242,15 @@ public class GamePlayer {
 	}
 	
 	public void setKit(Class<? extends BaseKit> kit) {
+		setKit(kit, null);
+	}
+	
+	public void setKit(Class<? extends BaseKit> kit, String variation) {
 		try {
 			BaseKit oldkit = this.kit;
 			this.kit = kit.getConstructor(this.getClass()).newInstance(this);
+			if(variation != null)
+				this.kit.setVariation(variation);
 			oldkit.unregister();
 			GameMatch match = GameMatch.currentMatch;
 			if(match != null && match.getGameState() == GameState.INGAME && player.getGameMode() == GameMode.SURVIVAL) {

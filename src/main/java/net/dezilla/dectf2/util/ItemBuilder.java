@@ -4,10 +4,14 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.bukkit.ChatColor;
+import org.bukkit.DyeColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.block.Banner;
+import org.bukkit.block.BlockState;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ArmorMeta;
+import org.bukkit.inventory.meta.BlockStateMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.trim.ArmorTrim;
 import org.bukkit.inventory.meta.trim.TrimMaterial;
@@ -90,6 +94,18 @@ public class ItemBuilder {
 		if(meta instanceof ArmorMeta) {
 			((ArmorMeta) meta).setTrim(new ArmorTrim(material, pattern));
 		}
+		return this;
+	}
+	public ItemBuilder shieldColor(DyeColor dye) {
+		if(!(meta instanceof BlockStateMeta))
+			return this;
+		BlockStateMeta bs = (BlockStateMeta) meta;
+		if(!(bs.getBlockState() instanceof Banner))
+			return this;
+		Banner b = (Banner) bs.getBlockState();
+		b.setBaseColor(dye);
+		bs.setBlockState(b);
+		meta = bs;
 		return this;
 	}
 

@@ -22,8 +22,6 @@ import net.dezilla.dectf2.util.GameConfig;
 import net.dezilla.dectf2.util.ItemBuilder;
 
 public class SoldierKit extends BaseKit {
-	private static double attackSpeed = 40;
-	private static double movementSpeed = .12;
 	
 	private boolean powerup = false;
 
@@ -41,7 +39,7 @@ public class SoldierKit extends BaseKit {
 		inv.setLeggings(ItemBuilder.of(Material.IRON_LEGGINGS).name("Soldier Leggings").unbreakable().get());
 		inv.setBoots(ItemBuilder.of(Material.IRON_BOOTS).name("Soldier Boots").unbreakable().get());
 		inv.setItem(0, ItemBuilder.of(Material.IRON_SWORD).name("Soldier Sword").unbreakable().get());
-		inv.setItem(1, ItemBuilder.of(GameConfig.foodMaterial).name("Soldier Steak").amount(3).get());
+		inv.setItem(1, ItemBuilder.of(GameConfig.foodMaterial).name("Steak").amount(3).get());
 		inv.setItemInOffHand(new ItemStack(Material.SHIELD));
 	}
 	
@@ -68,12 +66,6 @@ public class SoldierKit extends BaseKit {
 	}
 	
 	@Override
-	public void setAttributes() {
-		player.getPlayer().getAttribute(Attribute.GENERIC_ATTACK_SPEED).setBaseValue(attackSpeed);
-		player.getPlayer().getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).setBaseValue(movementSpeed);
-	}
-	
-	@Override
 	public void setEffects() {
 		
 	}
@@ -85,7 +77,7 @@ public class SoldierKit extends BaseKit {
 
 	@Override
 	public String[] getVariations() {
-		String[] variations = {"Default", "Powerup"};
+		String[] variations = {"default"};
 		return variations;
 	}
 	

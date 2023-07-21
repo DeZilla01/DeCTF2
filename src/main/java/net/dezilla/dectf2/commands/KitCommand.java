@@ -1,5 +1,7 @@
 package net.dezilla.dectf2.commands;
 
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map.Entry;
@@ -34,7 +36,10 @@ public class KitCommand extends Command implements CommandExecutor{
 		}
 		if(GameMain.getInstance().kitMap().containsKey(commandLabel.toLowerCase())) {
 			GamePlayer p = GamePlayer.get((Player) sender);
-			p.setKit(GameMain.getInstance().kitMap().get(commandLabel.toLowerCase()));
+			if(args.length>0)
+				p.setKit(GameMain.getInstance().kitMap().get(commandLabel.toLowerCase()), args[0]);
+			else
+				p.setKit(GameMain.getInstance().kitMap().get(commandLabel.toLowerCase()));
 			System.out.println("set");
 		}else {
 			System.out.println(commandLabel+" - "+"stuff");
@@ -49,5 +54,23 @@ public class KitCommand extends Command implements CommandExecutor{
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		return execute(sender, label, args);
+	}
+	
+	@Override
+	public List<String> tabComplete(CommandSender sender, String alias, String[] args) {
+		List<String> list = new ArrayList<String>();
+		if(args.length==1 && GameMain.getInstance().kitMap().containsKey(alias.toLowerCase())) {
+			try {
+				BaseKit k = GameMain.getInstance().kitMap().get(alias.toLowerCase()).getConstructor(new Class[] {GamePlayer.class}).newInstance(GamePlayer.get(null));
+				for(String s : k.getVariations()) {
+					if(s.startsWith(args[0].toLowerCase()))
+						list.add(s);
+				}
+			} catch (InstantiationException | IllegalAccessException | IllegalArgumentException
+					| InvocationTargetException | NoSuchMethodException | SecurityException e) {
+				e.printStackTrace();
+			}
+		}
+		return list;
 	}
 }
