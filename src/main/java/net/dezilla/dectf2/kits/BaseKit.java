@@ -1,8 +1,10 @@
 package net.dezilla.dectf2.kits;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.attribute.Attribute;
+import org.bukkit.block.Banner;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.HandlerList;
@@ -13,6 +15,11 @@ import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.entity.EntityDamageEvent.DamageModifier;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ArmorMeta;
+import org.bukkit.inventory.meta.BlockStateMeta;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.trim.ArmorTrim;
+import org.bukkit.potion.PotionEffect;
 
 import net.dezilla.dectf2.GameMain;
 import net.dezilla.dectf2.GamePlayer;
@@ -27,6 +34,8 @@ import net.dezilla.dectf2.util.GameConfig;
 public abstract class BaseKit implements Listener{
 	protected static double defaultAttackSpeed = 40;
 	protected static double defaultMovementSpeed = .12;
+	private int tickTaskId = -1;
+	private boolean unregistered = true;
 	
 	GamePlayer player;
 	
@@ -41,15 +50,43 @@ public abstract class BaseKit implements Listener{
 	public BaseKit(GamePlayer player) {
 		this.player = player;
 		//player can be null, mainly to access kit name, icons, desc, etc...
-		if(player != null)
+		if(player != null) {
+			register();
+		}
+	}
+	
+	public void register() {
+		if(unregistered) {
 			Bukkit.getServer().getPluginManager().registerEvents(this, GameMain.getInstance());
+			tickTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(GameMain.getInstance(), () -> {
+				if(!player.getPlayer().isOnline() || player.getPlayer().isDead() || !player.getKit().equals(this)) {
+					unregister();
+					return;
+				}
+				onTick();
+			}, 1, 1);
+			unregistered = false;
+		}
+	}
+	
+	public void onTick() {
+		
 	}
 	
 	public void unregister() {
-		HandlerList.unregisterAll(this);
+		if(!unregistered) {
+			HandlerList.unregisterAll(this);
+			Bukkit.getScheduler().cancelTask(tickTaskId);
+			unregistered = true;
+		}
+	}
+	
+	public boolean isUnregistered() {
+		return unregistered;
 	}
 	
 	public void setInventory() {
+		register();
 		setAttributes();
 		setEffects();
 		setLevel();
@@ -60,7 +97,10 @@ public abstract class BaseKit implements Listener{
 		player.getPlayer().getAttribute(Attribute.GENERIC_MOVEMENT_SPEED).setBaseValue(getMovementSpeed());
 	}
 	
-	public void setEffects() {}
+	public void setEffects() {
+		for(PotionEffect e : player.getPlayer().getActivePotionEffects())
+			player.getPlayer().removePotionEffect(e.getType());
+	}
 	
 	public void setLevel() {
 		player.getPlayer().setExp(0);
@@ -75,8 +115,36 @@ public abstract class BaseKit implements Listener{
 		return defaultMovementSpeed;
 	}
 	
+	public void updateColor() {
+		GameColor color = GameColor.WHITE;
+		GameTeam team = player.getTeam();
+		if(team != null)
+			color = team.getColor();
+		for(ItemStack i : player.getPlayer().getInventory().getContents()) {
+			if(i == null || i.getType() == Material.AIR)
+				continue;
+			ItemMeta m = i.getItemMeta();
+			if(m instanceof ArmorMeta) {
+				ArmorMeta a = (ArmorMeta) m;
+				if(a.hasTrim()) {
+					a.setTrim(new ArmorTrim(color.getTrimMaterial(), a.getTrim().getPattern()));
+					i.setItemMeta(a);
+				}
+			}
+			if(m instanceof BlockStateMeta) {
+				BlockStateMeta b = (BlockStateMeta) m;
+				if(b.getBlockState() instanceof Banner) {
+					Banner ba = (Banner) b.getBlockState();
+					ba.setBaseColor(color.dyeColor());
+					b.setBlockState(ba);
+					i.setItemMeta(b);
+				}
+			}
+		}
+	}
+	
 	@EventHandler
-	public void onItemUse(PlayerInteractEvent event) {
+	public void onSteakUse(PlayerInteractEvent event) {
 		Player p = player.getPlayer();
 		if(!event.getPlayer().equals(p))
 			return;

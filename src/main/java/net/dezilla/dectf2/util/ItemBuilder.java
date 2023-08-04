@@ -9,6 +9,7 @@ import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Banner;
 import org.bukkit.block.BlockState;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ArmorMeta;
 import org.bukkit.inventory.meta.BlockStateMeta;
@@ -87,6 +88,13 @@ public class ItemBuilder {
 	
 	public ItemBuilder amount(int amount) {
 		item.setAmount(amount);
+		return this;
+	}
+	
+	public ItemBuilder enchant(Enchantment ench, int lvl) {
+		if(meta.hasEnchant(ench))
+			meta.removeEnchant(ench);
+		meta.addEnchant(ench, lvl, true);
 		return this;
 	}
 	

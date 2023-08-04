@@ -240,6 +240,9 @@ public class GameTeam {
 			else if(b.getType().toString().contains("_STAINED_GLASS"))
 				b.setType(color.stainedGlass());
 		}
+		for(GamePlayer p : players) {
+			p.getKit().updateColor();
+		}
 	}
 	
 	public void addPlayer(GamePlayer player) {

@@ -1,13 +1,11 @@
 package net.dezilla.dectf2.kits;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.trim.TrimPattern;
 
-import net.dezilla.dectf2.GameMain;
 import net.dezilla.dectf2.GamePlayer;
 import net.dezilla.dectf2.util.GameConfig;
 import net.dezilla.dectf2.util.ItemBuilder;
@@ -20,7 +18,6 @@ public class HeavyKit extends BaseKit {
 	private boolean powerup = false;
 	private boolean tank = false;
 	private ItemStack sword = ItemBuilder.of(Material.DIAMOND_SWORD).name("Heavy Sword").unbreakable().get();
-	private int powerupTaskId = -1;
 	private int level = 0;
 	private float exp = 0;
 
@@ -60,6 +57,36 @@ public class HeavyKit extends BaseKit {
 	}
 	
 	@Override
+	public void onTick() {
+		if(!powerup) 
+			return;
+		if(player.getPlayer().isSneaking() && level < 10) {
+			exp += powerupGainPerTick - (powerupSlowPerLevel*level);
+			if(exp>=1) {
+				level++;
+				exp=0;
+				updateSword();
+			}
+		}
+		else if(!player.getPlayer().isSneaking()) {
+			if(level == 0 && exp == 0)
+				return;
+			exp -= powerupGainPerTick;
+			if(exp < 0) {
+				if(level != 0) {
+					level--;
+					exp=.9999f;
+					updateSword();
+				}
+				else
+					exp=0;
+			}
+		}
+		player.getPlayer().setLevel(level);
+		player.getPlayer().setExp(exp);
+	}
+	
+	@Override
 	public void setEffects() {
 		
 	}
@@ -74,41 +101,8 @@ public class HeavyKit extends BaseKit {
 	
 	@Override
 	public void setVariation(String variation) {
-		if(variation.equalsIgnoreCase("powerup")) {
+		if(variation.equalsIgnoreCase("powerup")) 
 			powerup = true;
-			if(player != null) {
-				powerupTaskId = Bukkit.getScheduler().scheduleSyncRepeatingTask(GameMain.getInstance(), () -> {
-					if(!player.getPlayer().isOnline() || player.getPlayer().isDead() || !player.getKit().equals(this)) {
-						Bukkit.getScheduler().cancelTask(powerupTaskId);
-						return;
-					}
-					if(player.getPlayer().isSneaking() && level < 10) {
-						exp += powerupGainPerTick - (powerupSlowPerLevel*level);
-						if(exp>=1) {
-							level++;
-							exp=0;
-							updateSword();
-						}
-					}
-					else if(!player.getPlayer().isSneaking()) {
-						if(level == 0 && exp == 0)
-							return;
-						exp -= powerupGainPerTick;
-						if(exp < 0) {
-							if(level != 0) {
-								level--;
-								exp=.9999f;
-								updateSword();
-							}
-							else
-								exp=0;
-						}
-					}
-					player.getPlayer().setLevel(level);
-					player.getPlayer().setExp(exp);
-				}, 1, 1);
-			}
-		}
 		if(variation.equalsIgnoreCase("tank"))
 			tank = true;
 	}

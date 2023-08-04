@@ -23,7 +23,8 @@ public enum GameColor {
 	DARK_GREEN("Dark Green", ChatColor.DARK_GREEN, "GREEN", DyeColor.GREEN, Color.GREEN, TrimMaterial.EMERALD), //13
 	RED("Red", ChatColor.RED, "RED", DyeColor.RED, Color.fromRGB(255, 85, 85), TrimMaterial.REDSTONE), //14
 	BLACK("Black", ChatColor.BLACK, "BLACK", DyeColor.BLACK, Color.BLACK, TrimMaterial.NETHERITE), //15
-	CRIMSON("Crimson", ChatColor.DARK_RED, "RED", DyeColor.RED, Color.MAROON, TrimMaterial.REDSTONE); //16
+	CRIMSON("Crimson", ChatColor.DARK_RED, "RED", DyeColor.RED, Color.MAROON, TrimMaterial.REDSTONE), //16
+	DARK_BLUE("Dark Blue", ChatColor.DARK_BLUE, "BLUE", DyeColor.BLUE, Color.fromRGB(0, 0, 170), TrimMaterial.LAPIS); //17
 	
 	String name;
 	ChatColor chatcolor;

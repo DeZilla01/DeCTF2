@@ -20,8 +20,10 @@ import net.dezilla.dectf2.commands.*;
 import net.dezilla.dectf2.commands.mapmanager.*;
 import net.dezilla.dectf2.game.GameMatch;
 import net.dezilla.dectf2.game.GameTimer;
+import net.dezilla.dectf2.kits.ArcherKit;
 import net.dezilla.dectf2.kits.BaseKit;
 import net.dezilla.dectf2.kits.HeavyKit;
+import net.dezilla.dectf2.kits.MedicKit;
 import net.dezilla.dectf2.kits.SoldierKit;
 import net.dezilla.dectf2.kits.TestyKit;
 import net.dezilla.dectf2.listeners.CalloutListener;
@@ -55,6 +57,8 @@ public class GameMain extends JavaPlugin{
 		kits.add(HeavyKit.class);
 		kits.add(TestyKit.class);
 		kits.add(SoldierKit.class);
+		kits.add(ArcherKit.class);
+		kits.add(MedicKit.class);
 		for(Class<? extends BaseKit> c : kits) {
 			try {
 				BaseKit k = c.getConstructor(new Class[] {GamePlayer.class}).newInstance(GamePlayer.get(null));

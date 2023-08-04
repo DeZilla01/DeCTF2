@@ -148,11 +148,17 @@ public class EventListener implements Listener{
 					case KIT_SWITCH:
 						list.add("switched kit");
 						notByKiller = true;
+						break;
 					case SHIELDED_DAMAGE:
 						list.add("was pierced");
 						list.add("was killed");
 						list.add("was slain");
 						list.add("relied too much on his shield and got killed");
+						break;
+					case ARCHER_HEADSHOT:
+						list.add("was headshoted");
+						list.add("got snipped");
+						break;
 					default:
 						break;
 				}
@@ -209,7 +215,7 @@ public class EventListener implements Listener{
 				break;
 			case KILL:
 				list.add("was killed by console");
-				list.add("was killed by the magic of administrators' power");
+				list.add("was killed by the magic of administrator power");
 				notByKiller = true;
 				break;
 			case LAVA:

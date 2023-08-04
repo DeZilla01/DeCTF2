@@ -119,6 +119,24 @@ public class Util {
 		return new Vector(x, .34, z);
 	}
 	
+	public static Vector inFront(Player player, double distance) {
+		float yaw = player.getEyeLocation().getYaw();
+		float pitch = player.getEyeLocation().getPitch();
+		while(yaw<-180)
+			yaw+=360;
+		while(yaw>180)
+			yaw-=360;
+		double a = pitch/90;
+		if(a<0)
+			a*=-1;
+		a=(a-1)*-1;
+		double x= distance * Math.sin(Math.PI * 2 * yaw / 360) * a;
+		double z = -distance * Math.cos(Math.PI * 2 * yaw / 360) * a;
+		double y = distance * Math.sin(Math.PI * 2 * pitch / 360);
+		return new Vector(x, y, z);
+		
+	}
+	
 	public static double getDamageReduced(Player player) {
 		List<ItemStack> armorItems = new ArrayList<ItemStack>();
 		armorItems.add(player.getInventory().getHelmet());
