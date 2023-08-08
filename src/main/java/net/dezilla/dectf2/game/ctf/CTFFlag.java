@@ -285,7 +285,7 @@ public class CTFFlag {
 	}
 	
 	public boolean isFlag(ItemStack item) {
-		return ItemBuilder.getData(item).equals("flag");
+		return ItemBuilder.dataMatch(item, "flag");
 	}
 	
 	public ItemStack getFlagItem() {
@@ -432,7 +432,7 @@ public class CTFFlag {
 			}
 			if(t.getTicks() % 300 == 0) {
 				if(!dmgWarned) {
-					carrier.getPlayer().sendMessage("The "+type.fName+" is poisoning you");
+					carrier.getPlayer().sendMessage("The "+type.fName.toLowerCase()+" is poisoning you");
 					dmgWarned = true;
 				}
 				carrier.setCustomDamageCause(CustomDamageCause.FLAG_POISON);

@@ -30,6 +30,11 @@ public class TestyKit extends BaseKit{
 	public String getName() {
 		return "Testy";
 	}
+	
+	@Override
+	public String getVariation() {
+		return "Default";
+	}
 
 	@Override
 	public ItemStack getIcon() {

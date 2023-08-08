@@ -11,7 +11,6 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
 import org.bukkit.ChunkSnapshot;
 import org.bukkit.GameMode;
@@ -27,17 +26,20 @@ import org.bukkit.block.Sign;
 import org.bukkit.block.data.Rotatable;
 import org.bukkit.block.sign.Side;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 import net.dezilla.dectf2.GameMain;
 import net.dezilla.dectf2.GamePlayer;
 import net.dezilla.dectf2.Util;
 import net.dezilla.dectf2.util.WorldRunnable;
 import net.dezilla.dectf2.util.ZipUtility;
+import net.md_5.bungee.api.ChatColor;
 import net.dezilla.dectf2.game.ctf.CTFGame;
 import net.dezilla.dectf2.game.tdm.TDMGame;
 import net.dezilla.dectf2.gui.MapVoteGui;
 import net.dezilla.dectf2.util.GameColor;
 import net.dezilla.dectf2.util.GameConfig;
+import net.dezilla.dectf2.util.MapPreview;
 
 public class GameMatch {
 	private static int GAMEID = 0;
@@ -72,6 +74,7 @@ public class GameMatch {
 	private boolean blockparsed = false;
 	private GameMapVote mapVote = null;
 	private List<GameCallout> callouts = new ArrayList<GameCallout>();
+	private ItemStack mapIcon = new ItemStack(Material.PAPER);
 	
 	public GameMatch(String levelName) throws FileNotFoundException {
 		//Set chosen level
@@ -187,6 +190,10 @@ public class GameMatch {
 					}
 					blockparsed=true;
 				});
+				//This task will save map information in "maps.json" to be used without loading the map
+				Bukkit.getScheduler().runTaskAsynchronously(GameMain.getInstance(), () -> {
+					MapPreview.saveData(this);
+				});
 			});
 		});
 	}
@@ -282,7 +289,10 @@ public class GameMatch {
 				continue;
 			choices.add(f.getName());
 		}
-		mapVote = new GameMapVote(choices);
+		List<MapPreview> selected = new ArrayList<MapPreview>();
+		for(String s : choices)
+			selected.add(new MapPreview(s));
+		mapVote = new GameMapVote(selected);
 		if(openGui) {
 			for(Player p : world.getPlayers()) {
 				new MapVoteGui(p, mapVote).display();
@@ -418,6 +428,13 @@ public class GameMatch {
 							else if(line.equals("callout")) {
 								callouts.add(new GameCallout(loc, Util.grabConfigText(sign)));
 							}
+							//Map icon
+							else if(line.equals("icon")) {
+								try {
+									mapIcon = new ItemStack(Material.valueOf(Util.grabConfigText(sign).toUpperCase()));
+								} catch(Exception e) {}
+							}
+							
 						}
 					}
 					if(removeSign)
@@ -600,6 +617,10 @@ public class GameMatch {
 		return world;
 	}
 	
+	public ItemStack getMapIcon() {
+		return mapIcon;
+	}
+	
 	public List<String> preGameDisplay() {
 		List<String> list = new ArrayList<String>();
 		if(waitingForPlayers) 
@@ -628,8 +649,8 @@ public class GameMatch {
 		list.add(ChatColor.RESET+" ");
 		if(mapVote != null) {
 			list.add(ChatColor.BOLD+"Next Map "+ChatColor.RESET+"- /vote");
-			for(String s : mapVote.getZipList())
-				list.add(" "+s+" "+ChatColor.AQUA+mapVote.getVotes(s));
+			for(MapPreview m : mapVote.getMapList())
+				list.add(" "+m.getNameAndMode(false)+" "+ChatColor.AQUA+mapVote.getVotes(m.getFile().getName()));
 		}
 		list.add(""+ChatColor.GRAY+ChatColor.ITALIC+GameConfig.serverName);
 		return list;

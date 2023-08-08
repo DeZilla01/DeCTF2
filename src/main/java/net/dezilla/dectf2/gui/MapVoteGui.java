@@ -1,6 +1,7 @@
 package net.dezilla.dectf2.gui;
 
-import org.bukkit.Material;
+import java.util.Arrays;
+
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -8,6 +9,8 @@ import org.bukkit.inventory.ItemStack;
 import net.dezilla.dectf2.GamePlayer;
 import net.dezilla.dectf2.game.GameMapVote;
 import net.dezilla.dectf2.util.ItemBuilder;
+import net.dezilla.dectf2.util.MapPreview;
+import net.md_5.bungee.api.ChatColor;
 
 public class MapVoteGui extends GuiPage{
 	GameMapVote mapVote;
@@ -18,12 +21,14 @@ public class MapVoteGui extends GuiPage{
 		this.setName("Vote for the next map");
 		int row = 0;
 		int col = 0;
-		for(String z : mapVote.getZipList()) {
-			ItemStack icon = ItemBuilder.of(Material.PAPER).name(z).get();
+		for(MapPreview m : mapVote.getMapList()) {
+			ItemStack icon = ItemBuilder.of(m.getIcon()).name(m.getNameAndMode(true)).desc(""+ChatColor.RESET+ChatColor.WHITE+"Author: "+ChatColor.GOLD+m.getAuthor()).get();
+			if(m.getTeamAmount()!=2)
+				icon = ItemBuilder.of(icon).desc(Arrays.asList(""+ChatColor.RESET+ChatColor.WHITE+"Author: "+ChatColor.GOLD+m.getAuthor(), ChatColor.RESET+""+ChatColor.GOLD+m.getTeamAmount()+ChatColor.RESET+" Teams")).get();
 			GuiItem item = new GuiItem(icon);
 			item.setRun((event) -> {
-				mapVote.vote(GamePlayer.get(player), mapVote.getZipList().indexOf(z));
-				player.sendMessage("You have voted for "+z);
+				mapVote.vote(GamePlayer.get(player), mapVote.getMapList().indexOf(m));
+				player.sendMessage("You have voted for "+m.getName());
 				player.playSound(player, Sound.ENTITY_PLAYER_LEVELUP, 1, 1);
 				player.closeInventory();
 			});

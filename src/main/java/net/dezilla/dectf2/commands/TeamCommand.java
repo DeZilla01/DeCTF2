@@ -116,6 +116,8 @@ public class TeamCommand extends Command {
 				if(c.toString().toLowerCase().startsWith(args[2].toLowerCase()))
 					list.add(c.toString().toLowerCase());
 			}
+			if(list.contains("custom"))
+				list.remove("custom");
 		}
 		return list;
 	}

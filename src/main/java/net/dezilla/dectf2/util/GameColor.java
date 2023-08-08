@@ -1,30 +1,39 @@
 package net.dezilla.dectf2.util;
 
-import org.bukkit.ChatColor;
+import org.bukkit.Color;
 import org.bukkit.Color;
 import org.bukkit.DyeColor;
 import org.bukkit.Material;
 import org.bukkit.inventory.meta.trim.TrimMaterial;
 
+import net.md_5.bungee.api.ChatColor;
+
 public enum GameColor {
-	WHITE("White", ChatColor.WHITE, "WHITE", DyeColor.WHITE, Color.WHITE, TrimMaterial.QUARTZ), //0
-	ORANGE("Orange", ChatColor.GOLD, "ORANGE", DyeColor.ORANGE, Color.ORANGE, TrimMaterial.GOLD), //1
-	MAGENTA("Magenta", ChatColor.LIGHT_PURPLE, "MAGENTA", DyeColor.MAGENTA, Color.fromRGB(255, 85, 255), TrimMaterial.AMETHYST), //2
-	LIGHT_BLUE("Light Blue", ChatColor.AQUA, "LIGHT_BLUE", DyeColor.LIGHT_BLUE, Color.AQUA, TrimMaterial.DIAMOND), //3
-	YELLOW("Yellow", ChatColor.YELLOW, "YELLOW", DyeColor.YELLOW, Color.YELLOW, TrimMaterial.GOLD), //4
-	GREEN("Green", ChatColor.GREEN, "LIME", DyeColor.LIME, Color.LIME, TrimMaterial.EMERALD), //5
-	PINK("Pink", ChatColor.LIGHT_PURPLE, "PINK", DyeColor.PINK, Color.fromRGB(250, 134, 196), TrimMaterial.AMETHYST), //6
-	DARK_GRAY("Dark Gray", ChatColor.DARK_GRAY, "GRAY", DyeColor.GRAY, Color.GRAY, TrimMaterial.NETHERITE), //7
-	GRAY("Gray", ChatColor.GRAY, "LIGHT_GRAY", DyeColor.LIGHT_GRAY, Color.SILVER, TrimMaterial.IRON), //8
-	CYAN("Cyan", ChatColor.DARK_AQUA, "CYAN", DyeColor.CYAN, Color.TEAL, TrimMaterial.DIAMOND), //9
-	PURPLE("Purple", ChatColor.DARK_PURPLE, "PURPLE", DyeColor.PURPLE, Color.PURPLE, TrimMaterial.AMETHYST), //10
-	BLUE("Blue", ChatColor.BLUE, "BLUE", DyeColor.BLUE, Color.fromRGB(85, 85, 255), TrimMaterial.LAPIS), //11
-	BROWN("Brown", ChatColor.GOLD, "BROWN", DyeColor.BROWN, Color.fromRGB(150, 75, 0), TrimMaterial.COPPER), //12
-	DARK_GREEN("Dark Green", ChatColor.DARK_GREEN, "GREEN", DyeColor.GREEN, Color.GREEN, TrimMaterial.EMERALD), //13
-	RED("Red", ChatColor.RED, "RED", DyeColor.RED, Color.fromRGB(255, 85, 85), TrimMaterial.REDSTONE), //14
-	BLACK("Black", ChatColor.BLACK, "BLACK", DyeColor.BLACK, Color.BLACK, TrimMaterial.NETHERITE), //15
-	CRIMSON("Crimson", ChatColor.DARK_RED, "RED", DyeColor.RED, Color.MAROON, TrimMaterial.REDSTONE), //16
-	DARK_BLUE("Dark Blue", ChatColor.DARK_BLUE, "BLUE", DyeColor.BLUE, Color.fromRGB(0, 0, 170), TrimMaterial.LAPIS); //17
+	WHITE("White", ChatColor.WHITE, "WHITE", DyeColor.WHITE, Color.WHITE, TrimMaterial.QUARTZ, org.bukkit.ChatColor.WHITE), //0
+	ORANGE("Orange", ChatColor.GOLD, "ORANGE", DyeColor.ORANGE, Color.ORANGE, TrimMaterial.GOLD, org.bukkit.ChatColor.GOLD), //1
+	MAGENTA("Magenta", ChatColor.LIGHT_PURPLE, "MAGENTA", DyeColor.MAGENTA, Color.fromRGB(255, 85, 255), TrimMaterial.AMETHYST, org.bukkit.ChatColor.LIGHT_PURPLE), //2
+	LIGHT_BLUE("Light Blue", ChatColor.AQUA, "LIGHT_BLUE", DyeColor.LIGHT_BLUE, Color.AQUA, TrimMaterial.DIAMOND, org.bukkit.ChatColor.AQUA), //3
+	YELLOW("Yellow", ChatColor.YELLOW, "YELLOW", DyeColor.YELLOW, Color.YELLOW, TrimMaterial.GOLD, org.bukkit.ChatColor.YELLOW), //4
+	GREEN("Green", ChatColor.GREEN, "LIME", DyeColor.LIME, Color.LIME, TrimMaterial.EMERALD, org.bukkit.ChatColor.GREEN), //5
+	PINK("Pink", ChatColor.of(new java.awt.Color(250, 134, 196)), "PINK", DyeColor.PINK, Color.fromRGB(250, 134, 196), TrimMaterial.AMETHYST, org.bukkit.ChatColor.LIGHT_PURPLE), //6
+	DARK_GRAY("Dark Gray", ChatColor.DARK_GRAY, "GRAY", DyeColor.GRAY, Color.GRAY, TrimMaterial.NETHERITE, org.bukkit.ChatColor.DARK_GRAY), //7
+	GRAY("Gray", ChatColor.GRAY, "LIGHT_GRAY", DyeColor.LIGHT_GRAY, Color.SILVER, TrimMaterial.IRON, org.bukkit.ChatColor.GRAY), //8
+	CYAN("Cyan", ChatColor.DARK_AQUA, "CYAN", DyeColor.CYAN, Color.TEAL, TrimMaterial.DIAMOND, org.bukkit.ChatColor.DARK_AQUA), //9
+	PURPLE("Purple", ChatColor.DARK_PURPLE, "PURPLE", DyeColor.PURPLE, Color.PURPLE, TrimMaterial.AMETHYST, org.bukkit.ChatColor.DARK_PURPLE), //10
+	BLUE("Blue", ChatColor.BLUE, "BLUE", DyeColor.BLUE, Color.fromRGB(85, 85, 255), TrimMaterial.LAPIS, org.bukkit.ChatColor.BLUE), //11
+	BROWN("Brown", ChatColor.of(new java.awt.Color(150, 75, 0)), "BROWN", DyeColor.BROWN, Color.fromRGB(150, 75, 0), TrimMaterial.COPPER, org.bukkit.ChatColor.GOLD), //12
+	DARK_GREEN("Dark Green", ChatColor.DARK_GREEN, "GREEN", DyeColor.GREEN, Color.GREEN, TrimMaterial.EMERALD, org.bukkit.ChatColor.DARK_GREEN), //13
+	RED("Red", ChatColor.RED, "RED", DyeColor.RED, Color.fromRGB(255, 85, 85), TrimMaterial.REDSTONE, org.bukkit.ChatColor.RED), //14
+	BLACK("Black", ChatColor.BLACK, "BLACK", DyeColor.BLACK, Color.BLACK, TrimMaterial.NETHERITE, org.bukkit.ChatColor.BLACK), //15
+	CRIMSON("Crimson", ChatColor.DARK_RED, "RED", DyeColor.RED, Color.MAROON, TrimMaterial.REDSTONE, org.bukkit.ChatColor.DARK_RED), //16
+	DARK_BLUE("Dark Blue", ChatColor.DARK_BLUE, "BLUE", DyeColor.BLUE, Color.fromRGB(0, 0, 170), TrimMaterial.LAPIS, org.bukkit.ChatColor.DARK_BLUE), //17
+	CUSTOM("Custom", ChatColor.WHITE, "WHITE", DyeColor.WHITE, Color.WHITE, TrimMaterial.QUARTZ, org.bukkit.ChatColor.WHITE); //18
+	
+	public static GameColor custom(String name, ChatColor chatColor, String materialColor, DyeColor dyeColor, Color color, TrimMaterial trimMaterial, org.bukkit.ChatColor bChatColor) {
+		GameColor c = GameColor.CUSTOM;
+		c.set(name, chatColor, materialColor, dyeColor, color, trimMaterial, bChatColor);
+		return c;
+	}
 	
 	String name;
 	ChatColor chatcolor;
@@ -33,8 +42,9 @@ public enum GameColor {
 	DyeColor dye;
 	Color bukkitColor;
 	TrimMaterial trimMaterial;
+	org.bukkit.ChatColor bukkitChatColor;
 	
-	GameColor(String name, ChatColor chatcolor, String materialName, DyeColor dye, Color bukkitColor, TrimMaterial trimMaterial) {
+	GameColor(String name, ChatColor chatcolor, String materialName, DyeColor dye, Color bukkitColor, TrimMaterial trimMaterial, org.bukkit.ChatColor bukkitChatColor) {
 		this.name = name;
 		this.chatcolor = chatcolor;
 		this.prefix = chatcolor+"";
@@ -42,6 +52,18 @@ public enum GameColor {
 		this.dye = dye;
 		this.bukkitColor = bukkitColor;
 		this.trimMaterial = trimMaterial;
+		this.bukkitChatColor = bukkitChatColor;
+	}
+	
+	private void set(String name, ChatColor chatColor, String materialColor, DyeColor dyeColor, Color color, TrimMaterial trimMaterial, org.bukkit.ChatColor bChatColor) {
+		this.name = name;
+		this.chatcolor = chatColor;
+		this.prefix = chatcolor+"";
+		this.materialName = materialColor;
+		this.dye = dyeColor;
+		this.bukkitColor = color;
+		this.trimMaterial = trimMaterial;
+		this.bukkitChatColor = bChatColor;
 	}
 	
 	public String getName() {
@@ -70,6 +92,10 @@ public enum GameColor {
 	
 	public TrimMaterial getTrimMaterial() {
 		return trimMaterial;
+	}
+	
+	public org.bukkit.ChatColor getBukkitChatColor(){
+		return bukkitChatColor;
 	}
 	
 	public Material wool() {
@@ -174,6 +200,8 @@ public enum GameColor {
 				return Material.OBSIDIAN;
 			case CRIMSON:
 				return Material.RED_NETHER_BRICKS;
+			case DARK_BLUE:
+				return Material.OXIDIZED_COPPER;
 		}
 		return Material.STONE;
 	}

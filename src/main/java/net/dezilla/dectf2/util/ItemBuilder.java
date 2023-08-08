@@ -3,12 +3,12 @@ package net.dezilla.dectf2.util;
 import java.util.Arrays;
 import java.util.List;
 
-import org.bukkit.ChatColor;
 import org.bukkit.DyeColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.block.Banner;
-import org.bukkit.block.BlockState;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ArmorMeta;
@@ -20,6 +20,7 @@ import org.bukkit.inventory.meta.trim.TrimPattern;
 import org.bukkit.persistence.PersistentDataType;
 
 import net.dezilla.dectf2.GameMain;
+import net.md_5.bungee.api.ChatColor;
 
 //Inspired by Brawl's ItemBuilder
 public class ItemBuilder {
@@ -36,6 +37,12 @@ public class ItemBuilder {
 	public static String getData(ItemStack item) {
 		ItemMeta m = item.getItemMeta();
 		return m.getPersistentDataContainer().get(key, PersistentDataType.STRING);
+	}
+	
+	public static boolean dataMatch(ItemStack item, String data) {
+		if(item == null || item.getType() == Material.AIR || getData(item) == null)
+			return false;
+		return getData(item).equals(data);
 	}
 	
 	ItemStack item;
@@ -91,10 +98,21 @@ public class ItemBuilder {
 		return this;
 	}
 	
+	public ItemBuilder damageModifier(double modifier) {
+		meta.addAttributeModifier(Attribute.GENERIC_ATTACK_DAMAGE, new AttributeModifier("test", modifier, AttributeModifier.Operation.ADD_NUMBER));
+		return this;
+	}
+	
 	public ItemBuilder enchant(Enchantment ench, int lvl) {
 		if(meta.hasEnchant(ench))
 			meta.removeEnchant(ench);
 		meta.addEnchant(ench, lvl, true);
+		return this;
+	}
+	
+	public ItemBuilder unenchant(Enchantment ench) {
+		if(meta.hasEnchant(ench))
+			meta.removeEnchant(ench);
 		return this;
 	}
 	

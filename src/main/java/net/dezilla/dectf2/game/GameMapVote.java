@@ -7,29 +7,38 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import net.dezilla.dectf2.GamePlayer;
+import net.dezilla.dectf2.util.MapPreview;
 
 public class GameMapVote {
-	List<String> zips;
+	List<MapPreview> previews;
 	Map<GamePlayer, Integer> votes = new HashMap<GamePlayer, Integer>();
 	
-	public GameMapVote(List<String> zipNames) {
-		zips = new ArrayList<String>(zipNames);
+	public GameMapVote(List<MapPreview> previews) {
+		this.previews = previews;
 	}
 	
 	public int size() {
-		return zips.size();
+		return previews.size();
 	}
 	
 	public void vote(GamePlayer player, int vote) {
 		votes.put(player, vote);
 	}
 	
-	public List<String> getZipList(){
-		return new ArrayList<String>(zips);
+	public List<MapPreview> getMapList(){
+		return new ArrayList<MapPreview>(previews);
 	}
 	
-	public int getVotes(String name) {
-		int index = zips.indexOf(name);
+	public int getVotes(String fileName) {
+		int index = -4;
+		for(MapPreview m : previews) {
+			if(m.getFile().getName().equals(fileName)) {
+				index = previews.indexOf(m);
+				break;
+			}
+		}
+		if(index==-1)
+			return 0;
 		int count = 0;
 		for(Entry<GamePlayer, Integer> e : votes.entrySet())
 			if(e.getValue() == index)
@@ -53,6 +62,6 @@ public class GameMapVote {
 				highCount = e.getValue();
 			}
 		}
-		return zips.get(highMap);
+		return previews.get(highMap).getFile().getName();
 	}
 }

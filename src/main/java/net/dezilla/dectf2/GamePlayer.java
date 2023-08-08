@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.attribute.Attribute;
@@ -20,18 +19,21 @@ import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 
+import net.dezilla.dectf2.game.GameBase;
 import net.dezilla.dectf2.game.GameMatch;
 import net.dezilla.dectf2.game.GameMatch.GameState;
 import net.dezilla.dectf2.game.GameTeam;
 import net.dezilla.dectf2.game.GameTimer;
+import net.dezilla.dectf2.game.ctf.CTFGame;
 import net.dezilla.dectf2.kits.BaseKit;
 import net.dezilla.dectf2.kits.HeavyKit;
 import net.dezilla.dectf2.util.CustomDamageCause;
+import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 
 public class GamePlayer {
-	
+	private final static String[] filler = new String[] {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"};//used for scoreboards
 	private static List<GamePlayer> PLAYERS = new ArrayList<GamePlayer>();
 	
 	public static GamePlayer get(Player player) {
@@ -58,6 +60,7 @@ public class GamePlayer {
 	private boolean spawnProtection = false;
 	private Timestamp lastItemDrop = null;
 	private PlayerNotificationType notif = PlayerNotificationType.SUBTITLE;
+	private boolean invisible = false;
 	
 	private GamePlayer(Player player) {
 		this.player = player;
@@ -86,13 +89,11 @@ public class GamePlayer {
 			Team team = score.getTeam(""+t.getId());
 			if(team==null) {
 				team = score.registerNewTeam(""+t.getId());
-				team.setPrefix(t.getColor().getPrefix());
-				team.setColor(t.getColor().getChatColor());
+				team.setColor(t.getColor().getBukkitChatColor());
 				team.setOption(Team.Option.COLLISION_RULE, Team.OptionStatus.NEVER);
 			}
-			if(team.getColor() != t.getColor().getChatColor()) {
-				team.setPrefix(t.getColor().getPrefix());
-				team.setColor(t.getColor().getChatColor());
+			if(team.getColor() != t.getColor().getBukkitChatColor()) {
+				team.setColor(t.getColor().getBukkitChatColor());
 			}
 			for(GamePlayer p : t.getPlayers()) {
 				if(!team.hasEntry(p.getPlayer().getName()))
@@ -103,11 +104,6 @@ public class GamePlayer {
 	
 	public void updateScoreboardDisplay() {
 		GameMatch match = GameMatch.currentMatch;
-		Objective display = score.getObjective("display");
-		if(display == null){
-			display = score.registerNewObjective("display", Criteria.DUMMY, "display");
-			display.setDisplaySlot(DisplaySlot.SIDEBAR);
-		}
 		
 		List<String> displayList = new ArrayList<String>();
 		displayList.add("DeCTF2");
@@ -120,22 +116,7 @@ public class GamePlayer {
 		} else if(match != null && match.getGameState() == GameState.POSTGAME) {
 			displayList = match.postGameDisplay();
 		}
-		display.setDisplayName(displayList.get(0));
-		displayList.remove(0);
-		
-		List<String> oldDisplay = new ArrayList<String>();
-		oldDisplay.addAll(score.getEntries());
-		int s = displayList.size()-1;
-		for(String i : displayList) {
-			if(oldDisplay.contains(i) && display.getScore(i).getScore() == s) {
-				s--;
-				oldDisplay.remove(i);
-				continue;
-			}
-			display.getScore(i).setScore(s--);
-		}
-		for(String i : oldDisplay)
-			score.resetScores(i);
+		updateScoreboardDisplay(displayList);
 	}
 	
 	public void updateScoreboardDisplay(List<String> list) {
@@ -150,19 +131,26 @@ public class GamePlayer {
 		display.setDisplayName(displayList.get(0));
 		displayList.remove(0);
 		
-		List<String> oldDisplay = new ArrayList<String>();
-		oldDisplay.addAll(score.getEntries());
 		int s = displayList.size()-1;
-		for(String i : displayList) {
-			if(oldDisplay.contains(i) && display.getScore(i).getScore() == s) {
-				s--;
-				oldDisplay.remove(i);
-				continue;
-			}
-			display.getScore(i).setScore(s--);
+		if(s>15)
+			s = 15;
+		int count = 0;
+		for(String f : filler) {
+			if(count+1>displayList.size())
+				score.resetScores(ChatColor.translateAlternateColorCodes('&', "&"+f));
+			count++;
 		}
-		for(String i : oldDisplay)
-			score.resetScores(i);
+		for(String i : displayList) {
+			Team t = score.getTeam("line"+s);
+			if(t==null) {
+				t = score.registerNewTeam("line"+s);
+				t.addEntry(ChatColor.translateAlternateColorCodes('&', "&"+filler[s]));
+			}
+			t.setSuffix(i);
+			display.getScore(ChatColor.translateAlternateColorCodes('&', "&"+filler[s])).setScore(s--);
+			if(s<0)
+				break;
+		}
 	}
 	
 	public void setStats(String key, int amount) {
@@ -205,6 +193,38 @@ public class GamePlayer {
 	
 	public void setLastItemDrop(Timestamp timestamp) {
 		lastItemDrop = timestamp;
+	}
+	
+	public void setInvisible(boolean value) {
+		if(value) {
+			//prevent going invisible when holding flag
+			if(GameMatch.currentMatch != null) {
+				GameBase game = GameMatch.currentMatch.getGame();
+				if(game instanceof CTFGame) {
+					CTFGame ctf = (CTFGame) game;
+					if(ctf.getHeldFlag(this) != null)
+						return;
+				}
+			}
+			for(Player p : Bukkit.getOnlinePlayers()) {
+				GamePlayer gp = GamePlayer.get(p);
+				if(gp.getTeam() != null && getTeam() != null && gp.getTeam().equals(getTeam()))
+					continue;
+				p.hideEntity(GameMain.getInstance(), getPlayer());
+			}
+			getPlayer().setInvisible(true);
+			invisible = true;
+		} else {
+			for(Player p : Bukkit.getOnlinePlayers()) {
+				p.showEntity(GameMain.getInstance(), getPlayer());
+			}
+			getPlayer().setInvisible(false);
+			invisible = false;
+		}
+	}
+	
+	public boolean isInvisible() {
+		return invisible;
 	}
 	
 	public void setSpawnProtection() {

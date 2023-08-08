@@ -12,7 +12,7 @@ public class GameConfig {
 	public static boolean launchSponge = true;
 	public static String defaultMap = "small4team.zip";
 	public static int playersToStart = 1;
-	public static String serverName = "dezilla.net";
+	public static String serverName = "mcctf.net";
 	public static int mapVoteAmount = 5;
 	public static double calloutNameRadius = 15.0;
 	public static double calloutRadius = 45.0;

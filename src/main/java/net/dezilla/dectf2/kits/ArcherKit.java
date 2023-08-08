@@ -41,9 +41,9 @@ public class ArcherKit extends BaseKit{
 			inv.setItemInOffHand(ItemBuilder.of(Material.BOW).name("Archer Bow").enchant(Enchantment.ARROW_KNOCKBACK, 1).unbreakable().get());
 		if(arbalist) {
 			inv.setItem(0, ItemBuilder.of(Material.STONE_SWORD).name("Archer Sword").enchant(Enchantment.DAMAGE_ALL, 1).unbreakable().get());
-			inv.setItem(1, ItemBuilder.of(Material.CROSSBOW).name("Archer Crossbow").enchant(Enchantment.ARROW_DAMAGE, 1).unbreakable().get());
 			inv.setItem(2, ItemBuilder.of(Material.CROSSBOW).name("Archer Crossbow").enchant(Enchantment.ARROW_DAMAGE, 1).unbreakable().get());
 			inv.setItem(3, ItemBuilder.of(Material.CROSSBOW).name("Archer Crossbow").enchant(Enchantment.ARROW_DAMAGE, 1).unbreakable().get());
+			inv.setItem(4, ItemBuilder.of(Material.CROSSBOW).name("Archer Crossbow").enchant(Enchantment.ARROW_DAMAGE, 1).unbreakable().get());
 		}
 		else
 			inv.setItem(0, ItemBuilder.of(Material.STONE_SWORD).name("Archer Sword").unbreakable().get());
@@ -72,6 +72,15 @@ public class ArcherKit extends BaseKit{
 	@Override
 	public String getName() {
 		return "Archer";
+	}
+	
+	@Override
+	public String getVariation() {
+		if(crossbow)
+			return "Crossbow";
+		if(arbalist)
+			return "Arbalist";
+		return "Default";
 	}
 
 	@Override

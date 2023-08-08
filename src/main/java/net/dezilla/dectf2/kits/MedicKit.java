@@ -2,6 +2,7 @@ package net.dezilla.dectf2.kits;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
@@ -28,10 +29,12 @@ import net.dezilla.dectf2.util.ItemBuilder;
 
 public class MedicKit extends BaseKit{
 	private static int MEDIC_WEB_REGEN = 120;
+	private static int MEDIC_HP_REGEN = 120;
 	private static int MEDIC_WEB_AMOUNT = 8;
 	private static ItemStack webItem = ItemBuilder.of(Material.SNOWBALL).name("Totally functional web thing").data("medicweb").get();
 	
 	private int ticksWebRegen = MEDIC_WEB_REGEN;
+	private int ticksHpRegen = MEDIC_HP_REGEN;
 
 	public MedicKit(GamePlayer player) {
 		super(player);
@@ -72,6 +75,18 @@ public class MedicKit extends BaseKit{
 				ticksWebRegen--;
 		} else
 			ticksWebRegen = MEDIC_WEB_REGEN;
+		//passive regen
+		double max = player.getPlayer().getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
+		if(player.getPlayer().getHealth() >= max)
+			ticksHpRegen = MEDIC_HP_REGEN;
+		else if (ticksHpRegen <= 0){
+			if(player.getPlayer().getHealth()+1 >= max)
+				player.getPlayer().setHealth(max);
+			else
+				player.getPlayer().setHealth(player.getPlayer().getHealth()+1);
+			ticksHpRegen = MEDIC_HP_REGEN;
+		} else
+			ticksHpRegen--;
 	}
 	
 	@EventHandler
@@ -132,10 +147,20 @@ public class MedicKit extends BaseKit{
 			}
 		}
 	}
+	
+	@Override
+	public void setEffects() {
+		super.setEffects();
+		player.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, Integer.MAX_VALUE, 1));
+	}
 
 	@Override
 	public String getName() {
 		return "Medic";
+	}
+	@Override
+	public String getVariation() {
+		return "Default";
 	}
 
 	@Override

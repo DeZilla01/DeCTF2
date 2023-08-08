@@ -1,6 +1,5 @@
 package net.dezilla.dectf2.commands.mapmanager;
 
-import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Sign;
@@ -8,6 +7,8 @@ import org.bukkit.block.sign.Side;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+
+import net.md_5.bungee.api.ChatColor;
 
 import java.util.regex.Pattern;
 

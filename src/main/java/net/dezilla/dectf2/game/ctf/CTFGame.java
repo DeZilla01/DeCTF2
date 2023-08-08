@@ -7,7 +7,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
@@ -38,6 +37,7 @@ import net.dezilla.dectf2.game.GameMatch.GameState;
 import net.dezilla.dectf2.game.ctf.CTFFlag.FlagType;
 import net.dezilla.dectf2.util.CustomDamageCause;
 import net.dezilla.dectf2.util.GameConfig;
+import net.md_5.bungee.api.ChatColor;
 
 public class CTFGame extends GameBase implements Listener{
 	private GameMatch match;
@@ -124,13 +124,15 @@ public class CTFGame extends GameBase implements Listener{
 				if(f.inStealRange(p) && !stealDelays.containsKey(p)) {
 					//pick flag from home
 					if(f.isHome()) {
+						if(p.isInvisible())
+							return;
 						GameTimer timer = new GameTimer(-1);
 						timer.onTick((t) -> {
 							if(GameMatch.currentMatch == null || GameMatch.currentMatch.getGameState() != GameState.INGAME) {
 								t.unregister();
 								stealDelays.remove(p);
 							}
-							if(t.getTicks() >=GameConfig.stealDelay) {
+							if(t.getTicks() >= p.getKit().getStealDelay()) {
 								t.unregister();
 								stealDelays.remove(p);
 								p.incrementStats("steals", 1);
@@ -146,11 +148,14 @@ public class CTFGame extends GameBase implements Listener{
 								stealDelays.remove(p);
 							}
 						});
+						stealDelays.put(p, timer);
 					}
 					//pick flag from dropped
 					else {
 						//prevent player dropping the flag from instant re-pickup (else it's kinda janky)
 						if(p.equals(f.getLastCarrier()) && f.getResetTimer().getSeconds()==GameConfig.flagReset)
+							return;
+						if(p.isInvisible())
 							return;
 						f.setCarrier(p);
 						f.getLocation().getWorld().strikeLightningEffect(f.getLocation());
@@ -232,6 +237,10 @@ public class CTFGame extends GameBase implements Listener{
 				if(event.getCurrentItem() != null && event.getCurrentItem().getType() == f.getFlagItem().getType() && f.isHome()) {
 					if(p.getTeam().equals(f.getTeam())) {
 						p.notify("You cannot steal your team's flag");
+					} else if(p.isInvisible()) {
+						p.notify("You cannot steal the flag while invisible");
+					} else if(getHeldFlag(p) != null) {
+						p.notify("You already have a flag to capture");
 					} else {
 						p.incrementStats("steals", 1);
 						f.setCarrier(p);
@@ -269,6 +278,11 @@ public class CTFGame extends GameBase implements Listener{
 	@Override
 	public String getGamemodeName() {
 		return "Capture the flag";
+	}
+	
+	@Override
+	public String getGamemodeKey() {
+		return "ctf";
 	}
 	
 	@Override

@@ -3,7 +3,6 @@ package net.dezilla.dectf2.commands;
 import java.util.Arrays;
 
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -11,6 +10,7 @@ import org.bukkit.entity.Player;
 import net.dezilla.dectf2.GamePlayer;
 import net.dezilla.dectf2.game.GameMatch;
 import net.dezilla.dectf2.game.GameTeam;
+import net.md_5.bungee.api.ChatColor;
 
 public class SwitchCommand extends Command {
 

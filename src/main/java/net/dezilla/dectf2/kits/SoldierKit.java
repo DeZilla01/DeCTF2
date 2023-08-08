@@ -64,6 +64,9 @@ public class SoldierKit extends BaseKit {
 		}
 		inv.addItem(ItemBuilder.of(GameConfig.foodMaterial).name("Steak").amount(3).get());
 		inv.setItemInOffHand(ItemBuilder.of(Material.SHIELD).unbreakable().shieldColor(color().dyeColor()).get());
+		exp = 1f;
+		sword1 = 1f;
+		sword2 = 1f;
 	}
 	
 	@Override
@@ -138,6 +141,8 @@ public class SoldierKit extends BaseKit {
 	public void onSwordUse(PlayerInteractEvent event) {
 		if(!event.getPlayer().equals(player.getPlayer()))
 			return;
+		if(event.getAction() == Action.RIGHT_CLICK_BLOCK && event.getClickedBlock().getType() == Material.COAL_ORE)
+			return;
 		//default
 		if(!cannon && !brawler && event.getItem() != null && event.getItem().getType() == Material.IRON_SWORD && event.getClickedBlock() != null &&
 				event.getAction() == Action.RIGHT_CLICK_BLOCK && exp >= CLIMB_EXP_COST) {
@@ -191,6 +196,15 @@ public class SoldierKit extends BaseKit {
 	@Override
 	public String getName() {
 		return "Soldier";
+	}
+	
+	@Override
+	public String getVariation() {
+		if(cannon)
+			return "Cannon";
+		if(brawler)
+			return "Brawler";
+		return "Default";
 	}
 	
 	@Override

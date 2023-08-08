@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.regex.Pattern;
 
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
 import org.bukkit.GameRule;
 import org.bukkit.Location;
@@ -21,6 +20,7 @@ import org.bukkit.entity.Player;
 
 import net.dezilla.dectf2.GameMain;
 import net.dezilla.dectf2.Util;
+import net.md_5.bungee.api.ChatColor;
 
 public class MapManagerWorld {
 	private static List<MapManagerWorld> WORLDS = new ArrayList<MapManagerWorld>();

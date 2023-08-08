@@ -1,9 +1,9 @@
 package net.dezilla.dectf2.util;
 
-import org.bukkit.ChatColor;
 import org.bukkit.inventory.ItemStack;
 
 import net.dezilla.dectf2.GamePlayer;
+import net.md_5.bungee.api.ChatColor;
 
 @Deprecated
 public class DamageCause {

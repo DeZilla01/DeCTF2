@@ -7,6 +7,7 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Banner;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
@@ -40,6 +41,8 @@ public abstract class BaseKit implements Listener{
 	GamePlayer player;
 	
 	public abstract String getName();
+	
+	public abstract String getVariation();
 	
 	public abstract ItemStack getIcon();
 	
@@ -100,6 +103,8 @@ public abstract class BaseKit implements Listener{
 	public void setEffects() {
 		for(PotionEffect e : player.getPlayer().getActivePotionEffects())
 			player.getPlayer().removePotionEffect(e.getType());
+		if(player.isInvisible())
+			player.setInvisible(false);
 	}
 	
 	public void setLevel() {
@@ -113,6 +118,10 @@ public abstract class BaseKit implements Listener{
 	
 	public double getMovementSpeed() {
 		return defaultMovementSpeed;
+	}
+	
+	public int getStealDelay() {
+		return GameConfig.stealDelay;
 	}
 	
 	public void updateColor() {
@@ -143,7 +152,7 @@ public abstract class BaseKit implements Listener{
 		}
 	}
 	
-	@EventHandler
+	@EventHandler(priority=EventPriority.HIGHEST)
 	public void onSteakUse(PlayerInteractEvent event) {
 		Player p = player.getPlayer();
 		if(!event.getPlayer().equals(p))

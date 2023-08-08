@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.bukkit.ChatColor;
 import org.bukkit.event.Listener;
 
 import net.dezilla.dectf2.GamePlayer;
@@ -13,6 +12,7 @@ import net.dezilla.dectf2.game.GameBase;
 import net.dezilla.dectf2.game.GameMatch;
 import net.dezilla.dectf2.game.GameTeam;
 import net.dezilla.dectf2.util.GameConfig;
+import net.md_5.bungee.api.ChatColor;
 
 public class TDMGame extends GameBase implements Listener{
 	private GameMatch match;
@@ -47,6 +47,11 @@ public class TDMGame extends GameBase implements Listener{
 	@Override
 	public String getGamemodeName() {
 		return "Team Deathmatch";
+	}
+	
+	@Override
+	public String getGamemodeKey() {
+		return "tdm";
 	}
 	
 	@Override

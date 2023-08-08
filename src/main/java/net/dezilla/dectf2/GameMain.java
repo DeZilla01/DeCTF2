@@ -24,6 +24,8 @@ import net.dezilla.dectf2.kits.ArcherKit;
 import net.dezilla.dectf2.kits.BaseKit;
 import net.dezilla.dectf2.kits.HeavyKit;
 import net.dezilla.dectf2.kits.MedicKit;
+import net.dezilla.dectf2.kits.NinjaKit;
+import net.dezilla.dectf2.kits.PyroKit;
 import net.dezilla.dectf2.kits.SoldierKit;
 import net.dezilla.dectf2.kits.TestyKit;
 import net.dezilla.dectf2.listeners.CalloutListener;
@@ -59,6 +61,8 @@ public class GameMain extends JavaPlugin{
 		kits.add(SoldierKit.class);
 		kits.add(ArcherKit.class);
 		kits.add(MedicKit.class);
+		kits.add(PyroKit.class);
+		kits.add(NinjaKit.class);
 		for(Class<? extends BaseKit> c : kits) {
 			try {
 				BaseKit k = c.getConstructor(new Class[] {GamePlayer.class}).newInstance(GamePlayer.get(null));
@@ -144,6 +148,7 @@ public class GameMain extends JavaPlugin{
 					new FlagCommand(),
 					new VoteCommand(),
 					new ChangeMapCommand(),
+					new MapCommand(),
 					kitCommand);
 			commandMap.registerAll("dectf2", commands);
 		} catch(Exception e) {

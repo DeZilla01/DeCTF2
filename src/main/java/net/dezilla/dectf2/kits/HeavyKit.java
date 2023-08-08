@@ -57,6 +57,15 @@ public class HeavyKit extends BaseKit {
 	}
 	
 	@Override
+	public String getVariation() {
+		if(powerup)
+			return "Powerup";
+		if(tank)
+			return "Tank";
+		return "Default";
+	}
+	
+	@Override
 	public void onTick() {
 		if(!powerup) 
 			return;

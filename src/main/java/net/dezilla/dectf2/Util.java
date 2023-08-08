@@ -17,6 +17,7 @@ import org.bukkit.block.Sign;
 import org.bukkit.block.sign.Side;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Arrow;
+import org.bukkit.entity.Egg;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -197,6 +198,11 @@ public class Util {
 			Snowball s = (Snowball) entity;
 			if(s.getShooter() != null && s.getShooter() instanceof Entity)
 				entity = (Entity) s.getShooter();
+		}
+		if(entity instanceof Egg) {
+			Egg e = (Egg) entity;
+			if(e.getShooter() != null && e.getShooter() instanceof Entity)
+				entity = (Entity) e.getShooter();
 		}
 		if(entity instanceof Player) {
 			Player p = (Player) entity;

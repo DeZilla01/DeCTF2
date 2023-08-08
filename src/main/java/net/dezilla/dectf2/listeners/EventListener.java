@@ -8,7 +8,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.entity.Entity;
+import org.bukkit.entity.Arrow;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -16,12 +16,15 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.CreatureSpawnEvent;
+import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerGameModeChangeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -68,6 +71,12 @@ public class EventListener implements Listener{
 				event.setCancelled(true);
 				return;
 			}
+			//falldmg block
+			Block standingOn = victim.getLocation().add(0,-1,0).getBlock();
+			if(event.getCause() == DamageCause.FALL && (standingOn.getType() == Material.SOUL_SAND || standingOn.getType() == Material.HAY_BLOCK)) {
+				event.setCancelled(true);
+				return;
+			}
 		}
 	}
 	
@@ -77,6 +86,11 @@ public class EventListener implements Listener{
 		if(match == null || match.getGameState() != GameState.INGAME)
 			return;
 		GamePlayer damager = Util.getOwner(event.getDamager());
+		//invis
+		if(damager != null && damager.isInvisible()) {
+			event.setCancelled(true);
+			return;
+		}
 		if(event.getEntityType() == EntityType.PLAYER && damager != null) {
 			GamePlayer victim = GamePlayer.get((Player) event.getEntity());
 			//friendly fire
@@ -159,6 +173,12 @@ public class EventListener implements Listener{
 						list.add("was headshoted");
 						list.add("got snipped");
 						break;
+					case NINJA_TELEPORT:
+						list.add("teleported to his doom");
+						list.add("teleported to death");
+						list.add("died from teleportation");
+						list.add("pearled to his death");
+						notByKiller=true;
 					default:
 						break;
 				}
@@ -177,7 +197,7 @@ public class EventListener implements Listener{
 			case ENTITY_ATTACK:
 				list.add("was slain");
 				list.add("was killed");
-				if(killer.getPlayer().getInventory().getItemInMainHand() == null || killer.getPlayer().getInventory().getItemInMainHand().getType() == Material.AIR) {
+				if(killer != null && (killer.getPlayer().getInventory().getItemInMainHand() == null || killer.getPlayer().getInventory().getItemInMainHand().getType() == Material.AIR)) {
 					list.clear();
 					list.add("was punched");
 					list.add("was fisted");
@@ -232,6 +252,7 @@ public class EventListener implements Listener{
 			case POISON:
 				break;
 			case PROJECTILE:
+				list.add("was shot");
 				break;
 			case SONIC_BOOM:
 				break;
@@ -346,12 +367,27 @@ public class EventListener implements Listener{
 		
 	}
 	
+	@EventHandler
+	public void onEntitySpawn(CreatureSpawnEvent event) {
+		if(event.getEntityType() == EntityType.CHICKEN && event.getSpawnReason() == SpawnReason.EGG)
+			event.setCancelled(true);
+	}
+	
+	@EventHandler
+	public void onArrowHit(ProjectileHitEvent event) {
+		if(event.getEntity() instanceof Arrow) {
+			Arrow a = (Arrow) event.getEntity();
+			Bukkit.getScheduler().runTask(GameMain.getInstance(), () -> {if(!a.isDead()) a.remove();});
+		}
+	}
+	
+	static List<Material> dontTouchThat = Arrays.asList(Material.CHEST, Material.TRAPPED_CHEST, Material.BARREL, Material.ENDER_CHEST, 
+			Material.FURNACE, Material.CRAFTING_TABLE);
 	@EventHandler(ignoreCancelled=true)
 	public void onInteract(PlayerInteractEvent event) {
 		Block block = event.getClickedBlock();
 		if(block == null || event.getPlayer().getGameMode() == GameMode.CREATIVE)
 			return;
-		List<Material> dontTouchThat = Arrays.asList(Material.CHEST, Material.TRAPPED_CHEST, Material.BARREL);
 		if(dontTouchThat.contains(block.getType()) || block.getType().toString().contains("SHULKER_BOX")) {
 			event.setCancelled(true);
 			return;

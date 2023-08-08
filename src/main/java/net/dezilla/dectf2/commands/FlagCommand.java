@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 
@@ -14,6 +13,7 @@ import net.dezilla.dectf2.game.GameTeam;
 import net.dezilla.dectf2.game.ctf.CTFFlag;
 import net.dezilla.dectf2.game.ctf.CTFFlag.FlagType;
 import net.dezilla.dectf2.game.ctf.CTFGame;
+import net.md_5.bungee.api.ChatColor;
 
 public class FlagCommand extends Command {
 

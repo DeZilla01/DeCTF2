@@ -1,9 +1,9 @@
 package net.dezilla.dectf2.commands.mapmanager;
 
+import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 
-import org.bukkit.ChatColor;
 import org.bukkit.Chunk;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Sign;
