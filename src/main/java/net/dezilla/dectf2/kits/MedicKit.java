@@ -1,5 +1,8 @@
 package net.dezilla.dectf2.kits;
 
+import java.sql.Timestamp;
+import java.util.Date;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.attribute.Attribute;
@@ -26,12 +29,14 @@ import net.dezilla.dectf2.game.GameTimer;
 import net.dezilla.dectf2.util.CustomDamageCause;
 import net.dezilla.dectf2.util.GameConfig;
 import net.dezilla.dectf2.util.ItemBuilder;
+import net.dezilla.dectf2.util.ShieldUtil;
 
 public class MedicKit extends BaseKit{
 	private static int MEDIC_WEB_REGEN = 120;
 	private static int MEDIC_HP_REGEN = 120;
 	private static int MEDIC_WEB_AMOUNT = 8;
-	private static ItemStack webItem = ItemBuilder.of(Material.SNOWBALL).name("Totally functional web thing").data("medicweb").get();
+	private static int MEDIC_HEAL_COOLDOWN = 15; //in seconds
+	private static ItemStack webItem = ItemBuilder.of(Material.SNOWBALL).name("Medic Web").data("medicweb").get();
 	
 	private int ticksWebRegen = MEDIC_WEB_REGEN;
 	private int ticksHpRegen = MEDIC_HP_REGEN;
@@ -53,7 +58,7 @@ public class MedicKit extends BaseKit{
 		inv.setItem(1, ItemBuilder.of(GameConfig.foodMaterial).name("Steak").amount(6).get());
 		inv.setItem(2, ItemBuilder.of(webItem.clone()).amount(MEDIC_WEB_AMOUNT).get());
 		
-		inv.setItemInOffHand(ItemBuilder.of(Material.SHIELD).unbreakable().shieldColor(color().dyeColor()).get());
+		inv.setItemInOffHand(ShieldUtil.getShield(player));
 	}
 	
 	@Override
@@ -110,9 +115,18 @@ public class MedicKit extends BaseKit{
 			return;
 		GamePlayer target = GamePlayer.get((Player) event.getEntity());
 		if(target.getTeam() != null && player.getTeam() != null && target.getTeam().equals(player.getTeam())) {
-			target.setCustomDamageCause(CustomDamageCause.MEDIC_HEAL);
-			target.getPlayer().damage(0);
-			target.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 25, 4));
+			Timestamp now = new Timestamp(new Date().getTime());
+			if(now.getTime() - target.getLastHeal().getTime() >= MEDIC_HEAL_COOLDOWN*1000) {
+				target.setCustomDamageCause(CustomDamageCause.MEDIC_HEAL);
+				target.getPlayer().damage(0);
+				target.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 40, 4));
+				target.setLastHeal(now);
+			}
+			else {
+				long timeLeft = (MEDIC_HEAL_COOLDOWN*1000)-(now.getTime()-target.getLastHeal().getTime());
+				timeLeft /= 1000;
+				player.notify(target.getName()+" cannot be healed for another "+timeLeft+" seconds.");
+			}
 		}
 	}
 	
@@ -132,6 +146,9 @@ public class MedicKit extends BaseKit{
 							return;
 					}
 				}
+				//prevent placing web on fire
+				if(m == Material.FIRE)
+					return;
 				//prevent web being placed where web already exists
 				if(b.getType() == Material.COBWEB)
 					return;
@@ -151,7 +168,8 @@ public class MedicKit extends BaseKit{
 	@Override
 	public void setEffects() {
 		super.setEffects();
-		player.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, Integer.MAX_VALUE, 1));
+		player.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, PotionEffect.INFINITE_DURATION, 1));
+		player.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.WATER_BREATHING, PotionEffect.INFINITE_DURATION, 1));
 	}
 
 	@Override

@@ -26,6 +26,7 @@ import net.dezilla.dectf2.GamePlayer;
 import net.dezilla.dectf2.Util;
 import net.dezilla.dectf2.util.CustomDamageCause;
 import net.dezilla.dectf2.util.ItemBuilder;
+import net.dezilla.dectf2.util.ShieldUtil;
 
 public class NinjaKit extends BaseKit{
 	private static double NINJA_SPEED = .15;
@@ -49,7 +50,7 @@ public class NinjaKit extends BaseKit{
 		super.setInventory();
 		PlayerInventory inv = player.getPlayer().getInventory();
 		if(classic) {
-			inv.setItemInOffHand(ItemBuilder.of(Material.SHIELD).unbreakable().shieldColor(color().dyeColor()).get());
+			inv.setItemInOffHand(ShieldUtil.getShield(player));
 			inv.setItem(0, ItemBuilder.of(Material.GOLDEN_SWORD).unbreakable().name("Ninja Sword").enchant(Enchantment.DAMAGE_ALL, 5).get());
 			inv.setItem(1, ItemBuilder.of(Material.ENDER_PEARL).name("Ninja Pearl").amount(10).data("ninja_pearl").get());
 			inv.setItem(2, ItemBuilder.of(Material.EGG).name("Flash Bomb").amount(10).data("flash_bomb").get());

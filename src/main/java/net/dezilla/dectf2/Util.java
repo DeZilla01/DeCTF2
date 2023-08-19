@@ -12,6 +12,7 @@ import java.util.regex.Pattern;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.Sign;
 import org.bukkit.block.sign.Side;
@@ -26,6 +27,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.util.Vector;
+import org.bukkit.util.VoxelShape;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;

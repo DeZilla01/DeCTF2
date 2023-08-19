@@ -6,4 +6,4 @@ website: https://www.dezilla.net/
 dev-url: https://www.dezilla.net/
 description: Rewrite of DeCTF based on the now defunct McCTF plugin from McPvP/Brawl
 authors: [DeZilla]
-softdepend: []
+softdepend: [LuckPerms]

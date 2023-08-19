@@ -114,20 +114,25 @@ public class SpongeListener implements Listener{
 			if(v.getX() == 0 && v.getY() == 0 && v.getZ() == 0) {
 				Bukkit.getScheduler().cancelTask(event.getTaskId());
 				event.setComplete(true);
-				GameTimer timer = new GameTimer(-1);
-				cancelFall.add(p);
-				timer.unpause();
-				timer.onTick((t) -> {
-					if(p.isOnGround()) {
-						t.setSeconds(0);
-					}
-				});
-				timer.onEnd((t) -> {
-					if(cancelFall.contains(p)) {
-						cancelFall.remove(p);
-					}
-					t.unregister();
-				});
+				if(!cancelFall.contains(p)) {
+					GameTimer timer = new GameTimer(-1);
+					cancelFall.add(p);
+					timer.unpause();
+					timer.onTick((t) -> {
+						if(!cancelFall.contains(p)) {
+							t.unregister();
+							return;
+						}
+						if(p.getVelocity().getY() >= -.08 && p.getLocation().add(0,-.1,0).getBlock().getType() != Material.AIR) {
+							Bukkit.getScheduler().scheduleSyncDelayedTask(GameMain.getInstance(), () -> {
+								if(cancelFall.contains(p)) {
+									cancelFall.remove(p);
+								}
+								t.unregister();
+							}, 1);
+						}
+					});
+				}
 			}
 			p.setVelocity(v);
 		}, 0, 1);

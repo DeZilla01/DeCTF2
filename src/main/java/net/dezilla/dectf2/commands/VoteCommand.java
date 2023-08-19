@@ -15,6 +15,7 @@ public class VoteCommand extends Command {
 		super("vote");
 		setUsage("/vote");
 		setDescription("Vote for the next map.");
+		setPermission("dectf2.command.vote");
 	}
 
 	@Override

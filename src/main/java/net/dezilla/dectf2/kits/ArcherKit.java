@@ -14,6 +14,7 @@ import net.dezilla.dectf2.GamePlayer;
 import net.dezilla.dectf2.util.CustomDamageCause;
 import net.dezilla.dectf2.util.GameConfig;
 import net.dezilla.dectf2.util.ItemBuilder;
+import net.dezilla.dectf2.util.ShieldUtil;
 
 public class ArcherKit extends BaseKit{
 	private static double HEADSHOT_DISTANCE = 30;
@@ -36,7 +37,7 @@ public class ArcherKit extends BaseKit{
 		if(crossbow)
 			inv.setItemInOffHand(ItemBuilder.of(Material.CROSSBOW).name("Archer Crossbow").enchant(Enchantment.ARROW_KNOCKBACK, 1).unbreakable().get());
 		else if(arbalist)
-			inv.setItemInOffHand(ItemBuilder.of(Material.SHIELD).unbreakable().shieldColor(color().dyeColor()).get());
+			inv.setItemInOffHand(ShieldUtil.getShield(player));
 		else
 			inv.setItemInOffHand(ItemBuilder.of(Material.BOW).name("Archer Bow").enchant(Enchantment.ARROW_KNOCKBACK, 1).unbreakable().get());
 		if(arbalist) {
@@ -60,6 +61,8 @@ public class ArcherKit extends BaseKit{
 		if(!arbalist && event.getEntity() instanceof Arrow && ((Arrow) event.getEntity()).getShooter().equals(player.getPlayer()) ) {
 			if(event.getHitEntity()!= null && event.getHitEntity() instanceof Player) {
 				GamePlayer victim = GamePlayer.get((Player) event.getHitEntity());
+				if(victim.getTeam() != null && player.getTeam() != null && victim.getTeam().equals(player.getTeam()))
+					return;
 				if(player.getLocation().distance(victim.getLocation()) >= HEADSHOT_DISTANCE) {
 					victim.setLastAttacker(player);
 					victim.setCustomDamageCause(CustomDamageCause.ARCHER_HEADSHOT);

@@ -182,6 +182,7 @@ public class GameTeam {
 					b.setType(color.bed());
 					bed = (Bed) b.getBlockData();
 					bed.setPart(part);
+					b.setBlockData(bed);
 				}
 				else if(b.getType().toString().contains("_WALL_BANNER")) {
 					Banner banner = (Banner) b.getState();
@@ -193,6 +194,7 @@ public class GameTeam {
 				}
 				d = (Directional) b.getBlockData();
 				d.setFacing(f);
+				b.setBlockData(d);
 			}
 			if(b.getBlockData() instanceof Rotatable) {
 				Rotatable r = (Rotatable) b.getBlockData();
@@ -207,6 +209,7 @@ public class GameTeam {
 				}
 				r = (Rotatable) b.getBlockData();
 				r.setRotation(f);
+				b.setBlockData(r);
 			}
 			if(b.getBlockData() instanceof Lightable && b.getBlockData() instanceof Waterlogged) {
 				Lightable light = (Lightable) b.getBlockData();

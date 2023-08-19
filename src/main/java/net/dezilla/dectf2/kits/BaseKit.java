@@ -166,8 +166,14 @@ public abstract class BaseKit implements Listener{
 				if(currentHp == maxHp)
 					return;
 				ItemStack item = event.getItem();
-				if(item.getAmount()==1)
-					p.getInventory().remove(item);
+				if(item.getAmount()==1) {
+					
+					if(item.equals(p.getInventory().getItemInOffHand())) {
+						p.getInventory().setItemInOffHand(null);
+					}
+					else
+						p.getInventory().remove(item);
+				}
 				else
 					item.setAmount(item.getAmount()-1);
 				if(currentHp+8>=maxHp)

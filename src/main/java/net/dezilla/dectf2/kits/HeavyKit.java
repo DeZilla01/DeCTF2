@@ -9,6 +9,7 @@ import org.bukkit.inventory.meta.trim.TrimPattern;
 import net.dezilla.dectf2.GamePlayer;
 import net.dezilla.dectf2.util.GameConfig;
 import net.dezilla.dectf2.util.ItemBuilder;
+import net.dezilla.dectf2.util.ShieldUtil;
 
 public class HeavyKit extends BaseKit {
 	private static double powerupMovementSpeed = .06;
@@ -48,7 +49,7 @@ public class HeavyKit extends BaseKit {
 		}
 		inv.setItem(0, sword);
 		inv.setItem(1, ItemBuilder.of(GameConfig.foodMaterial).name("Steak").amount(3).get());
-		inv.setItemInOffHand(ItemBuilder.of(Material.SHIELD).unbreakable().shieldColor(color().dyeColor()).get());
+		inv.setItemInOffHand(ShieldUtil.getShield(player));
 	}
 	
 	@Override
@@ -93,11 +94,6 @@ public class HeavyKit extends BaseKit {
 		}
 		player.getPlayer().setLevel(level);
 		player.getPlayer().setExp(exp);
-	}
-	
-	@Override
-	public void setEffects() {
-		
 	}
 	
 	@Override

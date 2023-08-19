@@ -18,9 +18,10 @@ import net.dezilla.dectf2.util.GameColor;
 public class TeamCommand extends Command {
 
 	public TeamCommand() {
-		super("team");
+		super("teams");
 		setDescription("Change certain parameters for a team");
-		setUsage("/team [Team Name/ID] [name/score/color] [value]");
+		setUsage("/teams [Team Name/ID] [name/score/color] [value]");
+		setPermission("dectf2.command.teams");
 	}
 
 	@Override

@@ -25,15 +25,18 @@ import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerGameModeChangeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.server.ServerListPingEvent;
 
 import net.dezilla.dectf2.GameMain;
 import net.dezilla.dectf2.GamePlayer;
+import net.dezilla.dectf2.GamePlayer.PlayerChatType;
 import net.dezilla.dectf2.Util;
 import net.dezilla.dectf2.game.GameMatch;
 import net.dezilla.dectf2.game.GameMatch.GameState;
@@ -41,6 +44,7 @@ import net.dezilla.dectf2.game.GameTeam;
 import net.dezilla.dectf2.game.tdm.TDMGame;
 import net.dezilla.dectf2.util.CustomDamageCause;
 import net.dezilla.dectf2.util.GameConfig;
+import net.dezilla.dectf2.util.LuckPermsStuff;
 import net.md_5.bungee.api.ChatColor;
 
 public class EventListener implements Listener{
@@ -52,6 +56,22 @@ public class EventListener implements Listener{
 		} else {
 			GameMatch.waitingForNextMatch.add(GamePlayer.get(event.getPlayer()));
 		}
+		GamePlayer p = GamePlayer.get(event.getPlayer());
+		String msg = p.getColoredName() + ChatColor.GRAY + ChatColor.ITALIC + " has joined the game.";
+		if(GameConfig.joinMessages)
+			event.setJoinMessage(msg);
+		else
+			event.setJoinMessage(null);
+	}
+	
+	@EventHandler
+	public void onLeave(PlayerQuitEvent event) {
+		GamePlayer p = GamePlayer.get(event.getPlayer());
+		String msg = p.getColoredName() + ChatColor.GRAY + ChatColor.ITALIC + " has left the game.";
+		if(GameConfig.joinMessages)
+			event.setQuitMessage(msg);
+		else
+			event.setQuitMessage(null);
 	}
 	
 	@EventHandler(ignoreCancelled=true)
@@ -382,13 +402,13 @@ public class EventListener implements Listener{
 	}
 	
 	static List<Material> dontTouchThat = Arrays.asList(Material.CHEST, Material.TRAPPED_CHEST, Material.BARREL, Material.ENDER_CHEST, 
-			Material.FURNACE, Material.CRAFTING_TABLE);
+			Material.FURNACE, Material.CRAFTING_TABLE, Material.HOPPER);
 	@EventHandler(ignoreCancelled=true)
 	public void onInteract(PlayerInteractEvent event) {
 		Block block = event.getClickedBlock();
 		if(block == null || event.getPlayer().getGameMode() == GameMode.CREATIVE)
 			return;
-		if(dontTouchThat.contains(block.getType()) || block.getType().toString().contains("SHULKER_BOX")) {
+		if(dontTouchThat.contains(block.getType()) || block.getType().toString().contains("SHULKER_BOX") || block.getType().toString().contains("SIGN")) {
 			event.setCancelled(true);
 			return;
 		}
@@ -429,5 +449,40 @@ public class EventListener implements Listener{
 		if(event.getPlayer().getGameMode() == GameMode.CREATIVE)
 			return;
 		event.setCancelled(true);
+	}
+	
+	@EventHandler
+	public void onChat(AsyncPlayerChatEvent event) {
+		ChatColor color = ChatColor.WHITE;
+		GamePlayer p = GamePlayer.get(event.getPlayer());
+		if(p.getTeam() != null)
+			color = p.getTeam().getColor().getChatColor();
+		String prefix = "";
+		if(GameMain.hasLuckPerms()) {
+			prefix = LuckPermsStuff.getPrefix(p.getPlayer());
+		}
+		if(prefix == null)
+			prefix = "";
+		event.setFormat("§7"+prefix+"%1$s"+color+" §l» §r§6/"+(p.getChatType() == PlayerChatType.GLOBAL ? "a" : "t")+"§r %2$s");
+		if(p.getChatType() == PlayerChatType.TEAM) {
+			event.setCancelled(true);
+			List<Player> recipients = new ArrayList<Player>();
+			for(Player pl : Bukkit.getOnlinePlayers()) {
+				GamePlayer gp = GamePlayer.get(pl);
+				if(gp.getTeam() == null) {
+					recipients.add(pl);
+					continue;
+				}
+				if(p.getTeam() == null)
+					continue;
+				if(gp.getTeam().equals(p.getTeam()))
+					recipients.add(pl);
+			}
+			String msg = "§7"+prefix+p.getPlayer().getDisplayName()+color+" §l» §r§6/t§r "+event.getMessage();
+			for(Player pl : recipients) {
+				pl.sendMessage(msg);
+			}
+			GameMain.getInstance().getLogger().info(msg);
+		}
 	}
 }

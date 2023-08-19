@@ -20,6 +20,8 @@ public class ChangeMapCommand extends Command{
 	public ChangeMapCommand() {
 		super("changemap");
 		setUsage("/changemap <map file>");
+		setDescription("Change the current map");
+		setPermission("dectf2.command.changemap");
 	}
 
 	@Override
@@ -58,7 +60,7 @@ public class ChangeMapCommand extends Command{
 		if(args.length==1) {
 			for(File file : Util.getWorldList()) {
 				String s = ""+file.getName();
-				if(s.startsWith(args[0].toLowerCase()))
+				if(s.startsWith(args[0]))
 					list.add(s);
 			}
 		}

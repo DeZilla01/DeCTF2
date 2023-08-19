@@ -18,6 +18,7 @@ public class SwitchCommand extends Command {
 		super("switch");
 		setDescription("Switch your team or someone else's team.");
 		setUsage("/switch [player]");
+		setPermission("dectf2.command.switch");
 	}
 
 	@Override
@@ -31,7 +32,13 @@ public class SwitchCommand extends Command {
 			sender.sendMessage(ChatColor.RED+"No teams found.");
 			return false;
 		}
-		boolean ignoreBalance = false;//This will become revelant when I add permission stuff
+		boolean ignoreBalance = false;
+		if(sender instanceof Player) {
+			Player p = (Player) sender;
+			if(p.hasPermission("dectf2.command.switch.bypass"))
+				ignoreBalance = true;
+		} else
+			ignoreBalance = true;
 		
 		Player target = null;
 		if(args.length>0) {

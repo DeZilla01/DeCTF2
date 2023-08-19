@@ -12,6 +12,7 @@ public class MapCommand extends Command {
 		super("map");
 		setUsage("/map");
 		setDescription("Display information on the current map.");
+		setPermission("dectf2.command.map");
 	}
 
 	@Override

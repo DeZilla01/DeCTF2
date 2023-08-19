@@ -47,7 +47,7 @@ public class LoadMapCommand extends Command{
 		if(args.length==1) {
 			for(File file : Util.getWorldList()) {
 				String s = ""+file.getName();
-				if(s.startsWith(args[0].toLowerCase()))
+				if(s.startsWith(args[0]))
 					list.add(s);
 			}
 		}

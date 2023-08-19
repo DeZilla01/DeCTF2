@@ -3,6 +3,7 @@ package net.dezilla.dectf2;
 import java.lang.reflect.InvocationTargetException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,6 +13,9 @@ import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
+import org.bukkit.boss.BarColor;
+import org.bukkit.boss.BarStyle;
+import org.bukkit.boss.BossBar;
 import org.bukkit.entity.Player;
 import org.bukkit.scoreboard.Criteria;
 import org.bukkit.scoreboard.DisplaySlot;
@@ -61,6 +65,8 @@ public class GamePlayer {
 	private Timestamp lastItemDrop = null;
 	private PlayerNotificationType notif = PlayerNotificationType.SUBTITLE;
 	private boolean invisible = false;
+	private PlayerChatType chatType = PlayerChatType.GLOBAL;
+	private Timestamp lastHeal = new Timestamp(new Date().getTime());
 	
 	private GamePlayer(Player player) {
 		this.player = player;
@@ -137,17 +143,17 @@ public class GamePlayer {
 		int count = 0;
 		for(String f : filler) {
 			if(count+1>displayList.size())
-				score.resetScores(ChatColor.translateAlternateColorCodes('&', "&"+f));
+				score.resetScores(ChatColor.translateAlternateColorCodes('&', "&"+f+"&f"));
 			count++;
 		}
 		for(String i : displayList) {
 			Team t = score.getTeam("line"+s);
 			if(t==null) {
 				t = score.registerNewTeam("line"+s);
-				t.addEntry(ChatColor.translateAlternateColorCodes('&', "&"+filler[s]));
+				t.addEntry(ChatColor.translateAlternateColorCodes('&', "&"+filler[s]+"&f"));
 			}
 			t.setSuffix(i);
-			display.getScore(ChatColor.translateAlternateColorCodes('&', "&"+filler[s])).setScore(s--);
+			display.getScore(ChatColor.translateAlternateColorCodes('&', "&"+filler[s]+"&f")).setScore(s--);
 			if(s<0)
 				break;
 		}
@@ -195,6 +201,14 @@ public class GamePlayer {
 		lastItemDrop = timestamp;
 	}
 	
+	public void setChatType(PlayerChatType type) {
+		chatType = type;
+	}
+	
+	public PlayerChatType getChatType() {
+		return chatType;
+	}
+	
 	public void setInvisible(boolean value) {
 		if(value) {
 			//prevent going invisible when holding flag
@@ -225,6 +239,14 @@ public class GamePlayer {
 	
 	public boolean isInvisible() {
 		return invisible;
+	}
+	
+	public void setLastHeal(Timestamp when) {
+		lastHeal = when;
+	}
+	
+	public Timestamp getLastHeal() {
+		return lastHeal;
 	}
 	
 	public void setSpawnProtection() {
@@ -336,18 +358,30 @@ public class GamePlayer {
 				player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(msg));
 				break;
 			case SUBTITLE:
-				player.sendTitle(ChatColor.RESET+"", msg, 0, 40, 10);
+				player.sendTitle(ChatColor.RESET+"", msg, 0, 50, 10);
 				break;
 			case CHAT:
 				player.sendMessage(msg);
 				break;
+			case BOSSBAR:
+				BossBar bar = Bukkit.createBossBar(msg, BarColor.WHITE, BarStyle.SOLID);
+				bar.addPlayer(player);
+				Bukkit.getScheduler().scheduleSyncDelayedTask(GameMain.getInstance(), () -> {
+					bar.removeAll();
+				}, 150);
 		}
 	}
 	
 	public static enum PlayerNotificationType {
 		SUBTITLE,
 		ACTIONBAR,
-		CHAT;
+		CHAT,
+		BOSSBAR;
+	}
+	
+	public static enum PlayerChatType {
+		GLOBAL,
+		TEAM;
 	}
 
 }

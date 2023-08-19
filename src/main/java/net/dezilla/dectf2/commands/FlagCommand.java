@@ -21,6 +21,7 @@ public class FlagCommand extends Command {
 		super("flag");
 		setDescription("Change certain parameters for a flag");
 		setUsage("/team [Team Name/ID] [type/reset] <flag type>");
+		setPermission("dectf2.command.flag");
 	}
 
 	@Override

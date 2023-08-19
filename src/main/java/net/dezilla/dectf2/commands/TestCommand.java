@@ -10,6 +10,7 @@ public class TestCommand extends Command{
 	//This command is for testing shit during development.
 	public TestCommand() {
 		super("test");
+		setPermission("dectf2.command.test");
 	}
 
 	@Override

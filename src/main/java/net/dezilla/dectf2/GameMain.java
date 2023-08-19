@@ -14,27 +14,23 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandMap;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import net.dezilla.dectf2.commands.*;
 import net.dezilla.dectf2.commands.mapmanager.*;
 import net.dezilla.dectf2.game.GameMatch;
 import net.dezilla.dectf2.game.GameTimer;
-import net.dezilla.dectf2.kits.ArcherKit;
-import net.dezilla.dectf2.kits.BaseKit;
-import net.dezilla.dectf2.kits.HeavyKit;
-import net.dezilla.dectf2.kits.MedicKit;
-import net.dezilla.dectf2.kits.NinjaKit;
-import net.dezilla.dectf2.kits.PyroKit;
-import net.dezilla.dectf2.kits.SoldierKit;
-import net.dezilla.dectf2.kits.TestyKit;
+import net.dezilla.dectf2.kits.*;
 import net.dezilla.dectf2.listeners.CalloutListener;
 import net.dezilla.dectf2.listeners.EventListener;
 import net.dezilla.dectf2.listeners.GuiListener;
 import net.dezilla.dectf2.listeners.MapManagerListener;
 import net.dezilla.dectf2.listeners.SpongeListener;
 import net.dezilla.dectf2.util.GameConfig;
+import net.dezilla.dectf2.util.LuckPermsStuff;
 import net.dezilla.dectf2.util.MapManagerWorld;
+import net.luckperms.api.LuckPerms;
 
 public class GameMain extends JavaPlugin{
 	
@@ -42,6 +38,12 @@ public class GameMain extends JavaPlugin{
 	
 	public static GameMain getInstance() {
 		return instance;
+	}
+	
+	static boolean luckPerms = false;
+	
+	public static boolean hasLuckPerms() {
+		return luckPerms;
 	}
 	
 	static long serverTick = 0;
@@ -57,12 +59,13 @@ public class GameMain extends JavaPlugin{
 	public void onLoad() {
 		instance = this;
 		kits.add(HeavyKit.class);
-		kits.add(TestyKit.class);
+		//kits.add(TestyKit.class);
 		kits.add(SoldierKit.class);
 		kits.add(ArcherKit.class);
 		kits.add(MedicKit.class);
 		kits.add(PyroKit.class);
 		kits.add(NinjaKit.class);
+		kits.add(MageKit.class);
 		for(Class<? extends BaseKit> c : kits) {
 			try {
 				BaseKit k = c.getConstructor(new Class[] {GamePlayer.class}).newInstance(GamePlayer.get(null));
@@ -149,6 +152,8 @@ public class GameMain extends JavaPlugin{
 					new VoteCommand(),
 					new ChangeMapCommand(),
 					new MapCommand(),
+					new PlayerChatCommand(),
+					new NotificationCommand(),
 					kitCommand);
 			commandMap.registerAll("dectf2", commands);
 		} catch(Exception e) {
@@ -165,6 +170,12 @@ public class GameMain extends JavaPlugin{
 			e.printStackTrace();
 		}
 		Bukkit.getScheduler().scheduleSyncRepeatingTask(instance, () -> serverTick++, 1, 1);
+		//stuff
+		RegisteredServiceProvider<LuckPerms> provider = Bukkit.getServicesManager().getRegistration(LuckPerms.class);
+		if (provider != null) {
+		    LuckPermsStuff.api = provider.getProvider();
+		    luckPerms = true;
+		}
 	}
 	
 	public Map<String, Class<? extends BaseKit>> kitMap(){

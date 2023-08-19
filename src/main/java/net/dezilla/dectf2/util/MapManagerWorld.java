@@ -73,6 +73,7 @@ public class MapManagerWorld {
 				world.setGameRule(GameRule.SHOW_DEATH_MESSAGES, false);
 				world.setGameRule(GameRule.SPECTATORS_GENERATE_CHUNKS, false);
 				world.setGameRule(GameRule.DO_IMMEDIATE_RESPAWN, true);
+				world.setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, false);
 				parseSigns();
 				loaded = true;
 				onLoaded.run(world);

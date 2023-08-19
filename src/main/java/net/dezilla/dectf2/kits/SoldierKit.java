@@ -24,6 +24,7 @@ import net.dezilla.dectf2.game.ctf.CTFGame;
 import net.dezilla.dectf2.listeners.SpongeLaunchEvent;
 import net.dezilla.dectf2.util.GameConfig;
 import net.dezilla.dectf2.util.ItemBuilder;
+import net.dezilla.dectf2.util.ShieldUtil;
 
 public class SoldierKit extends BaseKit {
 	private static float CLIMB_EXP_COST = .1f;
@@ -63,7 +64,7 @@ public class SoldierKit extends BaseKit {
 			inv.setItem(0, ItemBuilder.of(Material.IRON_SWORD).name("Soldier Sword").unbreakable().get());
 		}
 		inv.addItem(ItemBuilder.of(GameConfig.foodMaterial).name("Steak").amount(3).get());
-		inv.setItemInOffHand(ItemBuilder.of(Material.SHIELD).unbreakable().shieldColor(color().dyeColor()).get());
+		inv.setItemInOffHand(ShieldUtil.getShield(player));
 		exp = 1f;
 		sword1 = 1f;
 		sword2 = 1f;
@@ -131,7 +132,7 @@ public class SoldierKit extends BaseKit {
 			return;
 		if(!cannon)
 			return;
-		if(airborne) {
+		if(airborne && player.getPlayer().getVelocity().getY()<0) {
 			event.setDamage(event.getDamage()*3);
 			player.getPlayer().playSound(player.getPlayer(), Sound.BLOCK_ANVIL_LAND, 1, 1);
 		}

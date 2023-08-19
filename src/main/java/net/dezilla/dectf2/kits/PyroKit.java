@@ -1,13 +1,16 @@
 package net.dezilla.dectf2.kits;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.bukkit.Bukkit;
-import org.bukkit.Effect;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -34,12 +37,13 @@ public class PyroKit extends BaseKit{
 	static int PYRO_BOW_FIRE = 100;
 	static int PYRO_FRENZY_BOW_FIRE = 200;
 	static double PYRO_FRENZY_MANA_DRAIN = .01;
-	static double PYRO_FRENZY_MANA_GAIN_RATE = .005;
+	static double PYRO_FRENZY_MANA_GAIN_RATE = .012;
 	
 	boolean frenzy = false;
 	boolean bowCharged = false;
 	float frenzyMana = 0;
 	boolean frenzyMode = false;
+	List<Block> fire = new ArrayList<Block>();
 
 	public PyroKit(GamePlayer player) {
 		super(player);
@@ -55,10 +59,10 @@ public class PyroKit extends BaseKit{
 		inv.setBoots(ItemBuilder.of(Material.LEATHER_BOOTS).name("Pyro Boots").unbreakable().armorTrim(TrimPattern.TIDE, color().getTrimMaterial()).data("pyro_armor").get());
 		inv.setItemInOffHand(ItemBuilder.of(Material.BOW).name("Pyro Bow").unbreakable().enchant(Enchantment.ARROW_INFINITE, 1).get());
 		if(frenzy)
-			inv.setItem(0, ItemBuilder.of(Material.DIAMOND_AXE).unbreakable().name("Pyro Axe").damageModifier(9).data("pyro_axe").get());
+			inv.setItem(0, ItemBuilder.of(Material.DIAMOND_AXE).unbreakable().name("Pyro Axe").damageModifier(7).data("pyro_axe").get());
 		else
-			inv.setItem(0, ItemBuilder.of(Material.GOLDEN_AXE).unbreakable().name("Pyro Axe").damageModifier(7).get());
-		inv.setItem(1, ItemBuilder.of(Material.FLINT_AND_STEEL).name("Pyro Flint & Steel").unbreakable().get());
+			inv.setItem(0, ItemBuilder.of(Material.GOLDEN_AXE).unbreakable().name("Pyro Axe").damageModifier(5).get());
+		inv.setItem(2, ItemBuilder.of(Material.FLINT_AND_STEEL).name("Pyro Flint & Steel").unbreakable().get());
 		inv.setItem(9, new ItemStack(Material.ARROW));
 		inv.addItem(ItemBuilder.of(GameConfig.foodMaterial).name("Steak").amount(3).get());
 		frenzyMana = 0;
@@ -94,18 +98,26 @@ public class PyroKit extends BaseKit{
 			return;
 		if(event.getItem() != null && event.getItem().getType() == Material.FLINT_AND_STEEL) {
 			if(event.getAction() == Action.RIGHT_CLICK_BLOCK && player.getPlayer().getCooldown(Material.FLINT_AND_STEEL)==0) {
-				Block b = event.getClickedBlock().getRelative(event.getBlockFace());
-				if(b.getType() != Material.AIR)
-					return;
-				b.setType(Material.FIRE);
-				GameTimer timer = new GameTimer(2);
-				timer.unpause();
-				timer.onEnd((t) -> {
-					if(b.getType() == Material.FIRE)
-						b.setType(Material.AIR);
-					timer.unregister();
-				});
-				player.getPlayer().setCooldown(Material.FLINT_AND_STEEL, 20);
+				Block block = event.getClickedBlock().getRelative(event.getBlockFace());
+				for(int x = -1 ; x <= 1 ; x++) {
+					for(int z = -1 ; z <= 1 ; z++) {
+						Block b = block.getLocation().add(x, 0, z).getBlock();
+						if(b.getType() != Material.AIR)
+							return;
+						b.setType(Material.FIRE);
+						fire.add(b);
+						GameTimer timer = new GameTimer(2);
+						timer.unpause();
+						timer.onEnd((t) -> {
+							if(b.getType() == Material.FIRE)
+								b.setType(Material.AIR);
+							if(fire.contains(b))
+								fire.remove(b);
+							timer.unregister();
+						});
+					}
+				}
+				player.getPlayer().setCooldown(Material.FLINT_AND_STEEL, 300);
 			}
 		}
 		if(frenzy && event.getItem() != null && event.getItem().getType() == Material.DIAMOND_AXE && !frenzyMode && frenzyMana==1 && player.getPlayer().isSneaking()) {
@@ -120,6 +132,17 @@ public class PyroKit extends BaseKit{
 	
 	@EventHandler(ignoreCancelled=true)
 	public void onHitOtherPlayer(EntityDamageByEntityEvent event) {
+		if(event.getDamager() instanceof Arrow) {
+			GamePlayer p = Util.getOwner(event.getDamager());
+			if(p != null && p.equals(player)) {
+				if(frenzy && !frenzyMode) {
+					frenzyMana+=event.getDamage()*PYRO_FRENZY_MANA_GAIN_RATE;
+					if(frenzyMana>1)
+						frenzyMana=1;
+					player.getPlayer().setExp(frenzyMana);
+				}
+			}
+		}
 		if(!(event.getDamager() instanceof Player) || !((Player)event.getDamager()).equals(player.getPlayer()))
 			return;
 		if(!(event.getEntity() instanceof LivingEntity))
@@ -170,6 +193,10 @@ public class PyroKit extends BaseKit{
 			l.getWorld().createExplosion(l, 0);
 			bowCharged = false;
 		}
+	}
+	
+	public boolean isPyroFire(Block block) {
+		return fire.contains(block);
 	}
 	
 	private void updateFrenzyMode() {

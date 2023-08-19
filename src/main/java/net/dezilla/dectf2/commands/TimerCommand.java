@@ -17,6 +17,7 @@ public class TimerCommand extends Command {
 		super("timer");
 		setUsage("/timer <pause/unpause/seconds>");
 		setDescription("Pause, unpause or change the time left for the timer");
+		setPermission("dectf2.command.timer");
 	}
 
 	@Override

@@ -2,8 +2,11 @@ package net.dezilla.dectf2.listeners;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -45,6 +48,10 @@ public class CalloutListener implements Listener{
 		Timestamp last = p.getLastItemDrop();
 		if(now.getTime()-last.getTime() < 500) {
 			Block b = p.getPlayer().getTargetBlock(Sets.newHashSet(Material.AIR), (int) (GameConfig.calloutRadius-1));
+			if(b.getType() == Material.AIR) {
+				p.setLastItemDrop(null);
+				return;
+			}
 			BlockFace f = getTargetFace(p.getPlayer(), b);
 			Location l = b.getLocation();
 			switch(f) {
@@ -63,7 +70,14 @@ public class CalloutListener implements Listener{
 			p.setLastItemDrop(now);
 	}
 	
+	private Map<GamePlayer, Timestamp> lastCall = new HashMap<GamePlayer, Timestamp>();
+	private static final int CALLOUT_DELAY = 5000;
+	
 	private void playCallout(GamePlayer player, Location location) {
+		Timestamp now = new Timestamp(new Date().getTime());
+		if(lastCall.containsKey(player) && now.getTime()-lastCall.get(player).getTime() < CALLOUT_DELAY) {
+			return;
+		}
 		GameTeam team = null;
 		GameMatch match = GameMatch.currentMatch;
 		if(match != null && match.getTeam(player) != null)
@@ -113,6 +127,7 @@ public class CalloutListener implements Listener{
 			}
 			p.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(player.getColoredName()+ChatColor.RESET+" pointed at "+where));
 		}
+		lastCall.put(player, now);
 	}
 	
 	private static BlockFace getTargetFace(Player player, Block block) {

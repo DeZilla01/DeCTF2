@@ -3,17 +3,21 @@ package net.dezilla.dectf2.util;
 import java.util.Arrays;
 import java.util.List;
 
+import org.bukkit.Color;
 import org.bukkit.DyeColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.block.Banner;
+import org.bukkit.block.banner.Pattern;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ArmorMeta;
 import org.bukkit.inventory.meta.BlockStateMeta;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.inventory.meta.trim.ArmorTrim;
 import org.bukkit.inventory.meta.trim.TrimMaterial;
 import org.bukkit.inventory.meta.trim.TrimPattern;
@@ -99,7 +103,8 @@ public class ItemBuilder {
 	}
 	
 	public ItemBuilder damageModifier(double modifier) {
-		meta.addAttributeModifier(Attribute.GENERIC_ATTACK_DAMAGE, new AttributeModifier("test", modifier, AttributeModifier.Operation.ADD_NUMBER));
+		//meta.addAttributeModifier(Attribute.GENERIC_ATTACK_DAMAGE, new AttributeModifier("test", modifier, AttributeModifier.Operation.ADD_NUMBER));
+		meta.getAttributeModifiers(EquipmentSlot.HAND).put(Attribute.GENERIC_ATTACK_DAMAGE, new AttributeModifier("damage", modifier, AttributeModifier.Operation.ADD_NUMBER));
 		return this;
 	}
 	
@@ -122,6 +127,16 @@ public class ItemBuilder {
 		}
 		return this;
 	}
+	
+	public ItemBuilder leatherColor(Color color) {
+		if(!(meta instanceof LeatherArmorMeta))
+			return this;
+		LeatherArmorMeta m = (LeatherArmorMeta) meta;
+		m.setColor(color);
+		meta = m;
+		return this;
+	}
+	
 	public ItemBuilder shieldColor(DyeColor dye) {
 		if(!(meta instanceof BlockStateMeta))
 			return this;
@@ -130,6 +145,19 @@ public class ItemBuilder {
 			return this;
 		Banner b = (Banner) bs.getBlockState();
 		b.setBaseColor(dye);
+		bs.setBlockState(b);
+		meta = bs;
+		return this;
+	}
+	
+	public ItemBuilder shieldPatterns(List<Pattern> patterns) {
+		if(!(meta instanceof BlockStateMeta))
+			return this;
+		BlockStateMeta bs = (BlockStateMeta) meta;
+		if(!(bs.getBlockState() instanceof Banner))
+			return this;
+		Banner b = (Banner) bs.getBlockState();
+		b.setPatterns(patterns);
 		bs.setBlockState(b);
 		meta = bs;
 		return this;

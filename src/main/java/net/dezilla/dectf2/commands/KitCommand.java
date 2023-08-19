@@ -20,6 +20,7 @@ public class KitCommand extends Command implements CommandExecutor{
 
 	public KitCommand() {
 		super("kit", "Change and select your kit.", "/kit [kit name] [variation]", Arrays.asList("kits", "class", "classes"));
+		setPermission("dectf2.command.kit");
 	}
 	
 	public void addAliases(List<String> aliases) {
