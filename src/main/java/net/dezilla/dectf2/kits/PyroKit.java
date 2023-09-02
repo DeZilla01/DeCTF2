@@ -40,10 +40,11 @@ public class PyroKit extends BaseKit{
 	static double PYRO_FRENZY_MANA_GAIN_RATE = .012;
 	
 	boolean frenzy = false;
-	boolean bowCharged = false;
+	//boolean bowCharged = false;
 	float frenzyMana = 0;
 	boolean frenzyMode = false;
 	List<Block> fire = new ArrayList<Block>();
+	List<Arrow> chargedArrows = new ArrayList<Arrow>();
 
 	public PyroKit(GamePlayer player) {
 		super(player);
@@ -88,8 +89,9 @@ public class PyroKit extends BaseKit{
 		Player p = (Player) event.getEntity();
 		if(!p.equals(player.getPlayer()))
 			return;
-		if(event.getForce()==1)
-			bowCharged = true;
+		if(event.getForce()==1 && event.getProjectile() instanceof Arrow) {
+			chargedArrows.add((Arrow) event.getProjectile());
+		}
 	}
 	
 	@EventHandler
@@ -174,7 +176,7 @@ public class PyroKit extends BaseKit{
 		GamePlayer p = Util.getOwner((Entity) event.getEntity().getShooter());
 		if(p == null || !p.getPlayer().equals(player.getPlayer()))
 			return;
-		if(bowCharged) {
+		if(event.getEntity() instanceof Arrow && chargedArrows.contains(event.getEntity())) {
 			Location l = event.getEntity().getLocation();
 			for(Player pl : l.getWorld().getPlayers()) {
 				GamePlayer victim = GamePlayer.get(pl);
@@ -191,7 +193,7 @@ public class PyroKit extends BaseKit{
 				Bukkit.getScheduler().runTask(GameMain.getInstance(), () -> pl.setFireTicks((int) (M*fireTicks)));
 			}
 			l.getWorld().createExplosion(l, 0);
-			bowCharged = false;
+			chargedArrows.remove(event.getEntity());
 		}
 	}
 	

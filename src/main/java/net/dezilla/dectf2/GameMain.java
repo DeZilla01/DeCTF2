@@ -59,7 +59,7 @@ public class GameMain extends JavaPlugin{
 	public void onLoad() {
 		instance = this;
 		kits.add(HeavyKit.class);
-		//kits.add(TestyKit.class);
+		kits.add(TestyKit.class);
 		kits.add(SoldierKit.class);
 		kits.add(ArcherKit.class);
 		kits.add(MedicKit.class);
@@ -154,6 +154,7 @@ public class GameMain extends JavaPlugin{
 					new MapCommand(),
 					new PlayerChatCommand(),
 					new NotificationCommand(),
+					new ZoneCommand(),
 					kitCommand);
 			commandMap.registerAll("dectf2", commands);
 		} catch(Exception e) {

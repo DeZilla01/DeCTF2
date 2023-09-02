@@ -74,6 +74,8 @@ public class MapManagerWorld {
 				world.setGameRule(GameRule.SPECTATORS_GENERATE_CHUNKS, false);
 				world.setGameRule(GameRule.DO_IMMEDIATE_RESPAWN, true);
 				world.setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, false);
+				world.setGameRule(GameRule.TNT_EXPLOSION_DROP_DECAY, false);
+				world.setGameRule(GameRule.RANDOM_TICK_SPEED, 0);
 				parseSigns();
 				loaded = true;
 				onLoaded.run(world);

@@ -221,5 +221,9 @@ public abstract class BaseKit implements Listener{
 		}
 		return GameColor.WHITE;
 	}
+	
+	protected boolean sameTeam(GamePlayer p) {
+		return (p.getTeam() != null && player.getTeam() != null && p.getTeam().equals(player.getTeam()));
+	}
 
 }

@@ -17,7 +17,7 @@ public class GameConfig {
 	public static double calloutNameRadius = 15.0;
 	public static double calloutRadius = 45.0;
 	public static boolean displayServerListMotd = true;
-	public static boolean joinMessages = false;
+	public static boolean joinMessages = true;
 	
 	//kit stuff
 	public static Material foodMaterial = Material.COOKED_BEEF;
@@ -29,4 +29,6 @@ public class GameConfig {
 	public static int flagReset = 16;
 	public static boolean flagGlow = true;
 	
+	//zc config
+	public static int captureBarSize = 12;
 }

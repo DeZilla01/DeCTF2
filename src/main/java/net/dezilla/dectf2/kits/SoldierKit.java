@@ -170,7 +170,8 @@ public class SoldierKit extends BaseKit {
 			if(ItemBuilder.getData(event.getItem()).equals("sword1") && sword1 > .1) {
 				player.getPlayer().getWorld().createExplosion(player.getLocation(), 0);
 				Bukkit.getScheduler().runTask(GameMain.getInstance(), () -> {
-					player.getPlayer().setVelocity(player.getPlayer().getVelocity().add(Util.inFront(player.getPlayer(), 2.0*sword1)).multiply(M));
+					Vector v = Util.inFront(player.getPlayer(), 2.0*sword1).multiply(-M);
+					player.getPlayer().setVelocity(player.getPlayer().getVelocity().add(v));
 					Bukkit.getScheduler().runTaskLater(GameMain.getInstance(), () -> airborne=true, 1);
 					sword1 = 0;
 				});
@@ -178,7 +179,8 @@ public class SoldierKit extends BaseKit {
 			if(ItemBuilder.getData(event.getItem()).equals("sword2") && sword2 > .1) {
 				player.getPlayer().getWorld().createExplosion(player.getLocation(), 0);
 				Bukkit.getScheduler().runTask(GameMain.getInstance(), () -> {
-					player.getPlayer().setVelocity(player.getPlayer().getVelocity().add(Util.inFront(player.getPlayer(), 2.0*sword2)).multiply(M));
+					Vector v = Util.inFront(player.getPlayer(), 2.0*sword2).multiply(-M);
+					player.getPlayer().setVelocity(player.getPlayer().getVelocity().add(v));
 					Bukkit.getScheduler().runTaskLater(GameMain.getInstance(), () -> airborne=true, 1);
 					sword2 = 0;
 				});

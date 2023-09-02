@@ -135,6 +135,7 @@ public class EventListener implements Listener{
 			return;
 		GamePlayer p = GamePlayer.get(event.getEntity());
 		p.incrementStats("deaths", 1);
+		p.setStats("streak", 0);
 		GamePlayer killer = p.getLastAttacker();
 		if(killer != null) {
 			killer.incrementStats("kills", 1);
@@ -145,7 +146,7 @@ public class EventListener implements Listener{
 				game.addKill(killer.getTeam());
 			}
 		}
-		Bukkit.getScheduler().scheduleSyncDelayedTask(GameMain.getInstance(), () -> match.respawnPlayer(p));
+		Bukkit.getScheduler().scheduleSyncDelayedTask(GameMain.getInstance(), () -> match.respawnPlayer(p), 3);
 		//Death Message
 		String msg = p.getColoredName()+ChatColor.RESET+" ";
 		DamageCause cause = p.getPlayer().getLastDamageCause().getCause();

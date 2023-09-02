@@ -12,9 +12,10 @@ import net.dezilla.dectf2.util.ItemBuilder;
 import net.dezilla.dectf2.util.ShieldUtil;
 
 public class HeavyKit extends BaseKit {
-	private static double powerupMovementSpeed = .06;
+	private static double powerupMovementSpeed = .08;
 	private static double powerupGainPerTick = .005;
 	private static double powerupSlowPerLevel = .0004;
+	private static int powerupLevelCap = 8;
 	
 	private boolean powerup = false;
 	private boolean tank = false;
@@ -50,6 +51,12 @@ public class HeavyKit extends BaseKit {
 		inv.setItem(0, sword);
 		inv.setItem(1, ItemBuilder.of(GameConfig.foodMaterial).name("Steak").amount(3).get());
 		inv.setItemInOffHand(ShieldUtil.getShield(player));
+		if(level != 0) {
+			level /=2;
+		}
+		if(exp != 0) {
+			exp=0;
+		}
 	}
 	
 	@Override
@@ -70,7 +77,7 @@ public class HeavyKit extends BaseKit {
 	public void onTick() {
 		if(!powerup) 
 			return;
-		if(player.getPlayer().isSneaking() && level < 10) {
+		if(player.getPlayer().isSneaking() && level < powerupLevelCap) {
 			exp += powerupGainPerTick - (powerupSlowPerLevel*level);
 			if(exp>=1) {
 				level++;

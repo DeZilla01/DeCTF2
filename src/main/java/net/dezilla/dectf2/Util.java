@@ -18,10 +18,13 @@ import org.bukkit.block.Sign;
 import org.bukkit.block.sign.Side;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Arrow;
+import org.bukkit.entity.Creature;
 import org.bukkit.entity.Egg;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Firework;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
 import org.bukkit.entity.Snowball;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -32,6 +35,7 @@ import org.bukkit.util.VoxelShape;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 
+import me.gamercoder215.mobchip.bukkit.BukkitBrain;
 import net.dezilla.dectf2.util.GameConfig;
 
 public class Util {
@@ -136,7 +140,7 @@ public class Util {
 		double x= distance * Math.sin(Math.PI * 2 * yaw / 360) * a;
 		double z = -distance * Math.cos(Math.PI * 2 * yaw / 360) * a;
 		double y = distance * Math.sin(Math.PI * 2 * pitch / 360);
-		return new Vector(x, y, z);
+		return new Vector(x, y, z).multiply(-1);
 		
 	}
 	
@@ -191,20 +195,10 @@ public class Util {
     }
 	
 	public static GamePlayer getOwner(Entity entity) {
-		if(entity instanceof Arrow) {
-			Arrow a = (Arrow) entity;
-			if(a.getShooter() != null && a.getShooter() instanceof Entity)
-				entity = (Entity) a.getShooter();
-		}
-		if(entity instanceof Snowball) {
-			Snowball s = (Snowball) entity;
-			if(s.getShooter() != null && s.getShooter() instanceof Entity)
-				entity = (Entity) s.getShooter();
-		}
-		if(entity instanceof Egg) {
-			Egg e = (Egg) entity;
-			if(e.getShooter() != null && e.getShooter() instanceof Entity)
-				entity = (Entity) e.getShooter();
+		if(entity instanceof Projectile) {
+			Projectile p = (Projectile) entity;
+			if(p.getShooter() != null && p.getShooter() instanceof Entity)
+				entity = (Entity) p.getShooter();
 		}
 		if(entity instanceof Player) {
 			Player p = (Player) entity;

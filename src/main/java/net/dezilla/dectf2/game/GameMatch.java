@@ -36,6 +36,7 @@ import net.dezilla.dectf2.util.ZipUtility;
 import net.md_5.bungee.api.ChatColor;
 import net.dezilla.dectf2.game.ctf.CTFGame;
 import net.dezilla.dectf2.game.tdm.TDMGame;
+import net.dezilla.dectf2.game.zc.ZonesGame;
 import net.dezilla.dectf2.gui.MapVoteGui;
 import net.dezilla.dectf2.util.GameColor;
 import net.dezilla.dectf2.util.GameConfig;
@@ -56,7 +57,9 @@ public class GameMatch {
 	private boolean gameLoaded = false;
 	private World world = null;
 	private Location spawn = null;
+	@Deprecated
 	private Map<String, Location> signConfig = new HashMap<String, Location>();
+	private List<Sign> signConfigs = new ArrayList<Sign>();
 	private String name = "";
 	private String author = "";
 	private String mode = "tdm";
@@ -133,12 +136,16 @@ public class GameMatch {
 				world.setGameRule(GameRule.SPECTATORS_GENERATE_CHUNKS, false);
 				world.setGameRule(GameRule.DO_IMMEDIATE_RESPAWN, true);
 				world.setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, false);
+				world.setGameRule(GameRule.TNT_EXPLOSION_DROP_DECAY, false);
+				world.setGameRule(GameRule.RANDOM_TICK_SPEED, 0);
 				spawn = world.getSpawnLocation();
 				scoreboardNotif("Parsing signs");
 				parseSigns();
 				createTeams();
 				if(mode.equalsIgnoreCase("ctf"))
 					game = new CTFGame(this);
+				else if(mode.equalsIgnoreCase("zc"))
+					game = new ZonesGame(this);
 				else 
 					game = new TDMGame(this); //fallback gamemode incase mode is not valid
 				if(scoreToWin <= 0) {
@@ -278,6 +285,9 @@ public class GameMatch {
 		if(!addedToPreviousTeam)
 			addPlayerToRandomTeam(player);
 		player.getPlayer().setGameMode(GameMode.SURVIVAL);
+		Location l = spawn.clone();
+		l.setY(world.getMinHeight());
+		player.getPlayer().setBedSpawnLocation(l, true);
 		respawnPlayer(player);
 	}
 	
@@ -345,6 +355,7 @@ public class GameMatch {
 							removeSign = true;
 							String line = i.replaceAll(pattern1, "$1").toLowerCase();
 							signConfig.put(line, loc);
+							signConfigs.add(sign);
 							if(i.matches(pattern2)) {
 								String key = i.replaceAll(pattern2, "$1").toLowerCase();
 								String value = i.replaceAll(pattern2, "$2").toLowerCase();
@@ -592,6 +603,10 @@ public class GameMatch {
 	
 	public Map<String, Location> signConfigs(){
 		return signConfig;
+	}
+	
+	public List<Sign> signConfigz(){
+		return signConfigs;
 	}
 	
 	public void setScoreToWin(int amount) {
