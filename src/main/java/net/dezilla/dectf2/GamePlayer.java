@@ -22,6 +22,7 @@ import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
+import org.bukkit.util.Vector;
 
 import net.dezilla.dectf2.game.GameBase;
 import net.dezilla.dectf2.game.GameMatch;
@@ -31,6 +32,7 @@ import net.dezilla.dectf2.game.GameTimer;
 import net.dezilla.dectf2.game.ctf.CTFGame;
 import net.dezilla.dectf2.kits.BaseKit;
 import net.dezilla.dectf2.kits.HeavyKit;
+import net.dezilla.dectf2.kits.PyroKit;
 import net.dezilla.dectf2.util.CustomDamageCause;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ChatMessageType;
@@ -54,6 +56,10 @@ public class GamePlayer {
 		return new GamePlayer(player);
 	}
 	
+	public static List<GamePlayer> getPlayers(){
+		return new ArrayList<GamePlayer>(PLAYERS);
+	}
+	
 	private Player player;
 	private Scoreboard score;
 	private Map<String, Integer> stats = new HashMap<String, Integer>();
@@ -67,6 +73,10 @@ public class GamePlayer {
 	private boolean invisible = false;
 	private PlayerChatType chatType = PlayerChatType.GLOBAL;
 	private Timestamp lastHeal = new Timestamp(new Date().getTime());
+	private boolean onFire = false; //used for pyro
+	private boolean fireImmunity = false; //used for pyro 
+	private int inversionTicks = 0;
+	List<InvertPosition> moveHistory = new ArrayList<InvertPosition>();
 	
 	private GamePlayer(Player player) {
 		this.player = player;
@@ -75,6 +85,29 @@ public class GamePlayer {
 		applyScoreboard();
 		updateScoreboardDisplay();
 		kit = new HeavyKit(this);
+	}
+	
+	public void onTick() {
+		if(player.getFireTicks()>0 && !isOnFire()) {
+			setOnFire(true);
+			onFire();
+		} 
+		else if(player.getFireTicks()<=0 && isOnFire()) {
+			setOnFire(false);
+			setFireImmunity(false);
+		}
+		if(inversionTicks>0 && !moveHistory.isEmpty()) {
+			InvertPosition ip = moveHistory.get(moveHistory.size()-1);
+			moveHistory.remove(ip);
+			player.getPlayer().teleport(ip.getLocation());
+			player.getPlayer().setVelocity(ip.getVelocity().multiply(-1));
+			inversionTicks -=1;
+		} else {
+			InvertPosition ip = new InvertPosition(player.getLocation(), player.getPlayer().getVelocity());
+			moveHistory.add(ip);
+			if(moveHistory.size()>300)
+				moveHistory.remove(0);
+		}
 	}
 	
 	public Player getPlayer() {
@@ -207,6 +240,30 @@ public class GamePlayer {
 	
 	public PlayerChatType getChatType() {
 		return chatType;
+	}
+	
+	public boolean isOnFire() {
+		return onFire;
+	}
+	
+	public void setOnFire(boolean value) {
+		onFire = value;
+	}
+	
+	public boolean isFireImmune() {
+		return fireImmunity;
+	}
+	
+	public void setFireImmunity(boolean value) {
+		fireImmunity = value;
+	}
+	
+	public void setInversionTicks(int value) {
+		inversionTicks = value;
+	}
+	
+	public int getInversionTicks() {
+		return inversionTicks;
 	}
 	
 	public void setInvisible(boolean value) {
@@ -352,6 +409,26 @@ public class GamePlayer {
 		notif = type;
 	}
 	
+	private void onFire() {
+		GameTeam team = getTeam();
+		if(team == null)
+			return;
+		List<Block> blocks = Util.get4x4Blocks(player.getLocation());
+		for(GamePlayer p : GamePlayer.getPlayers()) {
+			if(!p.getPlayer().isOnline())
+				continue;
+			if(p.getTeam() == null || !p.getTeam().equals(team))
+				continue;
+			if(p.getKit() == null || !(p.getKit() instanceof PyroKit))
+				continue;
+			PyroKit kit = (PyroKit) p.getKit();
+			for(Block b : blocks)
+				if(kit.isPyroFire(b)) {
+					setFireImmunity(true);
+				}
+		}
+	}
+	
 	public void notify(String msg) {
 		switch(notif) {
 			case ACTIONBAR:
@@ -382,6 +459,24 @@ public class GamePlayer {
 	public static enum PlayerChatType {
 		GLOBAL,
 		TEAM;
+	}
+	
+	public class InvertPosition {
+		Location loc;
+		Vector vel;
+		
+		public InvertPosition(Location location, Vector velocity) {
+			loc = location;
+			vel = velocity;
+		}
+		
+		public Location getLocation() {
+			return loc.clone();
+		}
+		
+		public Vector getVelocity() {
+			return vel.clone();
+		}
 	}
 
 }

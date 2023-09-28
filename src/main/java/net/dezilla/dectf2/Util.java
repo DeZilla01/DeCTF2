@@ -12,6 +12,7 @@ import java.util.regex.Pattern;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.Sign;
@@ -29,6 +30,7 @@ import org.bukkit.entity.Snowball;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.SkullMeta;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 import org.bukkit.util.VoxelShape;
 
@@ -114,6 +116,53 @@ public class Util {
 			return BlockFace.WEST;
 		return BlockFace.NORTH;
 		
+	}
+	
+	public static List<Block> get4x4Blocks(Location loc){
+		List<Block> blocks = new ArrayList<Block>();
+		BlockFace horizontal;
+		BlockFace vertical;
+		Block b = loc.getBlock();
+		Location bloc = b.getLocation().add(.5,0,.5);
+		if(loc.getX()>bloc.getX())
+			horizontal = BlockFace.EAST;
+		else
+			horizontal = BlockFace.WEST;
+		if(loc.getZ()>bloc.getZ())
+			vertical = BlockFace.SOUTH;
+		else
+			vertical = BlockFace.NORTH;
+		blocks.add(b);
+		blocks.add(b.getRelative(horizontal));
+		blocks.add(b.getRelative(vertical));
+		blocks.add(b.getRelative(horizontal).getRelative(vertical));
+		return blocks;
+	}
+	
+	public static void heal(Player player, int amount) {
+		double max = player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
+		if(player.getHealth()+amount>max)
+			player.setHealth(max);
+		else
+			player.setHealth(player.getHealth()+amount);
+	}
+	
+	private static List<PotionEffectType> badEffects = Arrays.asList(
+			PotionEffectType.BAD_OMEN,
+			PotionEffectType.BLINDNESS,
+			PotionEffectType.CONFUSION,
+			PotionEffectType.DARKNESS,
+			PotionEffectType.HARM,
+			PotionEffectType.HUNGER,
+			PotionEffectType.LEVITATION,
+			PotionEffectType.POISON,
+			PotionEffectType.SLOW,
+			PotionEffectType.SLOW_DIGGING,
+			PotionEffectType.UNLUCK,
+			PotionEffectType.WEAKNESS,
+			PotionEffectType.WITHER);
+	public static boolean isBadEffect(PotionEffectType type) {
+		return badEffects.contains(type);
 	}
 	
 	//used for shields

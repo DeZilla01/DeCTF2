@@ -6,11 +6,17 @@ import java.util.List;
 
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.entity.AreaEffectCloud;
 import org.bukkit.entity.Arrow;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
+import org.bukkit.entity.ThrownPotion;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -22,6 +28,7 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.entity.EntityPickupItemEvent;
+import org.bukkit.event.entity.EntityPotionEffectEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
@@ -33,6 +40,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.server.ServerListPingEvent;
+import org.bukkit.projectiles.ProjectileSource;
 
 import net.dezilla.dectf2.GameMain;
 import net.dezilla.dectf2.GamePlayer;
@@ -42,9 +50,11 @@ import net.dezilla.dectf2.game.GameMatch;
 import net.dezilla.dectf2.game.GameMatch.GameState;
 import net.dezilla.dectf2.game.GameTeam;
 import net.dezilla.dectf2.game.tdm.TDMGame;
+import net.dezilla.dectf2.kits.PyroKit;
 import net.dezilla.dectf2.util.CustomDamageCause;
 import net.dezilla.dectf2.util.GameConfig;
 import net.dezilla.dectf2.util.LuckPermsStuff;
+import net.dezilla.dectf2.util.Minion;
 import net.md_5.bungee.api.ChatColor;
 
 public class EventListener implements Listener{
@@ -97,6 +107,32 @@ public class EventListener implements Listener{
 				event.setCancelled(true);
 				return;
 			}
+			//team fire
+			if(event.getCause() == DamageCause.FIRE_TICK || event.getCause() == DamageCause.FIRE) {
+				if(victim.isFireImmune()) {
+					event.setCancelled(true);
+					victim.getPlayer().setFireTicks(1);
+					return;
+				}
+				if(!victim.isOnFire() && event.getCause() == DamageCause.FIRE) { //this could probably be optimized, but I'm lazy
+					for(Block b : Util.get4x4Blocks(victim.getLocation())) {
+						if(b.getType() == Material.FIRE) {
+							for(Player p : victim.getLocation().getWorld().getPlayers()) {
+								GamePlayer bp = GamePlayer.get(p);
+								if(bp.getTeam() == null || victim.getTeam() == null || !bp.getTeam().equals(victim.getTeam()))
+									continue;
+								if(bp.getKit() instanceof PyroKit) {
+									PyroKit k = (PyroKit) bp.getKit();
+									if(k.isPyroFire(b)) {
+										event.setCancelled(true);
+										break;
+									}
+								}
+							}
+						}
+					}
+				}
+			}
 		}
 	}
 	
@@ -126,6 +162,16 @@ public class EventListener implements Listener{
 			
 			victim.setLastAttacker(damager);
 		}
+		else if(event.getEntity() instanceof LivingEntity && damager != null) {
+			Minion m = Minion.get((LivingEntity) event.getEntity());
+			if(m == null)
+				return;
+			if(m.getOwner() != null && m.getOwner().equals(damager))
+				return;
+			if(m.getTeam().equals(damager.getTeam())) {
+				event.setCancelled(true);
+			}
+		}
 	}
 	
 	@EventHandler(priority=EventPriority.HIGH)
@@ -147,172 +193,6 @@ public class EventListener implements Listener{
 			}
 		}
 		Bukkit.getScheduler().scheduleSyncDelayedTask(GameMain.getInstance(), () -> match.respawnPlayer(p), 3);
-		//Death Message
-		String msg = p.getColoredName()+ChatColor.RESET+" ";
-		DamageCause cause = p.getPlayer().getLastDamageCause().getCause();
-		List<String> list = new ArrayList<String>();
-		boolean notByKiller = false;
-		switch(cause) {
-			case BLOCK_EXPLOSION:
-				list.add("exploded into pieces");
-				break;
-			case CONTACT:
-				list.add("kissed the wrong block");
-				notByKiller=true;
-				break;
-			case CRAMMING:
-				list.add("was squished too much");
-				break;
-			case CUSTOM:
-				CustomDamageCause customCause = p.getCustomDamageCause();
-				if(customCause == null)
-					break;
-				switch(customCause) {
-					case ENEMY_SPAWN:
-						list.add("walked in the wrong spawn");
-						notByKiller = true;
-						break;
-					case FLAG_POISON:
-						list.add("died from flag poisoning");
-						notByKiller = true;
-						break;
-					case SPAWN_WITH_FLAG:
-						list.add("decided that he would bring the flag to his spawn");
-						notByKiller = true;
-						break;
-					case KIT_SWITCH:
-						list.add("switched kit");
-						notByKiller = true;
-						break;
-					case SHIELDED_DAMAGE:
-						list.add("was pierced");
-						list.add("was killed");
-						list.add("was slain");
-						list.add("relied too much on his shield and got killed");
-						break;
-					case ARCHER_HEADSHOT:
-						list.add("was headshoted");
-						list.add("got snipped");
-						break;
-					case NINJA_TELEPORT:
-						list.add("teleported to his doom");
-						list.add("teleported to death");
-						list.add("died from teleportation");
-						list.add("pearled to his death");
-						notByKiller=true;
-					default:
-						break;
-				}
-				break;
-			case DRAGON_BREATH:
-				list.add("was roasted in dragon's breath");
-				break;
-			case DROWNING:
-				list.add("drowned");
-				notByKiller = true;
-				break;
-			case DRYOUT:
-				list.add("died from dehydration");
-				notByKiller = true;
-				break;
-			case ENTITY_ATTACK:
-				list.add("was slain");
-				list.add("was killed");
-				if(killer != null && (killer.getPlayer().getInventory().getItemInMainHand() == null || killer.getPlayer().getInventory().getItemInMainHand().getType() == Material.AIR)) {
-					list.clear();
-					list.add("was punched");
-					list.add("was fisted");
-				}
-				break;
-			case ENTITY_EXPLOSION:
-				list.add("exploded into pieces");
-				list.add("was blown up");
-				break;
-			case ENTITY_SWEEP_ATTACK:
-				list.add("was sweeped");
-				break;
-			case FALL:
-				list.add("fell from too high");
-				list.add("forgot he can't fly");
-				list.add("broke his legs");
-				notByKiller = true;
-				break;
-			case FALLING_BLOCK:
-				list.add("didn't look above");
-				list.add("was killed by a block from above");
-				notByKiller = true;
-				break;
-			case FIRE:
-				list.add("burned to death");
-				notByKiller = true;
-				break;
-			case FIRE_TICK:
-				break;
-			case FLY_INTO_WALL:
-				break;
-			case FREEZE:
-				break;
-			case HOT_FLOOR:
-				break;
-			case KILL:
-				list.add("was killed by console");
-				list.add("was killed by the magic of administrator power");
-				notByKiller = true;
-				break;
-			case LAVA:
-				list.add("swimmed in lava");
-				list.add("mistook lava for water");
-				notByKiller = true;
-				break;
-			case LIGHTNING:
-				break;
-			case MAGIC:
-				break;
-			case MELTING:
-				break;
-			case POISON:
-				break;
-			case PROJECTILE:
-				list.add("was shot");
-				break;
-			case SONIC_BOOM:
-				break;
-			case STARVATION:
-				break;
-			case SUFFOCATION:
-				break;
-			case SUICIDE:
-				list.add("killed himself");
-				list.add("commited sudoku");
-				notByKiller = true;
-				break;
-			case THORNS:
-				break;
-			case VOID:
-				list.add("felled off the map");
-				list.add("felled in the void");
-				notByKiller=true;
-				break;
-			case WITHER:
-				break;
-			case WORLD_BORDER:
-				break;
-			default:
-				break;
-		}
-		if(list.isEmpty())
-			list.add("died");
-		msg+=list.get((int) (Math.random()*list.size()));
-		if(killer != null) {
-			if(notByKiller)
-				msg+=" while running from ";
-			else
-				msg+=" by ";
-			msg+=killer.getColoredName()+ChatColor.RESET+".";
-			killer.getPlayer().sendMessage(msg);
-		} else
-			msg+=".";
-		p.getPlayer().sendMessage(msg);
 	}
 	
 	@EventHandler(ignoreCancelled=true)
@@ -341,6 +221,62 @@ public class EventListener implements Listener{
 				p.getPlayer().damage(9999);
 			}
 		}
+	}
+	
+	@EventHandler(ignoreCancelled=true)
+	public void onEffect(EntityPotionEffectEvent event) {
+		if(event.getAction() == EntityPotionEffectEvent.Action.REMOVED || event.getAction() == EntityPotionEffectEvent.Action.CLEARED || !Util.isBadEffect(event.getNewEffect().getType()))
+			return;
+		GamePlayer p = null;
+		Minion m = null;
+		if(event.getEntityType() == EntityType.PLAYER) 
+			p = GamePlayer.get((Player) event.getEntity());
+		else if(event.getEntity() instanceof LivingEntity)
+			m = Minion.get((LivingEntity) event.getEntity());
+		Entity source = null;
+		Location l = event.getEntity().getLocation();
+		//we need to find the source areaeffectcloud, finding the closest first
+		if(event.getCause() == EntityPotionEffectEvent.Cause.AREA_EFFECT_CLOUD) {
+			for(AreaEffectCloud e : l.getWorld().getEntitiesByClass(AreaEffectCloud.class)) {
+				if(source == null) {
+					source = e;
+					continue;
+				}
+				if(e.getLocation().distance(l) < source.getLocation().distance(l))
+					source = e;
+			}
+		}
+		if(event.getCause() == EntityPotionEffectEvent.Cause.POTION_SPLASH) {
+			for(ThrownPotion e : l.getWorld().getEntitiesByClass(ThrownPotion.class)) {
+				if(source == null) {
+					source = e;
+					continue;
+				}
+				if(e.getLocation().distance(l) < source.getLocation().distance(l))
+					source = e;
+			}
+		}
+		//if none is found, then cancel
+		if(source == null)
+			return;
+		//we assume closest aec is the source of the effect, check who threw that effect and cancel if its from same team
+		ProjectileSource projSource = null;
+		if(source.getType() == EntityType.AREA_EFFECT_CLOUD)
+			projSource = ((AreaEffectCloud) source).getSource();
+		else if(source instanceof Projectile)
+			projSource = ((Projectile) source).getShooter();
+		if(projSource instanceof Player) {
+			GamePlayer caster = GamePlayer.get((Player) projSource);
+			if(caster.getTeam() == null)
+				return;
+			//cancel effect if it's from same team
+			if(m != null && m.getTeam().equals(caster.getTeam()))
+				event.setCancelled(true);
+			if(p != null && p.getTeam() != null && p.getTeam().equals(caster.getTeam()))
+				event.setCancelled(true);
+			return;
+		}
+		
 	}
 	
 	@EventHandler
@@ -403,7 +339,7 @@ public class EventListener implements Listener{
 	}
 	
 	static List<Material> dontTouchThat = Arrays.asList(Material.CHEST, Material.TRAPPED_CHEST, Material.BARREL, Material.ENDER_CHEST, 
-			Material.FURNACE, Material.CRAFTING_TABLE, Material.HOPPER);
+			Material.FURNACE, Material.CRAFTING_TABLE, Material.HOPPER, Material.DISPENSER, Material.DROPPER);
 	@EventHandler(ignoreCancelled=true)
 	public void onInteract(PlayerInteractEvent event) {
 		Block block = event.getClickedBlock();

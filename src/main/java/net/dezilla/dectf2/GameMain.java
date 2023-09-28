@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandMap;
 import org.bukkit.entity.Player;
@@ -23,6 +24,7 @@ import net.dezilla.dectf2.game.GameMatch;
 import net.dezilla.dectf2.game.GameTimer;
 import net.dezilla.dectf2.kits.*;
 import net.dezilla.dectf2.listeners.CalloutListener;
+import net.dezilla.dectf2.listeners.DeathListener;
 import net.dezilla.dectf2.listeners.EventListener;
 import net.dezilla.dectf2.listeners.GuiListener;
 import net.dezilla.dectf2.listeners.MapManagerListener;
@@ -66,6 +68,7 @@ public class GameMain extends JavaPlugin{
 		kits.add(PyroKit.class);
 		kits.add(NinjaKit.class);
 		kits.add(MageKit.class);
+		kits.add(ChemistKit.class);
 		for(Class<? extends BaseKit> c : kits) {
 			try {
 				BaseKit k = c.getConstructor(new Class[] {GamePlayer.class}).newInstance(GamePlayer.get(null));
@@ -129,6 +132,7 @@ public class GameMain extends JavaPlugin{
 		// Listeners
 		getServer().getPluginManager().registerEvents(new EventListener(), this);
 		getServer().getPluginManager().registerEvents(new GuiListener(), this);
+		getServer().getPluginManager().registerEvents(new DeathListener(), this);
 		//Commands
 		try {
 			final Field bukkitCommandMap = Bukkit.getServer().getClass().getDeclaredField("commandMap");
@@ -170,12 +174,23 @@ public class GameMain extends JavaPlugin{
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		}
-		Bukkit.getScheduler().scheduleSyncRepeatingTask(instance, () -> serverTick++, 1, 1);
+		Bukkit.getScheduler().scheduleSyncRepeatingTask(instance, () -> {
+			serverTick++;
+			onTick();
+		}, 1, 1);
 		//stuff
 		RegisteredServiceProvider<LuckPerms> provider = Bukkit.getServicesManager().getRegistration(LuckPerms.class);
 		if (provider != null) {
 		    LuckPermsStuff.api = provider.getProvider();
 		    luckPerms = true;
+		}
+	}
+	
+	private void onTick() {
+		for(GamePlayer p : GamePlayer.getPlayers()) {
+			if(!p.getPlayer().isOnline() || p.getPlayer().getGameMode() != GameMode.SURVIVAL)
+				continue;
+			p.onTick();
 		}
 	}
 	

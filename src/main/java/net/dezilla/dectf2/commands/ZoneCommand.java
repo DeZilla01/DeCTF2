@@ -18,7 +18,7 @@ public class ZoneCommand extends Command {
 	public ZoneCommand() {
 		super("zone");
 		setDescription("Change certain parameters for a zone");
-		setUsage("/zone [ID/name] [material/iscaptured/progress/name] <value>");
+		setUsage("/zone [ID/name] [material/iscaptured/progress/name/rate] <value>");
 		setPermission("dectf2.command.zone");
 	}
 
@@ -104,6 +104,18 @@ public class ZoneCommand extends Command {
 				return false;
 			}
 		}
+		if(args[1].equalsIgnoreCase("rate")) {
+			try {
+				Double value = Double.valueOf(args[2].toLowerCase());
+				zone.setCaptureRate(value);
+				sender.sendMessage(zone.getName()+" capture rate changed to "+((int)(value*100))+"%");
+				return true;
+			}catch(Exception e) {
+				sender.sendMessage(ChatColor.RED+"Invalid value");
+				sender.sendMessage(ChatColor.RED+getUsage());
+				return false;
+			}
+		}
 		
 		sender.sendMessage(ChatColor.RED+getUsage());
 		return false;
@@ -126,7 +138,7 @@ public class ZoneCommand extends Command {
 			}
 		}
 		if(args.length==2) {
-			for(String s : Arrays.asList("material", "iscaptured", "progress", "name")) {
+			for(String s : Arrays.asList("material", "iscaptured", "progress", "name", "rate")) {
 				if(s.toLowerCase().startsWith(args[1].toLowerCase()))
 					list.add(s);
 			}

@@ -5,6 +5,7 @@ import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Banner;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -31,6 +32,7 @@ import net.dezilla.dectf2.game.tdm.TDMGame;
 import net.dezilla.dectf2.util.CustomDamageCause;
 import net.dezilla.dectf2.util.GameColor;
 import net.dezilla.dectf2.util.GameConfig;
+import net.dezilla.dectf2.util.Minion;
 
 public abstract class BaseKit implements Listener{
 	protected static double defaultAttackSpeed = 40;
@@ -220,6 +222,23 @@ public abstract class BaseKit implements Listener{
 				return team.getColor();
 		}
 		return GameColor.WHITE;
+	}
+	
+	protected boolean canAttack(LivingEntity entity) {
+		if(entity instanceof Player) {
+			GamePlayer bp = GamePlayer.get((Player) entity);
+			if(bp.getTeam() != null && player.getTeam() != null && bp.getTeam().equals(player.getTeam()))
+				return false;
+			if(bp.isSpawnProtected())
+				return false;
+		} else {
+			Minion m = Minion.get(entity);
+			if(m == null)
+				return false;
+			if(m.getTeam() != null && player.getTeam() != null && m.getTeam().equals(player.getTeam()))
+				return false;
+		}
+		return true;
 	}
 	
 	protected boolean sameTeam(GamePlayer p) {

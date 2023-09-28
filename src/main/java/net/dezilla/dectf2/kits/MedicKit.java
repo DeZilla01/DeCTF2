@@ -146,8 +146,8 @@ public class MedicKit extends BaseKit{
 							return;
 					}
 				}
-				//prevent placing web on fire
-				if(m == Material.FIRE)
+				//prevent placing web on fire or ladders
+				if(m == Material.FIRE || m == Material.LADDER)
 					return;
 				//prevent web being placed where web already exists
 				if(b.getType() == Material.COBWEB)

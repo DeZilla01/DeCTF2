@@ -16,12 +16,16 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ArmorMeta;
 import org.bukkit.inventory.meta.BlockStateMeta;
+import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
+import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.inventory.meta.trim.ArmorTrim;
 import org.bukkit.inventory.meta.trim.TrimMaterial;
 import org.bukkit.inventory.meta.trim.TrimPattern;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 import net.dezilla.dectf2.GameMain;
 import net.md_5.bungee.api.ChatColor;
@@ -40,6 +44,8 @@ public class ItemBuilder {
 	
 	public static String getData(ItemStack item) {
 		ItemMeta m = item.getItemMeta();
+		if(m == null)
+			return null;
 		return m.getPersistentDataContainer().get(key, PersistentDataType.STRING);
 	}
 	
@@ -160,6 +166,40 @@ public class ItemBuilder {
 		b.setPatterns(patterns);
 		bs.setBlockState(b);
 		meta = bs;
+		return this;
+	}
+	
+	public ItemBuilder potionEffect(PotionEffect effect) {
+		if(!(meta instanceof PotionMeta))
+			return this;
+		PotionMeta p = (PotionMeta) meta;
+		p.addCustomEffect(effect, true);
+		meta = p;
+		return this;
+	}
+	
+	public ItemBuilder potionEffect(PotionEffectType type, int length, int amplifier) {
+		PotionEffect e = new PotionEffect(type, length, amplifier);
+		return potionEffect(e);
+	}
+	
+	public ItemBuilder potionColor(Color color) {
+		if(!(meta instanceof PotionMeta))
+			return this;
+		PotionMeta p = (PotionMeta) meta;
+		p.setColor(color);
+		meta = p;
+		return this;
+	}
+	
+	public ItemBuilder durability(double percent) {
+		if(!(meta instanceof Damageable))
+			return this;
+		Damageable d = (Damageable) meta;
+		double p = (percent*-1)+1;
+		int da = (int) (p * item.getType().getMaxDurability());
+		d.setDamage(da);
+		meta = d;
 		return this;
 	}
 
