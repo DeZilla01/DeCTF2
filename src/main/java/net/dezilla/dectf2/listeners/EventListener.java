@@ -5,6 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.bukkit.Bukkit;
+import org.bukkit.EntityEffect;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -40,6 +41,8 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.server.ServerListPingEvent;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.projectiles.ProjectileSource;
 
 import net.dezilla.dectf2.GameMain;
@@ -172,6 +175,22 @@ public class EventListener implements Listener{
 				event.setCancelled(true);
 			}
 		}
+	}
+	
+	@EventHandler(priority=EventPriority.LOW, ignoreCancelled=true)
+	public void onThorns(EntityDamageByEntityEvent e) {
+		//This listener will convert luck effect to thorns
+		if(!(e.getEntity() instanceof LivingEntity) || e.getDamager() == null || !(e.getDamager() instanceof LivingEntity))
+			return;
+		LivingEntity entity = (LivingEntity) e.getEntity();
+		if(!entity.hasPotionEffect(PotionEffectType.LUCK))
+			return;
+		PotionEffect pot = entity.getPotionEffect(PotionEffectType.LUCK);
+		double dmg = 2;
+		dmg+=pot.getAmplifier();
+		LivingEntity damager = (LivingEntity) e.getDamager();
+		damager.damage(dmg, entity);
+		damager.playEffect(EntityEffect.THORNS_HURT);
 	}
 	
 	@EventHandler(priority=EventPriority.HIGH)

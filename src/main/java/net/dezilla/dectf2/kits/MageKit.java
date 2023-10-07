@@ -23,6 +23,7 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Firework;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.ShulkerBullet;
 import org.bukkit.entity.Snowball;
 import org.bukkit.entity.ThrownPotion;
 import org.bukkit.event.EventHandler;
@@ -45,6 +46,7 @@ import org.bukkit.util.Vector;
 import net.dezilla.dectf2.GameMain;
 import net.dezilla.dectf2.GamePlayer;
 import net.dezilla.dectf2.Util;
+import net.dezilla.dectf2.game.GameTimer;
 import net.dezilla.dectf2.util.CustomDamageCause;
 import net.dezilla.dectf2.util.ItemBuilder;
 import net.dezilla.dectf2.util.Minion;
@@ -54,23 +56,31 @@ public class MageKit extends BaseKit{
 	private static double MAGE_DMG_SPELL_MODIFIER = .8;
 	private static ItemStack MAGE_LIGHTNING_HEAD = Util.createTexturedHead("eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYzNkMTQ1NjFiYmQwNjNmNzA0MjRhOGFmY2MzN2JmZTljNzQ1NjJlYTM2ZjdiZmEzZjIzMjA2ODMwYzY0ZmFmMSJ9fX0=");
 	private static ItemStack FROZEN_HEAD = Util.createTexturedHead("eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYTI2NDQwNzFiNmM3YmJhZTdiNWU0NWQ5ZjgyZjk2ZmZiNWVlOGUxNzdhMjNiODI1YTQ0NjU2MDdmMWM5YyJ9fX0=");
+	private static ItemStack INVERSION_HEAD = Util.createTexturedHead("eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvZGFiOWE0OWYzYmM3YTViMGI5YzRmOTUxODgxMTYyYjM1ZTkwYjdlMTE1ZDI0NmVhZTZlZDBiMDk3ZWY3YmVhIn19fQ==");
 	private static Map<String, Float> SPELL_REGENS = new HashMap<String, Float>();
 	private static int LIGHTNING_DMG = 6;
 	private static int ICE_BLAST_DURATION = 50;
 	private static double ICE_BLAST_RADIUS = 2.8;
 	private static int MINION_CAP = 3;
 	private static int BLOOD_HIT_AMOUNT = 5;
+	private static double SHULKER_DMG = 7;
+	private static int INVERSION_DURATION = 50;
+	private static int CURE_AREA_DURATION = 30;
+	private static float CURE_AREA_RADIUS = 2.5f;
 	
 	static {
 		SPELL_REGENS.put("dmg_spell", .066f);
 		SPELL_REGENS.put("fire_spell", .02f);
 		SPELL_REGENS.put("lightning_spell", .01f);
-		SPELL_REGENS.put("freeze_spell", .016f);
+		SPELL_REGENS.put("freeze_spell", .015f);
 		SPELL_REGENS.put("heal_spell", .00625f);
 		SPELL_REGENS.put("blood_spell", .0125f);
 		SPELL_REGENS.put("ice_spell", .00625f);
 		SPELL_REGENS.put("shadow_spell", .00833f);
 		SPELL_REGENS.put("skeleton_spell", .005f);
+		SPELL_REGENS.put("inversion_spell", .016f);
+		SPELL_REGENS.put("shulker_spell", .066f);
+		SPELL_REGENS.put("cure_spell", .00625f);
 	}
 	
 	
@@ -87,7 +97,7 @@ public class MageKit extends BaseKit{
 	public void setInventory() {
 		super.setInventory();
 		PlayerInventory inv = player.getPlayer().getInventory();
-		Color armorColor = (dark ? Color.PURPLE : mystic ? Color.fromRGB(11, 153, 125) : Color.fromRGB(204, 102, 255));
+		Color armorColor = (dark ? Color.PURPLE : mystic ? Color.fromRGB(191, 255, 220) : Color.fromRGB(204, 102, 255));
 		inv.setChestplate(ItemBuilder.of(Material.LEATHER_CHESTPLATE).unbreakable().leatherColor(armorColor).armorTrim(TrimPattern.VEX, color().getTrimMaterial()).enchant(Enchantment.PROTECTION_ENVIRONMENTAL, 1).get());
 		inv.setLeggings(ItemBuilder.of(Material.LEATHER_LEGGINGS).unbreakable().leatherColor(armorColor).armorTrim(TrimPattern.VEX, color().getTrimMaterial()).enchant(Enchantment.PROTECTION_ENVIRONMENTAL, 1).get());
 		inv.setBoots(ItemBuilder.of(Material.LEATHER_BOOTS).unbreakable().leatherColor(armorColor).armorTrim(TrimPattern.VEX, color().getTrimMaterial()).enchant(Enchantment.PROTECTION_ENVIRONMENTAL, 1).get());
@@ -98,9 +108,13 @@ public class MageKit extends BaseKit{
 			inv.setItem(3, ItemBuilder.of(Material.WOODEN_HOE).data("shadow_spell").name("Shadow Spell").unbreakable().get());
 			inv.setItem(4, ItemBuilder.of(Material.STONE_HOE).data("skeleton_spell").name("Skeleton Summon").unbreakable().get());
 		} else if(mystic) {
-			inv.setItem(0, ItemBuilder.of(Material.IRON_NUGGET).data("inversion_spell").name("Inversion Spell").unbreakable().get());
-			inv.setItem(1, ItemBuilder.of(Material.IRON_NUGGET).data("thorn_spell").name("Thorn Spell").unbreakable().get());
-			inv.setItem(2, ItemBuilder.of(Material.IRON_NUGGET).data("shulker_spell").name("shulker bullet?").unbreakable().get());
+			inv.setItem(0, ItemBuilder.of(Material.DIAMOND_HOE).data("shulker_spell").name("Damage Spell").unbreakable().get());
+			inv.setItem(1, ItemBuilder.of(Material.IRON_HOE).data("inversion_spell").name("Inversion Spell").unbreakable().get());
+			inv.setItem(3, ItemBuilder.of(Material.IRON_NUGGET).data("thorn_spell").name("Thorn Spell?").unbreakable().get());
+			//spell that heal/remove negative effects?
+			//control inversion?
+			inv.setItem(2, ItemBuilder.of(Material.GOLDEN_HOE).data("cure_spell").name("Cure Spell").unbreakable().get());
+			inv.setItem(4, ItemBuilder.of(Material.IRON_NUGGET).name("some kinda spell thing idk yet").unbreakable().get());
 		} else {
 			inv.setItem(0, ItemBuilder.of(Material.DIAMOND_HOE).data("dmg_spell").name("Damage Spell").unbreakable().get());
 			inv.setItem(1, ItemBuilder.of(Material.WOODEN_HOE).data("fire_spell").name("Flame Spell").unbreakable().get());
@@ -150,6 +164,15 @@ public class MageKit extends BaseKit{
 	public void onItemUse(PlayerInteractEvent event) {
 		if(!event.getPlayer().equals(player.getPlayer()))
 			return;
+		if(event.getAction() == Action.LEFT_CLICK_AIR || event.getAction() == Action.LEFT_CLICK_BLOCK){
+			if(ItemBuilder.dataMatch(event.getItem(), "inversion_spell")) {
+				float charge = charges.get("inversion_spell");
+				if(charge<1)
+					return;
+				charges.put("inversion_spell", 0f);
+				player.setInversionTicks(INVERSION_DURATION);
+			}
+		}
 		if(event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK)
 			return;
 		if(ItemBuilder.dataMatch(event.getItem(), "dmg_spell")) {
@@ -171,6 +194,7 @@ public class MageKit extends BaseKit{
 				return;
 			charges.put("fire_spell", 0f);
 			EnderPearl fireball = player.getPlayer().launchProjectile(EnderPearl.class, Util.inFront(player.getPlayer(), 1.5));
+			fireball.setItem(new ItemStack(Material.FIRE_CHARGE));
 			fireball.setFireTicks(999);
 			fireball.setVisualFire(true);
 		}
@@ -230,7 +254,7 @@ public class MageKit extends BaseKit{
 			float charge = charges.get("skeleton_spell");
 			if(charge<1)
 				return;
-			//charges.put("skeleton_spell", 0f);
+			charges.put("skeleton_spell", 0f);
 			cleanMinionList();
 			if(minions.size()>= MINION_CAP) {
 				minions.get(0).remove();
@@ -238,6 +262,33 @@ public class MageKit extends BaseKit{
 			}
 			Snowball skel = player.getPlayer().launchProjectile(Snowball.class, Util.inFront(player.getPlayer(), .5));
 			skel.setItem(new ItemStack(Material.WITHER_SKELETON_SKULL));
+		}
+		else if(ItemBuilder.dataMatch(event.getItem(), "inversion_spell")) {
+			float charge = charges.get("inversion_spell");
+			if(charge<1)
+				return;
+			charges.put("inversion_spell", 0f);
+			Snowball inver = player.getPlayer().launchProjectile(Snowball.class, Util.inFront(player.getPlayer(), 2));
+			inver.setItem(INVERSION_HEAD.clone());
+		}
+		else if(ItemBuilder.dataMatch(event.getItem(), "shulker_spell")) {
+			float charge = charges.get("shulker_spell");
+			if(charge<1)
+				return;
+			charges.put("shulker_spell", 0f);
+			player.getPlayer().launchProjectile(ShulkerBullet.class, Util.inFront(player.getPlayer(), 1));
+		}
+		else if(ItemBuilder.dataMatch(event.getItem(), "cure_spell")) {
+			float charge = charges.get("cure_spell");
+			if(charge<1)
+				return;
+			charges.put("cure_spell", 0f);
+			Snowball cure = player.getPlayer().launchProjectile(Snowball.class, Util.inFront(player.getPlayer(), .5));
+			cure.setItem(new ItemStack(Material.TURTLE_EGG));
+		}
+		else if(ItemBuilder.dataMatch(event.getItem(), "thorn_spell")) {
+			ThrownPotion pot = player.getPlayer().launchProjectile(ThrownPotion.class, Util.inFront(player.getPlayer(), .5));
+			pot.setItem(ItemBuilder.of(Material.SPLASH_POTION).potionEffect(PotionEffectType.REGENERATION, 100, 3).potionColor(PotionEffectType.REGENERATION.getColor()).get());
 		}
 	}
 	
@@ -254,10 +305,35 @@ public class MageKit extends BaseKit{
 		if(event.getEntityType() == EntityType.ENDER_PEARL) {
 			flameImpact(event.getEntity().getLocation());
 		}
+		//shulker bullet
+		if(event.getEntityType() == EntityType.SHULKER_BULLET) {
+			if(event.getHitEntity() == null)
+				return;
+			event.setCancelled(true);
+			GamePlayer pl = null;
+			Minion m = null;
+			if(event.getHitEntity().getType() == EntityType.PLAYER)
+				pl = GamePlayer.get((Player) event.getHitEntity());
+			else if(event.getHitEntity() instanceof LivingEntity)
+				m = Minion.get((LivingEntity) event.getHitEntity());
+			if(m != null && m.getTeam().equals(player.getTeam()))
+				return;
+			else if(pl != null && sameTeam(pl))
+				return;
+			if(m != null) {
+				m.getEntity().damage(SHULKER_DMG);
+				m.addEffect(PotionEffectType.LEVITATION, 5, 0);
+			} else if(pl != null) {
+				pl.setCustomDamageCause(CustomDamageCause.MAGE_SHULKER);
+				pl.setLastAttacker(player);
+				pl.getPlayer().damage(SHULKER_DMG, player.getPlayer());
+				pl.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.LEVITATION, 5, 0));
+			}
+		}
 		if(event.getEntityType() == EntityType.SNOWBALL) {
 			Snowball s = (Snowball) event.getEntity();
 			//lightning spell
-			if(s.getItem() != null && s.getItem().getType() == Material.PLAYER_HEAD) {
+			if(s.getItem() != null && s.getItem().getType() == Material.PLAYER_HEAD && !mystic) {
 				strike(s.getLocation());
 			}
 			//freeze spell
@@ -304,6 +380,14 @@ public class MageKit extends BaseKit{
 				minions.add(m);
 				m.getLocation().getWorld().playSound(m.getLocation(), Sound.ENTITY_WITHER_HURT, .4f, .5f);
 			}
+			//inversion
+			else if(s.getItem() != null && s.getItem().getType() == Material.PLAYER_HEAD && mystic) {
+				invert(s.getLocation());
+			}
+			//cure
+			else if(s.getItem() != null && s.getItem().getType() == Material.TURTLE_EGG) {
+				cure(s.getLocation());
+			}
 		}
 	}
 	
@@ -347,7 +431,6 @@ public class MageKit extends BaseKit{
 		for(Minion m : minions) {
 			if(m.isDead()) {
 				Bukkit.getScheduler().scheduleSyncDelayedTask(GameMain.getInstance(), () -> minions.remove(m));
-				player.getPlayer().sendMessage("debug a");
 			}
 		}
 	}
@@ -473,6 +556,49 @@ public class MageKit extends BaseKit{
 			}
 			l.getWorld().playSound(l, Sound.BLOCK_GLASS_BREAK, 1, 1);
 		}, 60);
+	}
+	
+	private void cure(Location loc) {
+		AreaEffectCloud aec = (AreaEffectCloud) loc.getWorld().spawnEntity(loc, EntityType.AREA_EFFECT_CLOUD);
+		aec.setDuration(CURE_AREA_DURATION);
+		aec.setRadius(CURE_AREA_RADIUS);
+		aec.setColor(Color.fromRGB(191, 255, 220));
+		loc.getWorld().playSound(loc, Sound.ENTITY_ALLAY_ITEM_TAKEN, 1, .3f);
+		GameTimer timer = new GameTimer(-1);
+		timer.unpause();
+		timer.onTick((t) -> {
+			if(t.getTicks()>CURE_AREA_DURATION) {
+				t.unregister();
+				return;
+			}
+			for(Player p : loc.getWorld().getPlayers()) {
+				if(p.getLocation().distance(loc)>CURE_AREA_RADIUS)
+					continue;
+				if(p.getFireTicks()>0)
+					p.setFireTicks(0);
+				for(PotionEffect e : p.getActivePotionEffects()) {
+					if(Util.isBadEffect(e.getType()))
+						p.removePotionEffect(e.getType());
+				}
+				GamePlayer gp = GamePlayer.get(p);
+				if(gp.getInversionTicks()>0)
+					gp.setInversionTicks(0);
+				if(!p.hasPotionEffect(PotionEffectType.REGENERATION)) {
+					p.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 80, 1));
+				}
+			}
+		});
+	}
+	
+	private void invert(Location l) {
+		for(Player p : l.getWorld().getPlayers()) {
+			GamePlayer victim = GamePlayer.get(p);
+			if(sameTeam(victim) || victim.isSpawnProtected())
+				continue;
+			if(victim.getLocation().distance(l) < 2.5)
+				victim.setInversionTicks(INVERSION_DURATION);
+		}
+		l.getWorld().playSound(l, Sound.ITEM_CHORUS_FRUIT_TELEPORT, 1, .5f);
 	}
 	
 	private void blood(LivingEntity e) {

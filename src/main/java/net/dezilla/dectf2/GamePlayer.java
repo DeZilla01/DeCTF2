@@ -11,6 +11,7 @@ import java.util.Map;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.Sound;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
 import org.bukkit.boss.BarColor;
@@ -102,6 +103,7 @@ public class GamePlayer {
 			player.getPlayer().teleport(ip.getLocation());
 			player.getPlayer().setVelocity(ip.getVelocity().multiply(-1));
 			inversionTicks -=1;
+			player.getPlayer().playSound(getLocation(), Sound.BLOCK_AMETHYST_BLOCK_CHIME, 1, 1);
 		} else {
 			InvertPosition ip = new InvertPosition(player.getLocation(), player.getPlayer().getVelocity());
 			moveHistory.add(ip);

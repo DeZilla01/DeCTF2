@@ -1,7 +1,6 @@
 package net.dezilla.dectf2.util;
 
 import org.bukkit.Color;
-import org.bukkit.Color;
 import org.bukkit.DyeColor;
 import org.bukkit.Material;
 import org.bukkit.inventory.meta.trim.TrimMaterial;
@@ -202,6 +201,7 @@ public enum GameColor {
 				return Material.RED_NETHER_BRICKS;
 			case DARK_BLUE:
 				return Material.OXIDIZED_COPPER;
+			default: {}
 		}
 		return Material.STONE;
 	}

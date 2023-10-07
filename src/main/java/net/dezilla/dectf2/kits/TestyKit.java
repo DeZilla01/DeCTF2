@@ -3,19 +3,32 @@ package net.dezilla.dectf2.kits;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.bukkit.Bukkit;
+import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.LivingEntity;
+import org.bukkit.entity.Player;
+import org.bukkit.entity.Snowball;
+import org.bukkit.entity.Trident;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.meta.trim.TrimPattern;
 import org.bukkit.util.Vector;
 
+import net.dezilla.dectf2.GameMain;
 import net.dezilla.dectf2.GamePlayer;
 import net.dezilla.dectf2.Util;
+import net.dezilla.dectf2.structures.CannotBuildException;
+import net.dezilla.dectf2.structures.TestThing;
 import net.dezilla.dectf2.util.GameConfig;
 import net.dezilla.dectf2.util.ItemBuilder;
 import net.dezilla.dectf2.util.Minion;
@@ -25,7 +38,10 @@ public class TestyKit extends BaseKit{
 	
 	boolean minion = false;
 	boolean inversion = false;
+	boolean structure = false;
+	boolean pissmaster = false;
 	List<InvertPosition> moveHistory = new ArrayList<InvertPosition>();
+	TestThing building = null;
 
 	public TestyKit(GamePlayer player) {
 		super(player);
@@ -46,13 +62,27 @@ public class TestyKit extends BaseKit{
 			inv.setItem(6, ItemBuilder.of(Material.IRON_NUGGET).data("blaze").name("Blaze").get());
 			inv.setItem(7, ItemBuilder.of(Material.IRON_NUGGET).data("golem").name("Iron Golem").get());
 			inv.setItem(8, ItemBuilder.of(Material.IRON_NUGGET).data("chicken").name("Warden").get());
+			inv.setItem(9, ItemBuilder.of(Material.IRON_NUGGET).data("manyzombie").name("lots of zombies").get());
 		}
 		else if(inversion) {
 			inv.setItem(2, ItemBuilder.of(Material.GOLD_INGOT).data("invert").name("Inversion").get());
 			moveHistory.clear();
 		}
+		else if(structure) {
+			inv.setItem(2, ItemBuilder.of(Material.IRON_NUGGET).data("building").name("Test structure").get());
+			inv.setItem(3, ItemBuilder.of(Material.IRON_NUGGET).data("inspect").name("inspect").get());
+		} else if(pissmaster) {
+			inv.setHelmet(ItemBuilder.of(Material.LEATHER_HELMET).leatherColor(Color.fromRGB(228, 247, 82)).unbreakable().armorTrim(TrimPattern.TIDE, color().getTrimMaterial()).get());
+			inv.setChestplate(ItemBuilder.of(Material.LEATHER_CHESTPLATE).leatherColor(Color.fromRGB(228, 247, 82)).unbreakable().armorTrim(TrimPattern.TIDE, color().getTrimMaterial()).get());
+			inv.setLeggings(ItemBuilder.of(Material.LEATHER_LEGGINGS).leatherColor(Color.fromRGB(228, 247, 82)).unbreakable().get());
+			inv.setBoots(ItemBuilder.of(Material.LEATHER_BOOTS).leatherColor(Color.fromRGB(228, 247, 82)).unbreakable().get());
+			inv.setItem(0, ItemBuilder.of(Material.GOLDEN_SWORD).unbreakable().enchant(Enchantment.DAMAGE_ALL, 0).name("Pissmaster Sword").get());
+			inv.setItem(1, ItemBuilder.of(GameConfig.foodMaterial).name("Steak").amount(4).get());
+			inv.setItem(2, ItemBuilder.of(Material.YELLOW_DYE).data("piss").name("Piss").get());
+		}
 		else {
 			inv.setItem(2, ItemBuilder.of(Material.IRON_NUGGET).data("4x4").name("4x4 block test").get());
+			inv.setItem(3, ItemBuilder.of(Material.IRON_NUGGET).data("trident_test").name("trident test").get());
 		}
 	}
 	
@@ -103,9 +133,59 @@ public class TestyKit extends BaseKit{
 		if(ItemBuilder.dataMatch(event.getItem(), "chicken")) {
 			new Minion(EntityType.WARDEN, player.getTeam(), player.getLocation(), player);
 		}
+		if(ItemBuilder.dataMatch(event.getItem(), "manyzombie")) {
+			for(int i = 0; i < 500; i++) {
+				new Minion(EntityType.ZOMBIE, player.getTeam(), player.getLocation(), player);
+			}
+		}
 		if(ItemBuilder.dataMatch(event.getItem(), "4x4")) {
 			for(Block b : Util.get4x4Blocks(player.getLocation()))
 				b.setType(Material.STONE);
+		}
+		if(ItemBuilder.dataMatch(event.getItem(), "building") && event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+			if(event.getClickedBlock().getType() == Material.STONE)
+				return;
+			if(building != null && !building.isDead())
+				building.remove();
+			try {
+				Location l = event.getClickedBlock().getLocation();
+				player.notify(l.getY()+"");
+				building = new TestThing(player, l.add(0,1,0));
+			}catch(CannotBuildException e) {
+				player.notify(e.getMessage());
+			}
+		}
+		if(ItemBuilder.dataMatch(event.getItem(), "inspect")) {
+			if(event.getClickedBlock() != null) {
+				Location l = event.getClickedBlock().getLocation();
+				player.notify(event.getClickedBlock().getType()+" "+l.getX()+" "+l.getY()+" "+l.getZ());
+			}
+		}
+		if(ItemBuilder.dataMatch(event.getItem(), "piss")) {
+			Snowball s = player.getPlayer().launchProjectile(Snowball.class, Util.inFront(player.getPlayer(), 1));
+			s.setItem(new ItemStack(Material.YELLOW_DYE));
+		}
+		if(ItemBuilder.dataMatch(event.getItem(), "trident_test")) {
+			Trident t = player.getPlayer().launchProjectile(Trident.class, Util.inFront(player.getPlayer(), 1));
+			t.setItem(new ItemStack(Material.DIAMOND_SWORD));
+		}
+	}
+	
+	public void onProjectileHit(ProjectileHitEvent event) {
+		GamePlayer p = Util.getOwner((Entity) event.getEntity().getShooter());
+		if(p == null || !p.getPlayer().equals(player.getPlayer()) || event.getHitEntity() == null)
+			return;
+		if(event.getHitEntity() instanceof Player) {
+			GamePlayer victim = GamePlayer.get((Player) event.getHitEntity());
+			if(victim.getTeam().equals(player.getTeam()))
+				return;
+			victim.setLastAttacker(player);
+			victim.getPlayer().damage(1, player.getPlayer());
+		} else if(event.getHitEntity() instanceof LivingEntity) {
+			Minion m = Minion.get((LivingEntity) event.getHitEntity());
+			if(m == null || m.getTeam().equals(player.getTeam()))
+				return;
+			m.getEntity().damage(1, player.getPlayer());
 		}
 	}
 
@@ -120,6 +200,10 @@ public class TestyKit extends BaseKit{
 			return "Minion";
 		if(inversion)
 			return "Inversion";
+		if(structure)
+			return "Structure";
+		if(pissmaster)
+			return "Pissmaster";
 		return "Default";
 	}
 
@@ -130,6 +214,8 @@ public class TestyKit extends BaseKit{
 	
 	@Override
 	public double getMovementSpeed() {
+		if(pissmaster)
+			return defaultMovementSpeed;
 		return movementSpeed;
 	}
 	
@@ -139,11 +225,15 @@ public class TestyKit extends BaseKit{
 			minion = true;
 		if(variation.equalsIgnoreCase("inversion")) 
 			inversion = true;
+		if(variation.equalsIgnoreCase("structure"))
+			structure = true;
+		if(variation.equalsIgnoreCase("pissmaster"))
+			pissmaster = true;
 	}
 
 	@Override
 	public String[] getVariations() {
-		return new String[] {"default", "minion", "inversion"};
+		return new String[] {"default", "minion", "inversion", "structure"};
 	}
 	
 	public class InvertPosition {

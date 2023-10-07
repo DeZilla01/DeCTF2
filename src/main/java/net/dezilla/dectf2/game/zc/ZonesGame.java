@@ -6,6 +6,7 @@ import java.util.regex.Pattern;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.block.Block;
 import org.bukkit.block.Sign;
 import org.bukkit.block.sign.Side;
 import org.bukkit.event.HandlerList;
@@ -20,6 +21,7 @@ import net.dezilla.dectf2.game.GameMatch;
 import net.dezilla.dectf2.game.GameTeam;
 import net.dezilla.dectf2.game.GameMatch.GameState;
 import net.dezilla.dectf2.util.GameConfig;
+import net.dezilla.dectf2.util.RestrictArea;
 import net.md_5.bungee.api.ChatColor;
 
 public class ZonesGame extends GameBase implements Listener{
@@ -59,6 +61,10 @@ public class ZonesGame extends GameBase implements Listener{
 									}catch(Exception e) {}
 									c++;
 								}
+							}
+							for(Block b : z.blocks) {
+								Location l = b.getLocation().add(.5,1,.5);
+								match.addRestrictedArea(new RestrictArea(l, 1));
 							}
 							zones.add(z);
 							match.addCallout(new GameCallout(loc, name));

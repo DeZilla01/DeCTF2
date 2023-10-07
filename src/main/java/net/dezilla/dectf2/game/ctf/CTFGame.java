@@ -37,9 +37,11 @@ import net.dezilla.dectf2.game.GameMatch.GameState;
 import net.dezilla.dectf2.game.ctf.CTFFlag.FlagType;
 import net.dezilla.dectf2.util.CustomDamageCause;
 import net.dezilla.dectf2.util.GameConfig;
+import net.dezilla.dectf2.util.RestrictArea;
 import net.md_5.bungee.api.ChatColor;
 
 public class CTFGame extends GameBase implements Listener{
+	private static double FLAG_BUILDING_RESTRICT_RADIUS = 15;
 	private GameMatch match;
 	private Map<GameTeam, CTFFlag> flags = new HashMap<GameTeam, CTFFlag>();
 	private int onTickTaskId = 0;
@@ -76,6 +78,8 @@ public class CTFGame extends GameBase implements Listener{
 						CTFFlag flag = new CTFFlag(team, e.getValue(), GameConfig.flagType);
 						flags.put(team, flag);
 						match.addCallout(new GameCallout(e.getValue(), team, "Flag"));
+						RestrictArea area = new RestrictArea(flag.getLocation(), FLAG_BUILDING_RESTRICT_RADIUS);
+						match.addRestrictedArea(area);
 					}catch(Exception ex) {}
 				}
 			}

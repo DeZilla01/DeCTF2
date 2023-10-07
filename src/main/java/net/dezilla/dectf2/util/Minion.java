@@ -129,9 +129,7 @@ public class Minion {
 		public boolean test(LivingEntity e) {
 			if(e instanceof Player) {
 				GamePlayer p = GamePlayer.get((Player) e);
-				if(p.getTeam() == null)
-					return false;
-				if(p.isSpawnProtected())
+				if(p.getTeam() == null || p.isSpawnProtected() || p.isInvisible())
 					return false;
 				return !team.equals(p.getTeam());
 			}

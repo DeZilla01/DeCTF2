@@ -41,6 +41,7 @@ import net.dezilla.dectf2.gui.MapVoteGui;
 import net.dezilla.dectf2.util.GameColor;
 import net.dezilla.dectf2.util.GameConfig;
 import net.dezilla.dectf2.util.MapPreview;
+import net.dezilla.dectf2.util.RestrictArea;
 
 public class GameMatch {
 	private static int GAMEID = 0;
@@ -78,6 +79,9 @@ public class GameMatch {
 	private GameMapVote mapVote = null;
 	private List<GameCallout> callouts = new ArrayList<GameCallout>();
 	private ItemStack mapIcon = new ItemStack(Material.PAPER);
+	//private List<Block> restrictedBlocks = new ArrayList<Block>();//used to prevent structures
+	//private List<BlockLoc> restrictedBlockz = new ArrayList<BlockLoc>();
+	private List<RestrictArea> restrictedAreas = new ArrayList<RestrictArea>();
 	
 	public GameMatch(String levelName) throws FileNotFoundException {
 		//Set chosen level
@@ -446,6 +450,15 @@ public class GameMatch {
 									mapIcon = new ItemStack(Material.valueOf(Util.grabConfigText(sign).toUpperCase()));
 								} catch(Exception e) {}
 							}
+							//restrict block
+							else if(line.equals("restrict")) {
+								double radius = 3;
+								try {
+									radius = Double.parseDouble(Util.grabConfigText(sign));
+								}catch(Exception e) {}
+								RestrictArea area = new RestrictArea(sign.getBlock(), radius);
+								restrictedAreas.add(area);
+							}
 							
 						}
 					}
@@ -563,6 +576,19 @@ public class GameMatch {
 			}
 		}
 		return call;
+	}
+	
+	public void addRestrictedArea(RestrictArea area) {
+		restrictedAreas.add(area);
+	}
+	
+	public boolean isAreaRestricted(Location loc) {
+		for(RestrictArea a : restrictedAreas) {
+			if(a.inRadius(loc)) {
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	public boolean isLoaded() {

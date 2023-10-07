@@ -202,7 +202,6 @@ public class PyroKit extends BaseKit{
 	}
 	
 	private void updateFrenzyMode() {
-		int c = 0;
 		PlayerInventory inv = player.getPlayer().getInventory();
 		for(ItemStack is : inv.getContents()) {
 			if(is==null)
@@ -219,7 +218,6 @@ public class PyroKit extends BaseKit{
 				else
 					ItemBuilder.of(is).unenchant(Enchantment.PROTECTION_ENVIRONMENTAL).get();
 			}
-			c++;
 		}
 	}
 

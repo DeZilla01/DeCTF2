@@ -190,7 +190,15 @@ public class Util {
 		double z = -distance * Math.cos(Math.PI * 2 * yaw / 360) * a;
 		double y = distance * Math.sin(Math.PI * 2 * pitch / 360);
 		return new Vector(x, y, z).multiply(-1);
-		
+	}
+	
+	public static Vector getVectorToLoc(Location a, Location b, double multiplier) {
+		double x = b.getX() - a.getX();
+		double y = b.getY() - a.getY();
+		double z = b.getZ() - a.getZ();
+		Vector v = new Vector(x, y, z).normalize();
+		v.multiply(multiplier);
+		return v;
 	}
 	
 	public static double getDamageReduced(Player player) {

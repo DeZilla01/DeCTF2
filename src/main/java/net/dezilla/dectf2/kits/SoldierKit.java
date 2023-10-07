@@ -21,7 +21,6 @@ import net.dezilla.dectf2.Util;
 import net.dezilla.dectf2.game.GameMatch;
 import net.dezilla.dectf2.game.ctf.CTFFlag;
 import net.dezilla.dectf2.game.ctf.CTFGame;
-import net.dezilla.dectf2.listeners.SpongeLaunchEvent;
 import net.dezilla.dectf2.util.GameConfig;
 import net.dezilla.dectf2.util.ItemBuilder;
 import net.dezilla.dectf2.util.ShieldUtil;
