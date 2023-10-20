@@ -68,18 +68,7 @@ public class TestThing extends BaseStructure{
 	@Override
 	public boolean canPlace(Location location) {
 		Block b = location.getBlock();
-		return b.getType() == Material.AIR && b.getRelative(BlockFace.UP).getType() == Material.AIR && !areaRestricted(b);
+		return b.getType() == Material.AIR && b.getRelative(BlockFace.UP).getType() == Material.AIR && !areaRestricted(b) && !spawnArea(b);
 	}
-
-	@Override
-	public void remove() {
-		super.remove();
-		int i = 0;
-		for(Block b : blocks) {
-			b.setType(previousMaterial.get(i));
-			i++;
-		}
-	}
-
 		
 }

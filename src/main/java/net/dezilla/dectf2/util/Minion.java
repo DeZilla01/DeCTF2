@@ -7,8 +7,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.function.Predicate;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Mob;
@@ -20,8 +22,11 @@ import me.gamercoder215.mobchip.EntityBrain;
 import me.gamercoder215.mobchip.ai.EntityAI;
 import me.gamercoder215.mobchip.ai.goal.target.PathfinderNearestAttackableTarget;
 import me.gamercoder215.mobchip.bukkit.BukkitBrain;
+import net.dezilla.dectf2.GameMain;
 import net.dezilla.dectf2.GamePlayer;
 import net.dezilla.dectf2.game.GameTeam;
+import net.dezilla.dectf2.minion.PathfinderAttackStructure;
+import net.dezilla.dectf2.structures.BaseStructure;
 import net.md_5.bungee.api.ChatColor;
 
 public class Minion {
@@ -67,6 +72,7 @@ public class Minion {
 	GameTeam team;
 	Mob entity;
 	GamePlayer owner = null;
+	int taskID = 0;
 	
 	public Minion(EntityType type, GameTeam team, Location loc, GamePlayer owner) {
 		this.team = team;
@@ -80,10 +86,25 @@ public class Minion {
 		EntityBrain brain = BukkitBrain.getBrain(entity);
 		EntityAI target = brain.getTargetAI();
 		PathfinderNearestAttackableTarget<LivingEntity> path = new PathfinderNearestAttackableTarget<LivingEntity>(entity, LivingEntity.class);
+		PathfinderAttackStructure struct = new PathfinderAttackStructure(this);
 		path.setCondition(new MinionPredicate());
 		target.clear();
 		target.put(path, 0);
+		target.put(struct, 1);
 		clearMinions();
+		taskID = Bukkit.getScheduler().scheduleSyncRepeatingTask(GameMain.getInstance(), () -> onTick(), 1, 1);
+	}
+	
+	private void onTick() {
+		if(isDead()) {
+			Bukkit.getScheduler().cancelTask(taskID);
+			return;
+		}
+		if(entity.getTarget() != null && entity.getTarget().getType() == EntityType.PLAYER) {
+			GamePlayer gp = GamePlayer.get((Player) entity.getTarget());
+			if(gp.isInvisible() || gp.isSpawnProtected())
+				entity.setTarget(null);
+		}
 	}
 	
 	public GameTeam getTeam() {
@@ -127,11 +148,23 @@ public class Minion {
 
 		@Override
 		public boolean test(LivingEntity e) {
-			if(e instanceof Player) {
+			if(e.getType() == EntityType.PLAYER) {
 				GamePlayer p = GamePlayer.get((Player) e);
 				if(p.getTeam() == null || p.isSpawnProtected() || p.isInvisible())
 					return false;
 				return !team.equals(p.getTeam());
+			}
+			if(e.getType() == EntityType.ARMOR_STAND) {
+				ArmorStand as = (ArmorStand) e;
+				if(as.isMarker())
+					return false;
+				BaseStructure struct = BaseStructure.getStructure(as);
+				if(struct == null)
+					return false;
+				if(struct.getOwner().getTeam().equals(team))
+					return false;
+				else
+					return true;
 			}
 			Minion m = Minion.get(e);
 			if(m == null || m.getTeam() == null)

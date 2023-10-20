@@ -21,6 +21,7 @@ public class GameConfig {
 	
 	//kit stuff
 	public static Material foodMaterial = Material.COOKED_BEEF;
+	public static int regenDelay = 400;
 	
 	//ctf config
 	public static FlagType flagType = FlagType.BANNER;

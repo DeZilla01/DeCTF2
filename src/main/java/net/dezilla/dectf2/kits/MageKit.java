@@ -29,6 +29,7 @@ import org.bukkit.entity.ThrownPotion;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
@@ -62,11 +63,13 @@ public class MageKit extends BaseKit{
 	private static int ICE_BLAST_DURATION = 50;
 	private static double ICE_BLAST_RADIUS = 2.8;
 	private static int MINION_CAP = 3;
-	private static int BLOOD_HIT_AMOUNT = 5;
+	private static int BLOOD_HIT_AMOUNT = 4;
 	private static double SHULKER_DMG = 7;
-	private static int INVERSION_DURATION = 50;
+	private static int INVERSION_DURATION = 40;
+	private static int SELF_INVERSION_DURATION = 60;
 	private static int CURE_AREA_DURATION = 30;
 	private static float CURE_AREA_RADIUS = 2.5f;
+	private static float WITHER_SWORD_USAGE = .025f;
 	
 	static {
 		SPELL_REGENS.put("dmg_spell", .066f);
@@ -74,20 +77,25 @@ public class MageKit extends BaseKit{
 		SPELL_REGENS.put("lightning_spell", .01f);
 		SPELL_REGENS.put("freeze_spell", .015f);
 		SPELL_REGENS.put("heal_spell", .00625f);
+		SPELL_REGENS.put("dark_dagger", .005f);
 		SPELL_REGENS.put("blood_spell", .0125f);
 		SPELL_REGENS.put("ice_spell", .00625f);
 		SPELL_REGENS.put("shadow_spell", .00833f);
 		SPELL_REGENS.put("skeleton_spell", .005f);
-		SPELL_REGENS.put("inversion_spell", .016f);
+		SPELL_REGENS.put("inversion_spell", .013f);
 		SPELL_REGENS.put("shulker_spell", .066f);
 		SPELL_REGENS.put("cure_spell", .00625f);
+		SPELL_REGENS.put("thorn_spell", .005f);
 	}
 	
 	
 	private boolean dark = false;
 	private boolean mystic = false;
+	private boolean dragon = false;
 	private Map<String, Float> charges = new HashMap<String, Float>();
 	private List<Minion> minions = new ArrayList<Minion>();
+	private boolean witherSword = false;
+	private List<ShulkerBullet> bullets = new ArrayList<ShulkerBullet>();
 
 	public MageKit(GamePlayer player) {
 		super(player);
@@ -102,7 +110,7 @@ public class MageKit extends BaseKit{
 		inv.setLeggings(ItemBuilder.of(Material.LEATHER_LEGGINGS).unbreakable().leatherColor(armorColor).armorTrim(TrimPattern.VEX, color().getTrimMaterial()).enchant(Enchantment.PROTECTION_ENVIRONMENTAL, 1).get());
 		inv.setBoots(ItemBuilder.of(Material.LEATHER_BOOTS).unbreakable().leatherColor(armorColor).armorTrim(TrimPattern.VEX, color().getTrimMaterial()).enchant(Enchantment.PROTECTION_ENVIRONMENTAL, 1).get());
 		if(dark) {
-			inv.setItem(0, ItemBuilder.of(Material.WOODEN_SWORD).data("dark_dagger").name("Mage Dagger").unbreakable().get());
+			inv.setItem(0, ItemBuilder.of(Material.STONE_SWORD).data("dark_dagger").name("Mage Dagger").unbreakable().get());
 			inv.setItem(1, ItemBuilder.of(Material.NETHERITE_HOE).data("blood_spell").name("Blood Leach Spell").unbreakable().get());
 			inv.setItem(2, ItemBuilder.of(Material.IRON_HOE).data("ice_spell").name("Ice Blast").unbreakable().get());
 			inv.setItem(3, ItemBuilder.of(Material.WOODEN_HOE).data("shadow_spell").name("Shadow Spell").unbreakable().get());
@@ -110,11 +118,12 @@ public class MageKit extends BaseKit{
 		} else if(mystic) {
 			inv.setItem(0, ItemBuilder.of(Material.DIAMOND_HOE).data("shulker_spell").name("Damage Spell").unbreakable().get());
 			inv.setItem(1, ItemBuilder.of(Material.IRON_HOE).data("inversion_spell").name("Inversion Spell").unbreakable().get());
-			inv.setItem(3, ItemBuilder.of(Material.IRON_NUGGET).data("thorn_spell").name("Thorn Spell?").unbreakable().get());
-			//spell that heal/remove negative effects?
-			//control inversion?
+			inv.setItem(3, ItemBuilder.of(Material.NETHERITE_HOE).data("thorn_spell").name("Thorns Spell").unbreakable().get());
 			inv.setItem(2, ItemBuilder.of(Material.GOLDEN_HOE).data("cure_spell").name("Cure Spell").unbreakable().get());
-			inv.setItem(4, ItemBuilder.of(Material.IRON_NUGGET).name("some kinda spell thing idk yet").unbreakable().get());
+		} else if(dragon) {
+			//dragon fireball
+			//dragon breath
+			//crystal heal
 		} else {
 			inv.setItem(0, ItemBuilder.of(Material.DIAMOND_HOE).data("dmg_spell").name("Damage Spell").unbreakable().get());
 			inv.setItem(1, ItemBuilder.of(Material.WOODEN_HOE).data("fire_spell").name("Flame Spell").unbreakable().get());
@@ -144,7 +153,15 @@ public class MageKit extends BaseKit{
 			if(!charges.containsKey(key))
 				charges.put(key, 1f);
 			float charge = charges.get(key);
-			charge+=SPELL_REGENS.get(key);
+			if(key.equals("dark_dagger") && witherSword) {
+				charge-=WITHER_SWORD_USAGE;
+				if(charge<=0) {
+					charge = 0;
+					witherSword = false;
+					updateWitherSword();
+				}
+			} else
+				charge+=SPELL_REGENS.get(key);
 			if(charge>1)
 				charge = 1;
 			charges.put(key, charge);
@@ -158,6 +175,37 @@ public class MageKit extends BaseKit{
 				charge = charges.get(key);
 		}
 		player.getPlayer().setExp(charge);
+		List<ShulkerBullet> deadBullets = new ArrayList<ShulkerBullet>();
+		for(ShulkerBullet b : bullets) {
+			if(b.isDead()) {
+				deadBullets.add(b);
+				continue;
+			}
+			if(b.getTarget() != null) {
+				Location target = b.getTarget().getLocation().add(0,.8,0);
+				Vector v = Util.getVectorToLoc(b.getLocation(), target, .1);
+				b.setVelocity(b.getVelocity().add(v));
+				continue;
+			}
+			for(LivingEntity e : b.getLocation().getWorld().getLivingEntities()) {
+				if(e.getLocation().distance(b.getLocation()) < 3) {
+					if(e.getType() == EntityType.PLAYER) {
+						GamePlayer p = GamePlayer.get((Player) e);
+						if(sameTeam(p))
+							continue;
+						b.setTarget(e);
+						break;
+					}
+					Minion m = Minion.get(e);
+					if(m == null)
+						continue;
+					if(m.getTeam().equals(player.getTeam()))
+						continue;
+					b.setTarget(e);
+					break;
+				}
+			}
+		}
 	}
 	
 	@EventHandler
@@ -170,7 +218,7 @@ public class MageKit extends BaseKit{
 				if(charge<1)
 					return;
 				charges.put("inversion_spell", 0f);
-				player.setInversionTicks(INVERSION_DURATION);
+				player.setInversionTicks(SELF_INVERSION_DURATION);
 			}
 		}
 		if(event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK)
@@ -276,7 +324,8 @@ public class MageKit extends BaseKit{
 			if(charge<1)
 				return;
 			charges.put("shulker_spell", 0f);
-			player.getPlayer().launchProjectile(ShulkerBullet.class, Util.inFront(player.getPlayer(), 1));
+			ShulkerBullet b = player.getPlayer().launchProjectile(ShulkerBullet.class, Util.inFront(player.getPlayer(), 1));
+			bullets.add(b);
 		}
 		else if(ItemBuilder.dataMatch(event.getItem(), "cure_spell")) {
 			float charge = charges.get("cure_spell");
@@ -287,8 +336,19 @@ public class MageKit extends BaseKit{
 			cure.setItem(new ItemStack(Material.TURTLE_EGG));
 		}
 		else if(ItemBuilder.dataMatch(event.getItem(), "thorn_spell")) {
+			float charge = charges.get("thorn_spell");
+			if(charge<1)
+				return;
+			charges.put("thorn_spell", 0f);
 			ThrownPotion pot = player.getPlayer().launchProjectile(ThrownPotion.class, Util.inFront(player.getPlayer(), .5));
-			pot.setItem(ItemBuilder.of(Material.SPLASH_POTION).potionEffect(PotionEffectType.REGENERATION, 100, 3).potionColor(PotionEffectType.REGENERATION.getColor()).get());
+			pot.setItem(ItemBuilder.of(Material.SPLASH_POTION).potionEffect(PotionEffectType.LUCK, 160, 0).potionColor(PotionEffectType.LUCK.getColor()).get());
+		}
+		else if(ItemBuilder.dataMatch(event.getItem(), "dark_dagger")) {
+			float charge = charges.get("dark_dagger");
+			if(charge<1)
+				return;
+			witherSword = true;
+			updateWitherSword();
 		}
 	}
 	
@@ -319,6 +379,8 @@ public class MageKit extends BaseKit{
 			if(m != null && m.getTeam().equals(player.getTeam()))
 				return;
 			else if(pl != null && sameTeam(pl))
+				return;
+			else if(pl != null && pl.isSpawnProtected())
 				return;
 			if(m != null) {
 				m.getEntity().damage(SHULKER_DMG);
@@ -393,11 +455,16 @@ public class MageKit extends BaseKit{
 	
 	@EventHandler(ignoreCancelled=true)
 	public void onEntityDmgEntity(EntityDamageByEntityEvent event) {
-		GamePlayer p = Util.getOwner(event.getEntity());
+		GamePlayer p = Util.getOwner(event.getDamager());
 		if(p == null || !p.equals(player))
 			return;
 		if(event.getEntity() instanceof Arrow) {
 			event.setDamage(event.getDamage()*MAGE_DMG_SPELL_MODIFIER);
+		}
+		if(!event.isCancelled() && event.getEntity() instanceof LivingEntity && event.getCause() == DamageCause.ENTITY_ATTACK && witherSword && player.getPlayer().getInventory().getItemInMainHand() != null 
+				&& player.getPlayer().getInventory().getItemInMainHand().getType() == Material.NETHERITE_SWORD) {
+			LivingEntity e = (LivingEntity) event.getEntity();
+			e.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 120, 0));
 		}
 	}
 	
@@ -611,7 +678,7 @@ public class MageKit extends BaseKit{
 					p.setCustomDamageCause(CustomDamageCause.MAGE_BLOOD_LEACH);
 					p.setLastAttacker(player);
 					p.getPlayer().damage(2);
-					Util.heal(player.getPlayer(), 1);
+					Util.heal(player.getPlayer(), 2);
 					BlockData fallingDustData = Material.REDSTONE_BLOCK.createBlockData();
 					for(double x = -.5; x<=.5; x++) {
 						for(double z = -.5; z<=.5; z++) {
@@ -626,7 +693,7 @@ public class MageKit extends BaseKit{
 					if(e.isDead() || !player.getPlayer().isOnline() || player.getPlayer().isDead())
 						return;
 					e.damage(2);
-					Util.heal(player.getPlayer(), 1);
+					Util.heal(player.getPlayer(), 2);
 					BlockData fallingDustData = Material.REDSTONE_BLOCK.createBlockData();
 					for(double x = -.5; x<=.5; x++) {
 						for(double z = -.5; z<=.5; z++) {
@@ -636,6 +703,26 @@ public class MageKit extends BaseKit{
 				}, i);
 			}
 		}
+	}
+	
+	private void updateWitherSword() {
+		PlayerInventory inv = player.getPlayer().getInventory();
+		ItemStack sword = null;
+		for(ItemStack i : inv.getContents()) {
+			if(i == null)
+				continue;
+			if(ItemBuilder.dataMatch(i, "dark_dagger")) {
+				sword = i;
+				break;
+			}
+		}
+		if(sword == null)
+			return;
+		if(witherSword)
+			sword.setType(Material.NETHERITE_SWORD);
+		else
+			sword.setType(Material.STONE_SWORD);
+		ItemBuilder.of(sword).unbreakable().get();
 	}
 
 	@Override
@@ -667,7 +754,7 @@ public class MageKit extends BaseKit{
 
 	@Override
 	public String[] getVariations() {
-		String[] variations = {"default"};
+		String[] variations = {"default", "dark", "mystic"};
 		return variations;
 	}
 

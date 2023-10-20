@@ -3,7 +3,6 @@ package net.dezilla.dectf2.kits;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -24,11 +23,15 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.trim.TrimPattern;
 import org.bukkit.util.Vector;
 
-import net.dezilla.dectf2.GameMain;
 import net.dezilla.dectf2.GamePlayer;
 import net.dezilla.dectf2.Util;
+import net.dezilla.dectf2.structures.BaseStructure;
 import net.dezilla.dectf2.structures.CannotBuildException;
+import net.dezilla.dectf2.structures.Dispenser;
+import net.dezilla.dectf2.structures.Entry;
+import net.dezilla.dectf2.structures.Exit;
 import net.dezilla.dectf2.structures.TestThing;
+import net.dezilla.dectf2.structures.Turret;
 import net.dezilla.dectf2.util.GameConfig;
 import net.dezilla.dectf2.util.ItemBuilder;
 import net.dezilla.dectf2.util.Minion;
@@ -42,6 +45,8 @@ public class TestyKit extends BaseKit{
 	boolean pissmaster = false;
 	List<InvertPosition> moveHistory = new ArrayList<InvertPosition>();
 	TestThing building = null;
+	Entry entry = null;
+	Exit exit = null;
 
 	public TestyKit(GamePlayer player) {
 		super(player);
@@ -71,6 +76,10 @@ public class TestyKit extends BaseKit{
 		else if(structure) {
 			inv.setItem(2, ItemBuilder.of(Material.IRON_NUGGET).data("building").name("Test structure").get());
 			inv.setItem(3, ItemBuilder.of(Material.IRON_NUGGET).data("inspect").name("inspect").get());
+			inv.setItem(4, ItemBuilder.of(Material.IRON_NUGGET).data("turret").name("turret").get());
+			inv.setItem(5, ItemBuilder.of(Material.IRON_NUGGET).data("dispenser").name("dispenser").get());
+			inv.setItem(6, ItemBuilder.of(Material.IRON_NUGGET).data("entry").name("entry").get());
+			inv.setItem(7, ItemBuilder.of(Material.IRON_NUGGET).data("exit").name("exit").get());
 		} else if(pissmaster) {
 			inv.setHelmet(ItemBuilder.of(Material.LEATHER_HELMET).leatherColor(Color.fromRGB(228, 247, 82)).unbreakable().armorTrim(TrimPattern.TIDE, color().getTrimMaterial()).get());
 			inv.setChestplate(ItemBuilder.of(Material.LEATHER_CHESTPLATE).leatherColor(Color.fromRGB(228, 247, 82)).unbreakable().armorTrim(TrimPattern.TIDE, color().getTrimMaterial()).get());
@@ -83,6 +92,7 @@ public class TestyKit extends BaseKit{
 		else {
 			inv.setItem(2, ItemBuilder.of(Material.IRON_NUGGET).data("4x4").name("4x4 block test").get());
 			inv.setItem(3, ItemBuilder.of(Material.IRON_NUGGET).data("trident_test").name("trident test").get());
+			inv.setItem(4, ItemBuilder.of(Material.IRON_NUGGET).data("struct_check").name("structure check").get());
 		}
 	}
 	
@@ -155,10 +165,59 @@ public class TestyKit extends BaseKit{
 				player.notify(e.getMessage());
 			}
 		}
+		if(ItemBuilder.dataMatch(event.getItem(), "turret") && event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+			if(event.getClickedBlock().getType() == Material.OAK_FENCE)
+				return;
+			try {
+				Location l = event.getClickedBlock().getLocation();
+				new Turret(player, l.add(0,1,0));
+			}catch(CannotBuildException e) {
+				player.notify(e.getMessage());
+			}
+		}
+		if(ItemBuilder.dataMatch(event.getItem(), "dispenser") && event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+			if(event.getClickedBlock().getType().toString().contains("_STAINED_GLASS"))
+				return;
+			try {
+				Location l = event.getClickedBlock().getLocation();
+				new Dispenser(player, l.add(0,1,0));
+			}catch(CannotBuildException e) {
+				player.notify(e.getMessage());
+			}
+		}
+		if(ItemBuilder.dataMatch(event.getItem(), "entry") && event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+			if(entry != null && !entry.isDead())
+				entry.remove();
+			try {
+				Location l = event.getClickedBlock().getLocation();
+				entry = new Entry(player, l.add(0,1,0));
+				if(exit != null && !exit.isDead())
+					entry.setExit(exit);
+			}catch(CannotBuildException e) {
+				player.notify(e.getMessage());
+			}
+		}
+		if(ItemBuilder.dataMatch(event.getItem(), "exit") && event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+			if(exit != null && !exit.isDead())
+				exit.remove();
+			try {
+				Location l = event.getClickedBlock().getLocation();
+				exit = new Exit(player, l.add(0,1,0));
+				if(entry != null && !entry.isDead())
+					entry.setExit(exit);
+			}catch(CannotBuildException e) {
+				player.notify(e.getMessage());
+			}
+		}
 		if(ItemBuilder.dataMatch(event.getItem(), "inspect")) {
 			if(event.getClickedBlock() != null) {
 				Location l = event.getClickedBlock().getLocation();
 				player.notify(event.getClickedBlock().getType()+" "+l.getX()+" "+l.getY()+" "+l.getZ());
+			}
+		}
+		if(ItemBuilder.dataMatch(event.getItem(), "struct_check")) {
+			if(event.getClickedBlock() != null) {
+				player.notify(""+BaseStructure.getStructure(event.getClickedBlock()));
 			}
 		}
 		if(ItemBuilder.dataMatch(event.getItem(), "piss")) {

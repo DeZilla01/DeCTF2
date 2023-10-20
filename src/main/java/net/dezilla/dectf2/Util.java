@@ -4,40 +4,35 @@ import java.io.File;
 import java.io.FileFilter;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.Sign;
 import org.bukkit.block.sign.Side;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.entity.Arrow;
-import org.bukkit.entity.Creature;
-import org.bukkit.entity.Egg;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.Firework;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
-import org.bukkit.entity.Snowball;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
-import org.bukkit.util.VoxelShape;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 
-import me.gamercoder215.mobchip.bukkit.BukkitBrain;
 import net.dezilla.dectf2.util.GameConfig;
 
 public class Util {
@@ -199,6 +194,25 @@ public class Util {
 		Vector v = new Vector(x, y, z).normalize();
 		v.multiply(multiplier);
 		return v;
+	}
+	
+	public static Vector get2DVectorToLoc(Location a, Location b, double multiplier) {
+		double x = b.getX() - a.getX();
+		double z = b.getZ() - a.getZ();
+		Vector v = new Vector(x, 0, z).normalize();
+		v.multiply(multiplier);
+		return v;
+	}
+	
+	public static boolean regenPlayer(GamePlayer player) {
+		Timestamp now = new Timestamp(new Date().getTime());
+		int delay = (int) ((now.getTime() - player.getLastRegen().getTime()) / 50);
+		if(delay < GameConfig.regenDelay)
+			return false;
+		player.getKit().setInventory();
+		player.getPlayer().playSound(player.getPlayer(), Sound.ENTITY_SLIME_HURT_SMALL, 1, 1);
+		player.setLastRegen(now);
+		return true;
 	}
 	
 	public static double getDamageReduced(Player player) {

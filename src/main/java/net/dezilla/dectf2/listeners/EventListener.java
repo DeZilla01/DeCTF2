@@ -2,13 +2,16 @@ package net.dezilla.dectf2.listeners;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.bukkit.Bukkit;
 import org.bukkit.EntityEffect;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.entity.AreaEffectCloud;
 import org.bukkit.entity.Arrow;
@@ -176,7 +179,7 @@ public class EventListener implements Listener{
 			}
 		}
 	}
-	
+	Map<LivingEntity, Long> lastThorn = new HashMap<LivingEntity, Long>();
 	@EventHandler(priority=EventPriority.LOW, ignoreCancelled=true)
 	public void onThorns(EntityDamageByEntityEvent e) {
 		//This listener will convert luck effect to thorns
@@ -185,12 +188,23 @@ public class EventListener implements Listener{
 		LivingEntity entity = (LivingEntity) e.getEntity();
 		if(!entity.hasPotionEffect(PotionEffectType.LUCK))
 			return;
+		LivingEntity damager = (LivingEntity) e.getDamager();
+		//this is a lazy fix to avoid server crash
+		if(lastThorn.containsKey(damager) && lastThorn.get(damager) == GameMain.getServerTick())
+			return;
+		if(lastThorn.containsKey(entity) && lastThorn.get(entity) == GameMain.getServerTick())
+			return;
+		lastThorn.put(damager, GameMain.getServerTick());
+		lastThorn.put(entity, GameMain.getServerTick());
+		//if(damager.hasPotionEffect(PotionEffectType.LUCK) && entity.hasPotionEffect(PotionEffectType.LUCK))
+		//	return;
 		PotionEffect pot = entity.getPotionEffect(PotionEffectType.LUCK);
 		double dmg = 2;
 		dmg+=pot.getAmplifier();
-		LivingEntity damager = (LivingEntity) e.getDamager();
 		damager.damage(dmg, entity);
 		damager.playEffect(EntityEffect.THORNS_HURT);
+		if(damager.getType() == EntityType.PLAYER)
+			((Player) damager).playSound(damager, Sound.ENCHANT_THORNS_HIT, 1, 1);
 	}
 	
 	@EventHandler(priority=EventPriority.HIGH)
@@ -201,6 +215,7 @@ public class EventListener implements Listener{
 		GamePlayer p = GamePlayer.get(event.getEntity());
 		p.incrementStats("deaths", 1);
 		p.setStats("streak", 0);
+		p.resetInversionHistory();
 		GamePlayer killer = p.getLastAttacker();
 		if(killer != null) {
 			killer.incrementStats("kills", 1);

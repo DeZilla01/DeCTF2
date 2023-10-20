@@ -74,6 +74,7 @@ public class GamePlayer {
 	private boolean invisible = false;
 	private PlayerChatType chatType = PlayerChatType.GLOBAL;
 	private Timestamp lastHeal = new Timestamp(new Date().getTime());
+	private Timestamp lastRegen = new Timestamp(new Date().getTime());
 	private boolean onFire = false; //used for pyro
 	private boolean fireImmunity = false; //used for pyro 
 	private int inversionTicks = 0;
@@ -268,6 +269,10 @@ public class GamePlayer {
 		return inversionTicks;
 	}
 	
+	public void resetInversionHistory() {
+		moveHistory.clear();
+	}
+	
 	public void setInvisible(boolean value) {
 		if(value) {
 			//prevent going invisible when holding flag
@@ -306,6 +311,14 @@ public class GamePlayer {
 	
 	public Timestamp getLastHeal() {
 		return lastHeal;
+	}
+	
+	public void setLastRegen(Timestamp when) {
+		lastRegen = when;
+	}
+	
+	public Timestamp getLastRegen() {
+		return lastRegen;
 	}
 	
 	public void setSpawnProtection() {

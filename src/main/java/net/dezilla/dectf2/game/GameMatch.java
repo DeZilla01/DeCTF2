@@ -583,12 +583,25 @@ public class GameMatch {
 	}
 	
 	public boolean isAreaRestricted(Location loc) {
+		if(!loc.getWorld().equals(world))
+			return true;
 		for(RestrictArea a : restrictedAreas) {
 			if(a.inRadius(loc)) {
 				return true;
 			}
 		}
 		return false;
+	}
+	
+	public String getRestrictionReason(Location loc) {
+		if(!loc.getWorld().equals(world))
+			return null;
+		for(RestrictArea a : restrictedAreas) {
+			if(a.inRadius(loc)) {
+				return a.getReason();
+			}
+		}
+		return null;
 	}
 	
 	public boolean isLoaded() {

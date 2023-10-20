@@ -7,6 +7,7 @@ import org.bukkit.block.Block;
 public class RestrictArea {
 	Location location;
 	double radius;
+	String reason = null;
 	
 	public RestrictArea(Location location, double radius) {
 		this.location = location;
@@ -16,6 +17,14 @@ public class RestrictArea {
 	public RestrictArea(Block block, double radius) {
 		this.location = block.getLocation().add(.5,.5,.5);
 		this.radius = radius;
+	}
+	
+	public String getReason() {
+		return reason;
+	}
+	
+	public void setReason(String reason) {
+		this.reason = reason;
 	}
 	
 	public boolean inRadius(Location loc) {
