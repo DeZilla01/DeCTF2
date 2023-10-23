@@ -13,6 +13,7 @@ import org.bukkit.entity.Player;
 
 import net.dezilla.dectf2.GameMain;
 import net.dezilla.dectf2.GamePlayer;
+import net.dezilla.dectf2.gui.KitSelectionGui;
 import net.dezilla.dectf2.kits.BaseKit;
 import net.md_5.bungee.api.ChatColor;
 
@@ -54,7 +55,7 @@ public class KitCommand extends Command implements CommandExecutor{
 			p.getPlayer().sendMessage("Invalid kit selection");
 			return false;
 		}
-		sender.sendMessage("No GUI yet, just use tab");
+		new KitSelectionGui(p.getPlayer()).display();
 		return true;
 	}
 

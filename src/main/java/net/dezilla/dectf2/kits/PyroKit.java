@@ -254,5 +254,20 @@ public class PyroKit extends BaseKit{
 		String[] variations = {"default", "frenzy"};
 		return variations;
 	}
+	
+	@Override
+	public ItemStack[] getFancyDisplay() {
+		return new ItemStack[] {
+				new ItemStack(Material.DIAMOND_SWORD),
+				new ItemStack(Material.DIAMOND_CHESTPLATE),
+				new ItemStack(Material.DIAMOND_LEGGINGS),
+				new ItemStack(Material.DIAMOND_HELMET),
+				new ItemStack(GameConfig.foodMaterial),
+				new ItemStack(Material.DIAMOND_BOOTS),
+				new ItemStack(Material.DIAMOND_LEGGINGS),
+				new ItemStack(Material.DIAMOND_CHESTPLATE),
+				new ItemStack(Material.DIAMOND_SWORD)
+		};
+	}
 
 }

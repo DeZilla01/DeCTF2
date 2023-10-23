@@ -37,6 +37,7 @@ import net.dezilla.dectf2.game.GameMatch.GameState;
 import net.dezilla.dectf2.game.ctf.CTFFlag.FlagType;
 import net.dezilla.dectf2.util.CustomDamageCause;
 import net.dezilla.dectf2.util.GameConfig;
+import net.dezilla.dectf2.util.ObjectiveLocation;
 import net.dezilla.dectf2.util.RestrictArea;
 import net.md_5.bungee.api.ChatColor;
 
@@ -364,5 +365,21 @@ public class CTFGame extends GameBase implements Listener{
 		}
 		
 		return display;
+	}
+
+	@Override
+	public boolean hasObjectiveLocations() {
+		return true;
+	}
+
+	@Override
+	public List<ObjectiveLocation> getObjectiveLocations() {
+		List<ObjectiveLocation> list = new ArrayList<ObjectiveLocation>();
+		for(Entry<GameTeam, CTFFlag> e : flags.entrySet()) {
+			String name = e.getKey().getColoredTeamName()+ChatColor.RESET+"'s "+e.getValue().getFlagType().flag();
+			ObjectiveLocation o = new ObjectiveLocation(e.getValue().getLocation(), name, false);
+			list.add(o);
+		}
+		return list;
 	}
 }

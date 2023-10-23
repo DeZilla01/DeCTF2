@@ -57,5 +57,20 @@ public class ChemistKit extends BaseKit{
 		String[] variations = {"default"};
 		return variations;
 	}
+	
+	@Override
+	public ItemStack[] getFancyDisplay() {
+		return new ItemStack[] {
+				ItemBuilder.of(Material.SPLASH_POTION).potionColor(PotionEffectType.HARM.getColor()).get(),
+				ItemBuilder.of(Material.SPLASH_POTION).potionColor(PotionEffectType.HEAL.getColor()).get(),
+				ItemBuilder.of(Material.SPLASH_POTION).potionColor(PotionEffectType.LUCK.getColor()).get(),
+				ItemBuilder.of(Material.SPLASH_POTION).potionColor(PotionEffectType.FIRE_RESISTANCE.getColor()).get(),
+				new ItemStack(Material.IRON_SWORD),
+				ItemBuilder.of(Material.SPLASH_POTION).potionColor(PotionEffectType.DAMAGE_RESISTANCE.getColor()).get(),
+				ItemBuilder.of(Material.SPLASH_POTION).potionColor(PotionEffectType.CONDUIT_POWER.getColor()).get(),
+				ItemBuilder.of(Material.SPLASH_POTION).potionColor(PotionEffectType.ABSORPTION.getColor()).get(),
+				ItemBuilder.of(Material.SPLASH_POTION).potionColor(PotionEffectType.BLINDNESS.getColor()).get()
+		};
+	}
 
 }

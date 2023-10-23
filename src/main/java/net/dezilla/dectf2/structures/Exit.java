@@ -6,6 +6,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.LivingEntity;
 
 import net.dezilla.dectf2.GamePlayer;
 
@@ -16,6 +17,7 @@ public class Exit extends BaseStructure{
 	public Exit(GamePlayer owner, Location location) throws CannotBuildException {
 		super(owner, location);
 		removedOnDeath = true;
+		removeOnSpawnProtection = true;
 		destroyable = true;
 		placeBlocks();
 	}
@@ -34,9 +36,18 @@ public class Exit extends BaseStructure{
 		display.setInvulnerable(true);
 		display.setGravity(false);
 		display.setCustomNameVisible(true);
-		display.setCustomName("Entry Test");
+		display.setCustomName("Exit");
 		entities.add(display);
 		dead = false;
+	}
+	
+	public void teleport(LivingEntity entity) {
+		Location l = plate.getLocation().add(.5,.1,.5);
+		entity.teleport(l);
+	}
+	
+	public Location getExitLocation() {
+		return plate.getLocation().add(.5,.1,.5);
 	}
 
 	@Override

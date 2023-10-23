@@ -69,6 +69,7 @@ public class GameMain extends JavaPlugin{
 		kits.add(NinjaKit.class);
 		kits.add(MageKit.class);
 		kits.add(ChemistKit.class);
+		kits.add(EngineerKit.class);
 		for(Class<? extends BaseKit> c : kits) {
 			try {
 				BaseKit k = c.getConstructor(new Class[] {GamePlayer.class}).newInstance(GamePlayer.get(null));

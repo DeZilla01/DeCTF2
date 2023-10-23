@@ -12,6 +12,7 @@ import net.dezilla.dectf2.game.GameBase;
 import net.dezilla.dectf2.game.GameMatch;
 import net.dezilla.dectf2.game.GameTeam;
 import net.dezilla.dectf2.util.GameConfig;
+import net.dezilla.dectf2.util.ObjectiveLocation;
 import net.md_5.bungee.api.ChatColor;
 
 public class TDMGame extends GameBase implements Listener{
@@ -94,6 +95,16 @@ public class TDMGame extends GameBase implements Listener{
 		display.add(team.getColor().getChatColor()+"");
 		
 		return display;
+	}
+
+	@Override
+	public boolean hasObjectiveLocations() {
+		return false;
+	}
+
+	@Override
+	public List<ObjectiveLocation> getObjectiveLocations() {
+		return null;
 	}
 
 	

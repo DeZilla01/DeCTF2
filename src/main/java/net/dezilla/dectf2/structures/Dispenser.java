@@ -6,8 +6,6 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.type.Cake;
-import org.bukkit.entity.ArmorStand;
-import org.bukkit.entity.EntityType;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -20,7 +18,7 @@ import net.dezilla.dectf2.Util;
 public class Dispenser extends BaseStructure{
 	static int DISPENSER_REGEN = 100;
 	
-	ArmorStand display = null;
+	//ArmorStand display = null;
 	Block cake = null;
 	int cakelvl = 6; //6 == empty, 0 == full
 	int regen = DISPENSER_REGEN;
@@ -28,6 +26,7 @@ public class Dispenser extends BaseStructure{
 	public Dispenser(GamePlayer owner, Location location) throws CannotBuildException {
 		super(owner, location);
 		removedOnDeath = true;
+		removeOnSpawnProtection = true;
 		destroyable = true;
 		placeBlocks();
 	}
@@ -40,14 +39,14 @@ public class Dispenser extends BaseStructure{
 		cake.setType(Material.CAKE);
 		blocks.add(cake);
 		updateCake();
-		display = (ArmorStand) location.getWorld().spawnEntity(b.getLocation().add(.5,1.3,.5), EntityType.ARMOR_STAND);
+		/*display = (ArmorStand) location.getWorld().spawnEntity(b.getLocation().add(.5,1.3,.5), EntityType.ARMOR_STAND);
 		display.setMarker(true);
 		display.setGravity(false);
 		display.setInvisible(true);
 		display.setInvulnerable(true);
 		display.setCustomNameVisible(true);
 		display.setCustomName("Dispenser Test");
-		entities.add(display);
+		entities.add(display);*/
 		dead = false;
 	}
 	

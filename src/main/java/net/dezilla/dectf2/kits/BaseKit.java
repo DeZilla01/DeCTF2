@@ -31,6 +31,7 @@ import net.dezilla.dectf2.game.tdm.TDMGame;
 import net.dezilla.dectf2.util.CustomDamageCause;
 import net.dezilla.dectf2.util.GameColor;
 import net.dezilla.dectf2.util.GameConfig;
+import net.dezilla.dectf2.util.ItemBuilder;
 import net.dezilla.dectf2.util.Minion;
 
 public abstract class BaseKit implements Listener{
@@ -47,9 +48,15 @@ public abstract class BaseKit implements Listener{
 	
 	public abstract ItemStack getIcon();
 	
+	public ItemStack getIcon(String variation) {
+		return getIcon();
+	}
+	
 	public abstract String[] getVariations();
 	
 	public void setVariation(String variation) {};
+	
+	public abstract ItemStack[] getFancyDisplay();
 	
 	public BaseKit(GamePlayer player) {
 		this.player = player;
@@ -183,6 +190,19 @@ public abstract class BaseKit implements Listener{
 					p.setHealth(currentHp+8);
 				p.playSound(p, Sound.ENTITY_PLAYER_BURP, 1, 1);
 			}
+		}
+	}
+	
+	@EventHandler
+	public void onTrackerUse(PlayerInteractEvent event) {
+		Player p = player.getPlayer();
+		if(!event.getPlayer().equals(p))
+			return;
+		if(!ItemBuilder.dataMatch(event.getItem(), "objective_tracker"))
+			return;
+		if(event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+			player.toggleObjectiveLocation();
+			ItemBuilder.of(event.getItem()).name("Pointing to "+player.getObjectiveLocationName()).get();
 		}
 	}
 	

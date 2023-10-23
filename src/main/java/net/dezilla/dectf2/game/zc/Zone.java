@@ -79,6 +79,10 @@ public class Zone {
 		zoneMaterial = material;
 	}
 	
+	public Location getLocation() {
+		return location;
+	}
+	
 	//This is meant to be executed every seconds.
 	public void update() {
 		boolean teamOnPoint = false;

@@ -28,8 +28,7 @@ import net.dezilla.dectf2.Util;
 import net.dezilla.dectf2.structures.BaseStructure;
 import net.dezilla.dectf2.structures.CannotBuildException;
 import net.dezilla.dectf2.structures.Dispenser;
-import net.dezilla.dectf2.structures.Entry;
-import net.dezilla.dectf2.structures.Exit;
+import net.dezilla.dectf2.structures.MobSpawner;
 import net.dezilla.dectf2.structures.TestThing;
 import net.dezilla.dectf2.structures.Turret;
 import net.dezilla.dectf2.util.GameConfig;
@@ -43,10 +42,9 @@ public class TestyKit extends BaseKit{
 	boolean inversion = false;
 	boolean structure = false;
 	boolean pissmaster = false;
+	boolean tools = false;
 	List<InvertPosition> moveHistory = new ArrayList<InvertPosition>();
 	TestThing building = null;
-	Entry entry = null;
-	Exit exit = null;
 
 	public TestyKit(GamePlayer player) {
 		super(player);
@@ -78,8 +76,7 @@ public class TestyKit extends BaseKit{
 			inv.setItem(3, ItemBuilder.of(Material.IRON_NUGGET).data("inspect").name("inspect").get());
 			inv.setItem(4, ItemBuilder.of(Material.IRON_NUGGET).data("turret").name("turret").get());
 			inv.setItem(5, ItemBuilder.of(Material.IRON_NUGGET).data("dispenser").name("dispenser").get());
-			inv.setItem(6, ItemBuilder.of(Material.IRON_NUGGET).data("entry").name("entry").get());
-			inv.setItem(7, ItemBuilder.of(Material.IRON_NUGGET).data("exit").name("exit").get());
+			inv.setItem(6, ItemBuilder.of(Material.IRON_NUGGET).data("spawner").name("spawner").get());
 		} else if(pissmaster) {
 			inv.setHelmet(ItemBuilder.of(Material.LEATHER_HELMET).leatherColor(Color.fromRGB(228, 247, 82)).unbreakable().armorTrim(TrimPattern.TIDE, color().getTrimMaterial()).get());
 			inv.setChestplate(ItemBuilder.of(Material.LEATHER_CHESTPLATE).leatherColor(Color.fromRGB(228, 247, 82)).unbreakable().armorTrim(TrimPattern.TIDE, color().getTrimMaterial()).get());
@@ -88,6 +85,11 @@ public class TestyKit extends BaseKit{
 			inv.setItem(0, ItemBuilder.of(Material.GOLDEN_SWORD).unbreakable().enchant(Enchantment.DAMAGE_ALL, 0).name("Pissmaster Sword").get());
 			inv.setItem(1, ItemBuilder.of(GameConfig.foodMaterial).name("Steak").amount(4).get());
 			inv.setItem(2, ItemBuilder.of(Material.YELLOW_DYE).data("piss").name("Piss").get());
+		}else if(tools) {
+			inv.setItem(2, ItemBuilder.of(Material.SPYGLASS).name("Spyglass").get());
+			inv.setItem(3, ItemBuilder.of(Material.COMPASS).name("Poiting to "+player.getObjectiveLocationName()).data("objective_tracker").get());
+			inv.setItem(4, ItemBuilder.of(Material.GOLDEN_CARROT).name("Pointer").data("pointer").get());
+			inv.setItem(5, ItemBuilder.of(Material.NETHER_STAR).name("Kit Selector").data("kit_selector").get());
 		}
 		else {
 			inv.setItem(2, ItemBuilder.of(Material.IRON_NUGGET).data("4x4").name("4x4 block test").get());
@@ -185,26 +187,12 @@ public class TestyKit extends BaseKit{
 				player.notify(e.getMessage());
 			}
 		}
-		if(ItemBuilder.dataMatch(event.getItem(), "entry") && event.getAction() == Action.RIGHT_CLICK_BLOCK) {
-			if(entry != null && !entry.isDead())
-				entry.remove();
+		if(ItemBuilder.dataMatch(event.getItem(), "spawner") && event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+			if(event.getClickedBlock().getType().toString().contains("_STAINED_GLASS"))
+				return;
 			try {
 				Location l = event.getClickedBlock().getLocation();
-				entry = new Entry(player, l.add(0,1,0));
-				if(exit != null && !exit.isDead())
-					entry.setExit(exit);
-			}catch(CannotBuildException e) {
-				player.notify(e.getMessage());
-			}
-		}
-		if(ItemBuilder.dataMatch(event.getItem(), "exit") && event.getAction() == Action.RIGHT_CLICK_BLOCK) {
-			if(exit != null && !exit.isDead())
-				exit.remove();
-			try {
-				Location l = event.getClickedBlock().getLocation();
-				exit = new Exit(player, l.add(0,1,0));
-				if(entry != null && !entry.isDead())
-					entry.setExit(exit);
+				new MobSpawner(player, l.add(0,1,0));
 			}catch(CannotBuildException e) {
 				player.notify(e.getMessage());
 			}
@@ -263,6 +251,8 @@ public class TestyKit extends BaseKit{
 			return "Structure";
 		if(pissmaster)
 			return "Pissmaster";
+		if(tools)
+			return "Tools";
 		return "Default";
 	}
 
@@ -288,11 +278,13 @@ public class TestyKit extends BaseKit{
 			structure = true;
 		if(variation.equalsIgnoreCase("pissmaster"))
 			pissmaster = true;
+		if(variation.equalsIgnoreCase("tools"))
+			tools = true;
 	}
 
 	@Override
 	public String[] getVariations() {
-		return new String[] {"default", "minion", "inversion", "structure"};
+		return new String[] {"default", "minion", "inversion", "structure", "tools"};
 	}
 	
 	public class InvertPosition {
@@ -311,6 +303,21 @@ public class TestyKit extends BaseKit{
 		public Vector getVelocity() {
 			return vel.clone();
 		}
+	}
+	
+	@Override
+	public ItemStack[] getFancyDisplay() {
+		return new ItemStack[] {
+				new ItemStack(Material.DIAMOND_SWORD),
+				new ItemStack(Material.DIAMOND_CHESTPLATE),
+				new ItemStack(Material.DIAMOND_LEGGINGS),
+				new ItemStack(Material.DIAMOND_HELMET),
+				new ItemStack(GameConfig.foodMaterial),
+				new ItemStack(Material.DIAMOND_BOOTS),
+				new ItemStack(Material.DIAMOND_LEGGINGS),
+				new ItemStack(Material.DIAMOND_CHESTPLATE),
+				new ItemStack(Material.DIAMOND_SWORD)
+		};
 	}
 
 }

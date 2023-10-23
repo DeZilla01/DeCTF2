@@ -10,6 +10,7 @@ import java.util.function.Predicate;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
@@ -113,6 +114,14 @@ public class Minion {
 	
 	public void setName(String name) {
 		entity.setCustomName(name);
+	}
+	
+	public void heal(double amount) {
+		double max = entity.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
+		if(entity.getHealth()+amount > max)
+			entity.setHealth(max);
+		else
+			entity.setHealth(entity.getHealth()+amount);
 	}
 	
 	public void addEffect(PotionEffectType type, int duration, int lvl) {

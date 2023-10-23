@@ -24,6 +24,7 @@ import org.bukkit.entity.ThrownPotion;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent;
@@ -59,6 +60,7 @@ import net.dezilla.dectf2.game.tdm.TDMGame;
 import net.dezilla.dectf2.kits.PyroKit;
 import net.dezilla.dectf2.util.CustomDamageCause;
 import net.dezilla.dectf2.util.GameConfig;
+import net.dezilla.dectf2.util.ItemBuilder;
 import net.dezilla.dectf2.util.LuckPermsStuff;
 import net.dezilla.dectf2.util.Minion;
 import net.md_5.bungee.api.ChatColor;
@@ -376,6 +378,13 @@ public class EventListener implements Listener{
 			Material.FURNACE, Material.CRAFTING_TABLE, Material.HOPPER, Material.DISPENSER, Material.DROPPER);
 	@EventHandler(ignoreCancelled=true)
 	public void onInteract(PlayerInteractEvent event) {
+		if(event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+			if(ItemBuilder.dataMatch(event.getItem(), "kit_selector")) {
+				event.getPlayer().performCommand("kit");
+				event.setCancelled(true);
+				return;
+			}
+		}
 		Block block = event.getClickedBlock();
 		if(block == null || event.getPlayer().getGameMode() == GameMode.CREATIVE)
 			return;

@@ -20,6 +20,7 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import net.dezilla.dectf2.GameMain;
 import net.dezilla.dectf2.GamePlayer;
 import net.dezilla.dectf2.game.GameMatch;
+import net.dezilla.dectf2.game.GameMatch.GameState;
 import net.dezilla.dectf2.game.GameTeam;
 
 public abstract class BaseStructure implements Listener {
@@ -80,6 +81,8 @@ public abstract class BaseStructure implements Listener {
 		onTickTaskID = Bukkit.getScheduler().scheduleSyncRepeatingTask(GameMain.getInstance(), () -> {
 			onTick();
 			if(removeOnSpawnProtection && owner != null && owner.isSpawnProtected())
+				remove();
+			if(GameMatch.currentMatch != null && GameMatch.currentMatch.getGameState() != GameState.INGAME)
 				remove();
 		}, 1, 1);
 		Bukkit.getServer().getPluginManager().registerEvents(this, GameMain.getInstance());

@@ -21,6 +21,7 @@ import net.dezilla.dectf2.game.GameMatch;
 import net.dezilla.dectf2.game.GameTeam;
 import net.dezilla.dectf2.game.GameMatch.GameState;
 import net.dezilla.dectf2.util.GameConfig;
+import net.dezilla.dectf2.util.ObjectiveLocation;
 import net.dezilla.dectf2.util.RestrictArea;
 import net.md_5.bungee.api.ChatColor;
 
@@ -187,6 +188,20 @@ public class ZonesGame extends GameBase implements Listener{
 		}
 		if(!s.isEmpty())
 			list.add(s);
+		return list;
+	}
+
+	@Override
+	public boolean hasObjectiveLocations() {
+		return true;
+	}
+
+	@Override
+	public List<ObjectiveLocation> getObjectiveLocations() {
+		List<ObjectiveLocation> list = new ArrayList<ObjectiveLocation>();
+		for(Zone z : zones) {
+			list.add(new ObjectiveLocation(z.getLocation(), z.getName(), true));
+		}
 		return list;
 	}
 

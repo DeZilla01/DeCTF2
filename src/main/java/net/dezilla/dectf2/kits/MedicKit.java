@@ -5,9 +5,12 @@ import java.util.Date;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
+import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Snowball;
 import org.bukkit.event.EventHandler;
@@ -23,21 +26,24 @@ import org.bukkit.potion.PotionEffectType;
 
 import net.dezilla.dectf2.GameMain;
 import net.dezilla.dectf2.GamePlayer;
-import net.dezilla.dectf2.game.GameMatch;
-import net.dezilla.dectf2.game.GameTeam;
-import net.dezilla.dectf2.game.GameTimer;
+import net.dezilla.dectf2.Util;
+import net.dezilla.dectf2.structures.CannotBuildException;
+import net.dezilla.dectf2.structures.MedicWeb;
 import net.dezilla.dectf2.util.CustomDamageCause;
 import net.dezilla.dectf2.util.GameConfig;
 import net.dezilla.dectf2.util.ItemBuilder;
+import net.dezilla.dectf2.util.Minion;
 import net.dezilla.dectf2.util.ShieldUtil;
 
 public class MedicKit extends BaseKit{
 	private static int MEDIC_WEB_REGEN = 120;
 	private static int MEDIC_HP_REGEN = 120;
 	private static int MEDIC_WEB_AMOUNT = 8;
+	private static int MEDIC_RANGED_WEB_AMOUNT = 4;
 	private static int MEDIC_HEAL_COOLDOWN = 15; //in seconds
 	private static ItemStack webItem = ItemBuilder.of(Material.SNOWBALL).name("Medic Web").data("medicweb").get();
 	
+	private boolean ranged = false;
 	private int ticksWebRegen = MEDIC_WEB_REGEN;
 	private int ticksHpRegen = MEDIC_HP_REGEN;
 
@@ -54,11 +60,19 @@ public class MedicKit extends BaseKit{
 		inv.setLeggings(ItemBuilder.of(Material.GOLDEN_LEGGINGS).name("Medic Leggings").unbreakable().armorTrim(TrimPattern.SILENCE, color().getTrimMaterial()).get());
 		inv.setBoots(ItemBuilder.of(Material.GOLDEN_BOOTS).name("Medic Boots").unbreakable().armorTrim(TrimPattern.SILENCE, color().getTrimMaterial()).get());
 		
-		inv.setItem(0, ItemBuilder.of(Material.GOLDEN_SWORD).unbreakable().name("Medic Sword").get());
-		inv.setItem(1, ItemBuilder.of(GameConfig.foodMaterial).name("Steak").amount(6).get());
-		inv.setItem(2, ItemBuilder.of(webItem.clone()).amount(MEDIC_WEB_AMOUNT).get());
-		
-		inv.setItemInOffHand(ShieldUtil.getShield(player));
+		if(ranged) {
+			inv.setItem(0, ItemBuilder.of(Material.CROSSBOW).unbreakable().enchant(Enchantment.QUICK_CHARGE, 1).name("Medic Crossbow").get());
+			inv.setItem(1, ItemBuilder.of(Material.GOLDEN_SWORD).unbreakable().name("Medic Sword").data("heal_sword").get());
+			inv.setItem(2, ItemBuilder.of(GameConfig.foodMaterial).name("Steak").amount(3).get());
+			inv.setItem(3, ItemBuilder.of(webItem.clone()).amount(MEDIC_RANGED_WEB_AMOUNT).get());
+			inv.setItem(4, ItemBuilder.of(Material.ARROW).amount(64).get());
+		}
+		else {
+			inv.setItem(0, ItemBuilder.of(Material.GOLDEN_SWORD).unbreakable().name("Medic Sword").data("heal_sword").get());
+			inv.setItem(1, ItemBuilder.of(GameConfig.foodMaterial).name("Steak").amount(6).get());
+			inv.setItem(2, ItemBuilder.of(webItem.clone()).amount(MEDIC_WEB_AMOUNT).get());
+			inv.setItemInOffHand(ShieldUtil.getShield(player));
+		}
 	}
 	
 	@Override
@@ -71,7 +85,7 @@ public class MedicKit extends BaseKit{
 				amount += i.getAmount();
 			}
 		}
-		if(amount<MEDIC_WEB_AMOUNT) {
+		if((amount<MEDIC_WEB_AMOUNT && !ranged) || (ranged && amount<MEDIC_RANGED_WEB_AMOUNT)) {
 			if(ticksWebRegen<=0) {
 				player.getPlayer().getInventory().addItem(webItem.clone());
 				ticksWebRegen = MEDIC_WEB_REGEN;
@@ -106,17 +120,43 @@ public class MedicKit extends BaseKit{
 	}
 	
 	@EventHandler
+	public void onArrowHit(EntityDamageByEntityEvent event) {
+		if(!ranged || event.getDamager().getType() != EntityType.ARROW)
+			return;
+		GamePlayer p = Util.getOwner(event.getDamager());
+		if(p == null || !p.equals(player) || !(event.getEntity() instanceof LivingEntity))
+			return;
+		Minion m = Minion.get((LivingEntity) event.getEntity());
+		if(m != null) {
+			if(m.getTeam().equals(player.getTeam()))
+				m.heal(8);
+			return;
+		}
+		if(event.getEntity().getType() != EntityType.PLAYER)
+			return;
+		GamePlayer target = GamePlayer.get((Player) event.getEntity());
+		if(target.getTeam().equals(player.getTeam()))
+			Util.heal(target.getPlayer(), 8);
+	}
+	
+	@EventHandler
 	public void onHitOtherPlayer(EntityDamageByEntityEvent event) {
 		if(!(event.getDamager() instanceof Player) || !((Player)event.getDamager()).equals(player.getPlayer()))
 			return;
 		if(!(event.getEntity() instanceof Player))
 			return;
-		if(player.getPlayer().getInventory().getItemInMainHand() == null || player.getPlayer().getInventory().getItemInMainHand().getType() != Material.GOLDEN_SWORD)
+		if(player.getPlayer().getInventory().getItemInMainHand() == null || ItemBuilder.dataMatch(player.getPlayer().getInventory().getItemInMainHand(), "heal_sword"))
 			return;
 		GamePlayer target = GamePlayer.get((Player) event.getEntity());
 		if(target.getTeam() != null && player.getTeam() != null && target.getTeam().equals(player.getTeam())) {
 			Timestamp now = new Timestamp(new Date().getTime());
-			if(now.getTime() - target.getLastHeal().getTime() >= MEDIC_HEAL_COOLDOWN*1000) {
+			if(target.isFullHp()) {
+				if(Util.regenPlayer(target))
+					player.getPlayer().playSound(player.getPlayer(), Sound.ENTITY_SLIME_HURT_SMALL, 1, 1);
+				else
+					player.notify(target.getName()+"'s inventory cannot be regenerated yet");
+			}
+			else if(now.getTime() - target.getLastHeal().getTime() >= MEDIC_HEAL_COOLDOWN*1000) {
 				target.setCustomDamageCause(CustomDamageCause.MEDIC_HEAL);
 				target.getPlayer().damage(0);
 				target.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 40, 4));
@@ -138,29 +178,9 @@ public class MedicKit extends BaseKit{
 				Block b = event.getEntity().getLocation().getBlock();
 				if(event.getHitBlock() != null)
 					b = event.getHitBlock().getRelative(event.getHitBlockFace());
-				Material m = b.getType();
-				//prevent placing web on spawn block
-				if(GameMatch.currentMatch != null) {
-					for(GameTeam t : GameMatch.currentMatch.getTeams()) {
-						if(b.getRelative(BlockFace.DOWN).getType() == t.getSpawnMaterial())
-							return;
-					}
-				}
-				//prevent placing web on fire or ladders
-				if(m == Material.FIRE || m == Material.LADDER)
-					return;
-				//prevent web being placed where web already exists
-				if(b.getType() == Material.COBWEB)
-					return;
-				
-				b.setType(Material.COBWEB);
-				GameTimer t = new GameTimer(2);
-				t.unpause();
-				final Block B = b;
-				t.onEnd((timer) -> {
-					B.setType(m);
-					timer.unregister();
-				});
+				try {
+					new MedicWeb(player, b.getLocation());
+				} catch(CannotBuildException e) {}
 			}
 		}
 	}
@@ -178,18 +198,48 @@ public class MedicKit extends BaseKit{
 	}
 	@Override
 	public String getVariation() {
+		if(ranged)
+			return "Ranged";
 		return "Default";
+	}
+	
+	@Override
+	public void setVariation(String variation) {
+		if(variation.equalsIgnoreCase("ranged"))
+			ranged = true;
 	}
 
 	@Override
 	public ItemStack getIcon() {
 		return new ItemStack(Material.GOLDEN_SWORD);
 	}
+	
+	@Override
+	public ItemStack getIcon(String variation) {
+		if(variation.equalsIgnoreCase("ranged"))
+			return new ItemStack(Material.CROSSBOW);
+		return getIcon();
+	}
 
 	@Override
 	public String[] getVariations() {
-		String[] variations = {"default"};
+		String[] variations = {"default", "ranged"};
 		return variations;
+	}
+	
+	@Override
+	public ItemStack[] getFancyDisplay() {
+		return new ItemStack[] {
+				new ItemStack(Material.DIAMOND_SWORD),
+				new ItemStack(Material.DIAMOND_CHESTPLATE),
+				new ItemStack(Material.DIAMOND_LEGGINGS),
+				new ItemStack(GameConfig.foodMaterial),
+				new ItemStack(Material.GOLDEN_SWORD),
+				new ItemStack(GameConfig.foodMaterial),
+				new ItemStack(Material.DIAMOND_LEGGINGS),
+				new ItemStack(Material.DIAMOND_CHESTPLATE),
+				new ItemStack(Material.DIAMOND_SWORD)
+		};
 	}
 
 }

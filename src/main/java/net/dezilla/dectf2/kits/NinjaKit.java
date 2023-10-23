@@ -25,6 +25,7 @@ import net.dezilla.dectf2.GameMain;
 import net.dezilla.dectf2.GamePlayer;
 import net.dezilla.dectf2.Util;
 import net.dezilla.dectf2.util.CustomDamageCause;
+import net.dezilla.dectf2.util.GameConfig;
 import net.dezilla.dectf2.util.ItemBuilder;
 import net.dezilla.dectf2.util.ShieldUtil;
 
@@ -289,6 +290,20 @@ public class NinjaKit extends BaseKit{
 		String[] variations = {"default", "classic"};
 		return variations;
 	}
-
+	
+	@Override
+	public ItemStack[] getFancyDisplay() {
+		return new ItemStack[] {
+				new ItemStack(Material.DIAMOND_SWORD),
+				new ItemStack(Material.DIAMOND_CHESTPLATE),
+				new ItemStack(Material.DIAMOND_LEGGINGS),
+				new ItemStack(Material.DIAMOND_HELMET),
+				new ItemStack(GameConfig.foodMaterial),
+				new ItemStack(Material.DIAMOND_BOOTS),
+				new ItemStack(Material.DIAMOND_LEGGINGS),
+				new ItemStack(Material.DIAMOND_CHESTPLATE),
+				new ItemStack(Material.DIAMOND_SWORD)
+		};
+	}
 
 }

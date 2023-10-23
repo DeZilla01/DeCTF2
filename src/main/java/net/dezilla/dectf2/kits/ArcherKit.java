@@ -42,9 +42,9 @@ public class ArcherKit extends BaseKit{
 			inv.setItemInOffHand(ItemBuilder.of(Material.BOW).name("Archer Bow").enchant(Enchantment.ARROW_KNOCKBACK, 1).unbreakable().get());
 		if(arbalist) {
 			inv.setItem(0, ItemBuilder.of(Material.STONE_SWORD).name("Archer Sword").enchant(Enchantment.DAMAGE_ALL, 1).unbreakable().get());
-			inv.setItem(2, ItemBuilder.of(Material.CROSSBOW).name("Archer Crossbow").enchant(Enchantment.ARROW_DAMAGE, 1).unbreakable().get());
-			inv.setItem(3, ItemBuilder.of(Material.CROSSBOW).name("Archer Crossbow").enchant(Enchantment.ARROW_DAMAGE, 1).unbreakable().get());
-			inv.setItem(4, ItemBuilder.of(Material.CROSSBOW).name("Archer Crossbow").enchant(Enchantment.ARROW_DAMAGE, 1).unbreakable().get());
+			inv.setItem(2, ItemBuilder.of(Material.CROSSBOW).name("Archer Crossbow").enchant(Enchantment.ARROW_DAMAGE, 1).enchant(Enchantment.QUICK_CHARGE, 0).unbreakable().get());
+			inv.setItem(3, ItemBuilder.of(Material.CROSSBOW).name("Archer Crossbow").enchant(Enchantment.ARROW_DAMAGE, 1).enchant(Enchantment.QUICK_CHARGE, 0).unbreakable().get());
+			inv.setItem(4, ItemBuilder.of(Material.CROSSBOW).name("Archer Crossbow").enchant(Enchantment.ARROW_DAMAGE, 1).enchant(Enchantment.QUICK_CHARGE, 0).unbreakable().get());
 		}
 		else
 			inv.setItem(0, ItemBuilder.of(Material.STONE_SWORD).name("Archer Sword").unbreakable().get());
@@ -103,6 +103,21 @@ public class ArcherKit extends BaseKit{
 	public String[] getVariations() {
 		String[] variations = {"default", "crossbow", "arbalist"};
 		return variations;
+	}
+
+	@Override
+	public ItemStack[] getFancyDisplay() {
+		return new ItemStack[] {
+				new ItemStack(Material.BOW),
+				new ItemStack(Material.CROSSBOW),
+				new ItemStack(Material.STONE_SWORD),
+				new ItemStack(Material.ARROW),
+				new ItemStack(Material.ARROW),
+				new ItemStack(Material.ARROW),
+				new ItemStack(Material.STONE_SWORD),
+				new ItemStack(Material.CROSSBOW),
+				new ItemStack(Material.BOW)
+		};
 	}
 
 }

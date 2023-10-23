@@ -46,6 +46,10 @@ public class Turret extends BaseStructure{
 		previousMaterial.add(b.getType());
 		b.setType(Material.OAK_FENCE);
 		blocks.add(b);
+		Block under = b.getRelative(BlockFace.DOWN);
+		previousMaterial.add(under.getType());
+		blocks.add(under);
+		under.setType(owner.getTeam().getColor().wool());
 		display = (ArmorStand) location.getWorld().spawnEntity(b.getLocation().add(.5,1.3,.5), EntityType.ARMOR_STAND);
 		display.setMarker(true);
 		display.setGravity(false);
@@ -80,9 +84,11 @@ public class Turret extends BaseStructure{
 		event.setCancelled(true);
 		GamePlayer gp = Util.getOwner(event.getDamager());
 		if(gp != null && owner != null) {
-			if(owner.getTeam().equals(gp.getTeam()))
+			if(owner.getTeam().equals(gp.getTeam()) && !owner.equals(gp))
 				return;
 		}
+		if(owner.equals(gp))
+			event.setDamage(999);
 		if(health - event.getDamage() <= 0) {
 			remove();
 			return;

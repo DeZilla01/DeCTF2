@@ -143,6 +143,14 @@ public class GuiPage {
 		}
 	}
 	
+	public void setAmountOfRows(int amount) {
+		while(rows.size()<amount) {
+			GuiItem[] is = new GuiItem[9];
+			rows.add(is);
+		}
+		size = amount;
+	}
+	
 	public void centerRow(int row) {
 		List<GuiItem> items = new ArrayList<GuiItem>();
 		for(GuiItem i : rows.get(row)) {

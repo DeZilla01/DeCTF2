@@ -17,6 +17,7 @@ import org.bukkit.block.data.BlockData;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.AreaEffectCloud;
 import org.bukkit.entity.Arrow;
+import org.bukkit.entity.DragonFireball;
 import org.bukkit.entity.EnderPearl;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -49,6 +50,7 @@ import net.dezilla.dectf2.GamePlayer;
 import net.dezilla.dectf2.Util;
 import net.dezilla.dectf2.game.GameTimer;
 import net.dezilla.dectf2.util.CustomDamageCause;
+import net.dezilla.dectf2.util.GameConfig;
 import net.dezilla.dectf2.util.ItemBuilder;
 import net.dezilla.dectf2.util.Minion;
 import net.md_5.bungee.api.ChatColor;
@@ -106,6 +108,8 @@ public class MageKit extends BaseKit{
 		super.setInventory();
 		PlayerInventory inv = player.getPlayer().getInventory();
 		Color armorColor = (dark ? Color.PURPLE : mystic ? Color.fromRGB(191, 255, 220) : Color.fromRGB(204, 102, 255));
+		if(dragon)
+			armorColor = Color.BLACK;
 		inv.setChestplate(ItemBuilder.of(Material.LEATHER_CHESTPLATE).unbreakable().leatherColor(armorColor).armorTrim(TrimPattern.VEX, color().getTrimMaterial()).enchant(Enchantment.PROTECTION_ENVIRONMENTAL, 1).get());
 		inv.setLeggings(ItemBuilder.of(Material.LEATHER_LEGGINGS).unbreakable().leatherColor(armorColor).armorTrim(TrimPattern.VEX, color().getTrimMaterial()).enchant(Enchantment.PROTECTION_ENVIRONMENTAL, 1).get());
 		inv.setBoots(ItemBuilder.of(Material.LEATHER_BOOTS).unbreakable().leatherColor(armorColor).armorTrim(TrimPattern.VEX, color().getTrimMaterial()).enchant(Enchantment.PROTECTION_ENVIRONMENTAL, 1).get());
@@ -121,6 +125,9 @@ public class MageKit extends BaseKit{
 			inv.setItem(3, ItemBuilder.of(Material.NETHERITE_HOE).data("thorn_spell").name("Thorns Spell").unbreakable().get());
 			inv.setItem(2, ItemBuilder.of(Material.GOLDEN_HOE).data("cure_spell").name("Cure Spell").unbreakable().get());
 		} else if(dragon) {
+			inv.setItem(0, ItemBuilder.of(Material.IRON_NUGGET).data("dragon_fireball_spell").name("Dragon Fireball Spell").unbreakable().get());
+			inv.setItem(1, ItemBuilder.of(Material.IRON_NUGGET).data("dragon_breath_spell").name("Dragon Breath Spell").unbreakable().get());
+			inv.setItem(2, ItemBuilder.of(Material.IRON_NUGGET).data("heal_crystal_spell").name("Heal Crystal Spell").unbreakable().get());
 			//dragon fireball
 			//dragon breath
 			//crystal heal
@@ -350,6 +357,9 @@ public class MageKit extends BaseKit{
 			witherSword = true;
 			updateWitherSword();
 		}
+		else if(ItemBuilder.dataMatch(event.getItem(), "dragon_fireball_spell")) {
+			player.getPlayer().launchProjectile(DragonFireball.class, Util.inFront(player.getPlayer(), 1));
+		}
 	}
 	
 	@EventHandler
@@ -389,7 +399,7 @@ public class MageKit extends BaseKit{
 				pl.setCustomDamageCause(CustomDamageCause.MAGE_SHULKER);
 				pl.setLastAttacker(player);
 				pl.getPlayer().damage(SHULKER_DMG, player.getPlayer());
-				pl.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.LEVITATION, 5, 0));
+				pl.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.LEVITATION, 15, 0));
 			}
 		}
 		if(event.getEntityType() == EntityType.SNOWBALL) {
@@ -736,6 +746,8 @@ public class MageKit extends BaseKit{
 			return "Dark";
 		if(mystic)
 			return "Mystic";
+		if(dragon)
+			return "Dragon";
 		return "Default";
 	}
 
@@ -750,12 +762,29 @@ public class MageKit extends BaseKit{
 			dark = true;
 		if(variation.equalsIgnoreCase("mystic"))
 			mystic = true;
+		if(variation.equalsIgnoreCase("dragon"))
+			dragon = true;
 	}
 
 	@Override
 	public String[] getVariations() {
 		String[] variations = {"default", "dark", "mystic"};
 		return variations;
+	}
+	
+	@Override
+	public ItemStack[] getFancyDisplay() {
+		return new ItemStack[] {
+				new ItemStack(Material.DIAMOND_SWORD),
+				new ItemStack(Material.DIAMOND_CHESTPLATE),
+				new ItemStack(Material.DIAMOND_LEGGINGS),
+				new ItemStack(Material.DIAMOND_HELMET),
+				new ItemStack(GameConfig.foodMaterial),
+				new ItemStack(Material.DIAMOND_BOOTS),
+				new ItemStack(Material.DIAMOND_LEGGINGS),
+				new ItemStack(Material.DIAMOND_CHESTPLATE),
+				new ItemStack(Material.DIAMOND_SWORD)
+		};
 	}
 
 }

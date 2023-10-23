@@ -19,7 +19,9 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerDropItemEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.util.BlockIterator;
 
 import com.google.common.collect.Sets;
@@ -32,10 +34,37 @@ import net.dezilla.dectf2.game.GameTeam;
 import net.dezilla.dectf2.game.GameTimer;
 import net.dezilla.dectf2.util.GameColor;
 import net.dezilla.dectf2.util.GameConfig;
+import net.dezilla.dectf2.util.ItemBuilder;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 
 public class CalloutListener implements Listener{
+	
+	@EventHandler
+	public void onItemUse(PlayerInteractEvent event) {
+		if(!ItemBuilder.dataMatch(event.getItem(), "pointer"))
+			return;
+		if(event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK)
+			return;
+		GamePlayer p = GamePlayer.get(event.getPlayer());
+		Block b = p.getPlayer().getTargetBlock(Sets.newHashSet(Material.AIR), (int) (GameConfig.calloutRadius-1));
+		if(b.getType() == Material.AIR) {
+			p.setLastItemDrop(null);
+			return;
+		}
+		BlockFace f = getTargetFace(p.getPlayer(), b);
+		Location l = b.getLocation();
+		switch(f) {
+			case EAST: l.add(1,.5,.5);break;
+			case WEST: l.add(0,.5,.5);break;
+			case NORTH: l.add(.5,.5,0);break;
+			case SOUTH: l.add(.5,.5,1);break;
+			case DOWN: l.add(.5,0,.5);break;
+			case UP: l.add(.5,1,.5);break;
+			default:{}
+		}
+		playCallout(p, l);
+	}
 	
 	@EventHandler
 	public void onItemDrop(PlayerDropItemEvent event) {

@@ -35,6 +35,7 @@ import net.dezilla.dectf2.kits.BaseKit;
 import net.dezilla.dectf2.kits.HeavyKit;
 import net.dezilla.dectf2.kits.PyroKit;
 import net.dezilla.dectf2.util.CustomDamageCause;
+import net.dezilla.dectf2.util.ObjectiveLocation;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -79,6 +80,7 @@ public class GamePlayer {
 	private boolean fireImmunity = false; //used for pyro 
 	private int inversionTicks = 0;
 	List<InvertPosition> moveHistory = new ArrayList<InvertPosition>();
+	private int objectiveIndex = 0;
 	
 	private GamePlayer(Player player) {
 		this.player = player;
@@ -111,6 +113,32 @@ public class GamePlayer {
 			if(moveHistory.size()>300)
 				moveHistory.remove(0);
 		}
+		GameMatch match = GameMatch.currentMatch;
+		if(match != null && match.getGame().hasObjectiveLocations()) {
+			List<ObjectiveLocation> locs = match.getGame().getObjectiveLocations();
+			if(locs.size()<=objectiveIndex)
+				objectiveIndex = 0;
+			if(!locs.isEmpty()) {
+				player.setCompassTarget(locs.get(objectiveIndex).getLocation());
+			}
+		}
+	}
+	
+	public void toggleObjectiveLocation() {
+		objectiveIndex++;
+	}
+	
+	public String getObjectiveLocationName() {
+		GameMatch match = GameMatch.currentMatch;
+		if(match != null && match.getGame().hasObjectiveLocations()) {
+			List<ObjectiveLocation> locs = match.getGame().getObjectiveLocations();
+			if(locs.size()<=objectiveIndex)
+				objectiveIndex = 0;
+			if(!locs.isEmpty()) {
+				return locs.get(objectiveIndex).getName();
+			}
+		}
+		return null;
 	}
 	
 	public Player getPlayer() {
@@ -219,6 +247,10 @@ public class GamePlayer {
 	
 	public boolean isSpawnProtected() {
 		return spawnProtection;
+	}
+	
+	public boolean isFullHp() {
+		return player.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue() == player.getHealth();
 	}
 	
 	public String getName() {
