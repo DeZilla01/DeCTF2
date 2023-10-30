@@ -16,6 +16,7 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ArmorMeta;
 import org.bukkit.inventory.meta.BlockStateMeta;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -98,6 +99,8 @@ public abstract class BaseKit implements Listener{
 	
 	public void setInventory() {
 		register();
+		player.getPlayer().getInventory().clear();
+		player.getPlayer().setItemOnCursor(null);
 		setAttributes();
 		setEffects();
 		setLevel();
@@ -157,6 +160,22 @@ public abstract class BaseKit implements Listener{
 					i.setItemMeta(b);
 				}
 			}
+		}
+	}
+	
+	protected void addToolItems() {
+		PlayerInventory inv = player.getPlayer().getInventory();
+		if(player.useTracker() && GameMatch.currentMatch != null && GameMatch.currentMatch.getGame().hasObjectiveLocations()) {
+			inv.addItem(ItemBuilder.of(Material.COMPASS).name("Poiting to "+player.getObjectiveLocationName()).data("objective_tracker").get());
+		}
+		if(player.usePointer()) {
+			inv.addItem(ItemBuilder.of(Material.GOLDEN_CARROT).name("Pointer").data("pointer").get());
+		}
+		if(player.useSpyglass()) {
+			inv.addItem(ItemBuilder.of(Material.SPYGLASS).name("Spyglass").get());
+		}
+		if(player.useKitSelector()) {
+			inv.addItem(ItemBuilder.of(Material.NETHER_STAR).name("Kit Selector").data("kit_selector").get());
 		}
 	}
 	

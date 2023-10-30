@@ -18,6 +18,8 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import net.dezilla.dectf2.GamePlayer;
 import net.dezilla.dectf2.game.GameCallout;
 import net.dezilla.dectf2.game.GameMatch;
+import net.md_5.bungee.api.ChatMessageType;
+import net.md_5.bungee.api.chat.TextComponent;
 
 public class Entrance extends BaseStructure{
 	static int TELEPORTING_DELAY = 60;
@@ -57,17 +59,17 @@ public class Entrance extends BaseStructure{
 		for(Entry<GamePlayer, Integer> e : delays.entrySet()) {
 			if(!e.getKey().getLocation().getBlock().equals(plate)) {
 				toRemove.add(e.getKey());
-				e.getKey().notify("Teleportation cancelled");
+				e.getKey().getPlayer().spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText("Teleportation cancelled"));
 				continue;
 			}
 			delays.put(e.getKey(), e.getValue()-1);
 			if(e.getValue() <= 0) {
 				exit.teleport(e.getKey().getPlayer());
 				toRemove.add(e.getKey());
-				e.getKey().notify("");
+				e.getKey().getPlayer().spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(""));
 			} else {
 				int i = (e.getValue()/20)+1;
-				e.getKey().notify("Teleporting in "+i+" second(s)");
+				e.getKey().getPlayer().spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText("Teleporting in "+i+" second(s)"));
 			}
 		}
 		for(GamePlayer gp : toRemove) {
@@ -94,12 +96,11 @@ public class Entrance extends BaseStructure{
 	
 	private void placeBlocks() {
 		Block b = location.getBlock().getRelative(BlockFace.DOWN);
-		previousMaterial.add(b.getType());
-		b.setType(owner.getTeam().getColor().wool());
-		blocks.add(b);
 		plate = b.getRelative(BlockFace.UP);
+		addBlock(plate);
+		addBlock(b);
+		b.setType(owner.getTeam().getColor().wool());
 		plate.setType(Material.HEAVY_WEIGHTED_PRESSURE_PLATE);
-		blocks.add(plate);
 		display = (ArmorStand) location.getWorld().spawnEntity(plate.getLocation().add(.5,.1,.5), EntityType.ARMOR_STAND);
 		display.setVisible(false);
 		display.setMarker(true);

@@ -43,12 +43,10 @@ public class Turret extends BaseStructure{
 	
 	private void placeBlocks() {
 		Block b = location.getBlock();
-		previousMaterial.add(b.getType());
+		addBlock(b);
 		b.setType(Material.OAK_FENCE);
-		blocks.add(b);
 		Block under = b.getRelative(BlockFace.DOWN);
-		previousMaterial.add(under.getType());
-		blocks.add(under);
+		addBlock(under);
 		under.setType(owner.getTeam().getColor().wool());
 		display = (ArmorStand) location.getWorld().spawnEntity(b.getLocation().add(.5,1.3,.5), EntityType.ARMOR_STAND);
 		display.setMarker(true);

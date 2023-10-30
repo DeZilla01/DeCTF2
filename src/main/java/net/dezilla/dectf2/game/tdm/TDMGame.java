@@ -5,9 +5,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.PlayerDeathEvent;
 
 import net.dezilla.dectf2.GamePlayer;
+import net.dezilla.dectf2.Util;
 import net.dezilla.dectf2.game.GameBase;
 import net.dezilla.dectf2.game.GameMatch;
 import net.dezilla.dectf2.game.GameTeam;
@@ -58,6 +62,25 @@ public class TDMGame extends GameBase implements Listener{
 	@Override
 	public int getDefaultScoreToWin() {
 		return 150;
+	}
+	
+	@EventHandler(ignoreCancelled=true)
+	public void onDamageEntity(EntityDamageByEntityEvent event) {
+		GamePlayer damager = Util.getOwner(event.getDamager());
+		if(damager == null)
+			return;
+		if(!dmgScore.containsKey(damager.getTeam()))
+			dmgScore.put(damager.getTeam(), 0.0);
+		dmgScore.put(damager.getTeam(), dmgScore.get(damager.getTeam())+event.getFinalDamage());
+	}
+	
+	@EventHandler
+	public void onDeath(PlayerDeathEvent event) {
+		GamePlayer victim = GamePlayer.get(event.getEntity());
+		GamePlayer killer = victim.getLastAttacker();
+		if(killer == null)
+			return;
+		killer.getTeam().incrementScore(1);
 	}
 
 	@Override

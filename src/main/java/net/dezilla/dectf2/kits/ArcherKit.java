@@ -42,9 +42,9 @@ public class ArcherKit extends BaseKit{
 			inv.setItemInOffHand(ItemBuilder.of(Material.BOW).name("Archer Bow").enchant(Enchantment.ARROW_KNOCKBACK, 1).unbreakable().get());
 		if(arbalist) {
 			inv.setItem(0, ItemBuilder.of(Material.STONE_SWORD).name("Archer Sword").enchant(Enchantment.DAMAGE_ALL, 1).unbreakable().get());
-			inv.setItem(2, ItemBuilder.of(Material.CROSSBOW).name("Archer Crossbow").enchant(Enchantment.ARROW_DAMAGE, 1).enchant(Enchantment.QUICK_CHARGE, 0).unbreakable().get());
-			inv.setItem(3, ItemBuilder.of(Material.CROSSBOW).name("Archer Crossbow").enchant(Enchantment.ARROW_DAMAGE, 1).enchant(Enchantment.QUICK_CHARGE, 0).unbreakable().get());
-			inv.setItem(4, ItemBuilder.of(Material.CROSSBOW).name("Archer Crossbow").enchant(Enchantment.ARROW_DAMAGE, 1).enchant(Enchantment.QUICK_CHARGE, 0).unbreakable().get());
+			inv.setItem(2, ItemBuilder.of(Material.CROSSBOW).name("Archer Crossbow").enchant(Enchantment.ARROW_DAMAGE, 1).enchant(Enchantment.QUICK_CHARGE, 1).unbreakable().get());
+			inv.setItem(3, ItemBuilder.of(Material.CROSSBOW).name("Archer Crossbow").enchant(Enchantment.ARROW_DAMAGE, 1).enchant(Enchantment.QUICK_CHARGE, 1).unbreakable().get());
+			inv.setItem(4, ItemBuilder.of(Material.CROSSBOW).name("Archer Crossbow").enchant(Enchantment.ARROW_DAMAGE, 1).enchant(Enchantment.QUICK_CHARGE, 1).unbreakable().get());
 		}
 		else
 			inv.setItem(0, ItemBuilder.of(Material.STONE_SWORD).name("Archer Sword").unbreakable().get());
@@ -54,6 +54,7 @@ public class ArcherKit extends BaseKit{
 			inv.addItem(ItemBuilder.of(GameConfig.foodMaterial).name("Steak").amount(4).get());
 		else
 			inv.addItem(ItemBuilder.of(GameConfig.foodMaterial).name("Steak").amount(3).get());
+		addToolItems();
 	}
 	
 	@EventHandler

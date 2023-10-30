@@ -34,7 +34,7 @@ public class ChemistKit extends BaseKit{
 				.potionEffect(PotionEffectType.SPEED, 3600, 0).name("Buff Pot").potionColor(PotionEffectType.INCREASE_DAMAGE.getColor()).amount(5).get());
 		inv.setItem(5, ItemBuilder.of(Material.SPLASH_POTION).potionEffect(PotionEffectType.HEAL, 0, 2).name("Instant Health III").potionColor(PotionEffectType.HEAL.getColor()).amount(5).get());
 		inv.setItem(6, ItemBuilder.of(Material.SPLASH_POTION).potionEffect(PotionEffectType.REGENERATION, 320, 2).potionColor(PotionEffectType.REGENERATION.getColor()).name("Regeneration III").amount(5).get());
-		
+		addToolItems();
 	}
 
 	@Override

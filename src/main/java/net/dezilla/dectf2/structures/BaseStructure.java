@@ -8,6 +8,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
 import org.bukkit.event.EventHandler;
@@ -60,6 +61,7 @@ public abstract class BaseStructure implements Listener {
 	Location location;
 	List<Block> blocks = new ArrayList<Block>();
 	List<Material> previousMaterial = new ArrayList<Material>();
+	List<BlockData> previousData = new ArrayList<BlockData>();
 	List<Entity> entities = new ArrayList<Entity>();
 	boolean dead = true;
 	int onTickTaskID = 0;
@@ -76,8 +78,15 @@ public abstract class BaseStructure implements Listener {
 			throw new CannotBuildException("Ye can't place shit on spawn u dumdum");
 		if(!structureCheck(location.getBlock()))
 			throw new CannotBuildException("Ye can't build on another structure u idiot");
-		if(!canPlace(location))
+		if(!canPlace(location)) {
+			GameMatch match = GameMatch.currentMatch;
+			if(match != null) {
+				String s = match.getRestrictionReason(location);
+				if(s != null)
+					throw new CannotBuildException(s);
+			}
 			throw new CannotBuildException("Ye can't place fucking shit here mate");
+		}
 		onTickTaskID = Bukkit.getScheduler().scheduleSyncRepeatingTask(GameMain.getInstance(), () -> {
 			onTick();
 			if(removeOnSpawnProtection && owner != null && owner.isSpawnProtected())
@@ -103,6 +112,12 @@ public abstract class BaseStructure implements Listener {
 	
 	public GamePlayer getOwner() {
 		return owner;
+	}
+	
+	protected void addBlock(Block block) {
+		previousMaterial.add(block.getType());
+		previousData.add(block.getBlockData());
+		blocks.add(block);
 	}
 	
 	public boolean minionCanAttack(ArmorStand entity) {
@@ -155,6 +170,8 @@ public abstract class BaseStructure implements Listener {
 				b.setType(previousMaterial.get(blocks.indexOf(b)));
 			else
 				b.setType(Material.AIR);
+			if(previousData.size() >blocks.indexOf(b))
+				b.setBlockData(previousData.get(blocks.indexOf(b)));
 		}
 		dead = true;
 		if(STRUCTURES.contains(this))

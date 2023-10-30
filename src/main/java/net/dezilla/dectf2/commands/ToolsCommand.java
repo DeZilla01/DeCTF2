@@ -6,19 +6,21 @@ import org.bukkit.entity.Player;
 
 import net.dezilla.dectf2.gui.ToolGui;
 
-public class TestCommand extends Command{
-	//This command is for testing shit during development.
-	public TestCommand() {
-		super("test");
-		setPermission("dectf2.command.test");
+public class ToolsCommand extends Command{
+	public ToolsCommand() {
+		super("tools");
+		setPermission("dectf2.command.tools");
+		setDescription("Select tools to add in inventory");
 	}
 
 	@Override
 	public boolean execute(CommandSender sender, String commandLabel, String[] args) {
-		sender.sendMessage("don't fuck with my test command >=(");
+		if(!(sender instanceof Player)) {
+			sender.sendMessage("You must be a player to use this command.");
+			return false;
+		}
 		Player p = (Player) sender;
 		new ToolGui(p).display();
-		
 		return true;
 	}
 }

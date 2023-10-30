@@ -27,6 +27,7 @@ import org.bukkit.block.data.Rotatable;
 import org.bukkit.block.sign.Side;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 
 import net.dezilla.dectf2.GameMain;
 import net.dezilla.dectf2.GamePlayer;
@@ -40,6 +41,7 @@ import net.dezilla.dectf2.game.zc.ZonesGame;
 import net.dezilla.dectf2.gui.MapVoteGui;
 import net.dezilla.dectf2.util.GameColor;
 import net.dezilla.dectf2.util.GameConfig;
+import net.dezilla.dectf2.util.ItemBuilder;
 import net.dezilla.dectf2.util.MapPreview;
 import net.dezilla.dectf2.util.RestrictArea;
 
@@ -79,8 +81,6 @@ public class GameMatch {
 	private GameMapVote mapVote = null;
 	private List<GameCallout> callouts = new ArrayList<GameCallout>();
 	private ItemStack mapIcon = new ItemStack(Material.PAPER);
-	//private List<Block> restrictedBlocks = new ArrayList<Block>();//used to prevent structures
-	//private List<BlockLoc> restrictedBlockz = new ArrayList<BlockLoc>();
 	private List<RestrictArea> restrictedAreas = new ArrayList<RestrictArea>();
 	
 	public GameMatch(String levelName) throws FileNotFoundException {
@@ -283,7 +283,7 @@ public class GameMatch {
 	//When joining the server or switching match
 	public void addPlayer(GamePlayer player) {
 		boolean addedToPreviousTeam = false;
-		if(previousMatch != null && previousMatch.getTeam(player) != null) {
+		if(previousMatch != null && previousMatch.getTeam(player) != null && previousMatch.getTeamAmount() == this.getTeamAmount()) {
 			addedToPreviousTeam = addPlayerToTeam(player, previousMatch.getTeam(player).getId());
 		} 
 		if(!addedToPreviousTeam)
@@ -321,11 +321,29 @@ public class GameMatch {
 		player.getPlayer().getInventory().clear();
 		GameTeam team = getTeam(player);
 		if(state != GameState.INGAME || team == null) {
+			if(state == GameState.PREGAME)
+				setPregameInventory(player);
+			else if(state == GameState.POSTGAME)
+				setPostgameInventory(player);
 			player.getPlayer().teleport(spawn);
 		} else {
 			player.getKit().setInventory();
 			player.getPlayer().teleport(team.getSpawn());
 		}
+	}
+	
+	private void setPregameInventory(GamePlayer player) {
+		PlayerInventory inv = player.getPlayer().getInventory();
+		inv.setItem(4, ItemBuilder.of(Material.NETHER_STAR).name("Kit Selector").data("kit_selector").get());
+		inv.setItem(3, ItemBuilder.of(player.getTeam().getColor().wool()).name("Switch Team").data("switch_team").get());
+		inv.setItem(5, ItemBuilder.of(Material.CLOCK).name("Tools").data("tool_select").get());
+		inv.setHeldItemSlot(4);
+	}
+	
+	private void setPostgameInventory(GamePlayer player) {
+		PlayerInventory inv = player.getPlayer().getInventory();
+		inv.setItem(4, ItemBuilder.of(Material.EMERALD).name("Vote for the next map").data("map_vote").get());
+		inv.setHeldItemSlot(4);
 	}
 	
 	private void parseSigns() {

@@ -23,26 +23,24 @@ public class MobSpawner extends BaseStructure{
 	
 	private void placeBlocks() {
 		Block b = location.getBlock();
-		previousMaterial.add(b.getType());
+		addBlock(b);
 		b.setType(Material.NETHER_BRICK_FENCE);
-		blocks.add(b);
 		Block under = b.getRelative(BlockFace.DOWN);
-		previousMaterial.add(under.getType());
+		addBlock(under);
 		under.setType(owner.getTeam().getColor().wool());
-		blocks.add(under);
 		Block s = b.getRelative(BlockFace.UP);
-		previousMaterial.add(s.getType());
+		addBlock(s);
 		s.setType(Material.SPAWNER);
-		blocks.add(s);
 		spawner = (CreatureSpawner) s.getState();
 		spawner.setSpawnedType(EntityType.ZOMBIE);
 		spawner.setSpawnCount(0);
+		spawner.update();
+		dead = false;
 	}
 
 	@Override
 	public boolean canPlace(Location location) {
-		// TODO Auto-generated method stub
-		return false;
+		return true;
 	}
 
 }

@@ -27,6 +27,8 @@ import org.bukkit.potion.PotionEffectType;
 import net.dezilla.dectf2.GameMain;
 import net.dezilla.dectf2.GamePlayer;
 import net.dezilla.dectf2.Util;
+import net.dezilla.dectf2.game.GameMatch;
+import net.dezilla.dectf2.game.GameMatch.GameState;
 import net.dezilla.dectf2.structures.CannotBuildException;
 import net.dezilla.dectf2.structures.MedicWeb;
 import net.dezilla.dectf2.util.CustomDamageCause;
@@ -73,10 +75,13 @@ public class MedicKit extends BaseKit{
 			inv.setItem(2, ItemBuilder.of(webItem.clone()).amount(MEDIC_WEB_AMOUNT).get());
 			inv.setItemInOffHand(ShieldUtil.getShield(player));
 		}
+		addToolItems();
 	}
 	
 	@Override
 	public void onTick() {
+		if(GameMatch.currentMatch == null || GameMatch.currentMatch.getGameState() != GameState.INGAME)
+			return;
 		int amount = 0;
 		for(ItemStack i : player.getPlayer().getInventory().getContents()) {
 			if(i == null || i.getType() == Material.AIR)
@@ -188,8 +193,8 @@ public class MedicKit extends BaseKit{
 	@Override
 	public void setEffects() {
 		super.setEffects();
-		player.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, PotionEffect.INFINITE_DURATION, 1));
-		player.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.WATER_BREATHING, PotionEffect.INFINITE_DURATION, 1));
+		player.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.FIRE_RESISTANCE, PotionEffect.INFINITE_DURATION, 0));
+		player.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.WATER_BREATHING, PotionEffect.INFINITE_DURATION, 0));
 	}
 
 	@Override

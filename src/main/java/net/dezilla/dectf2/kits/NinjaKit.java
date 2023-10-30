@@ -62,6 +62,7 @@ public class NinjaKit extends BaseKit{
 			inv.setItem(1, ItemBuilder.of(Material.EGG).name("Flash Bomb").data("flash_bomb").get());
 			inv.setItem(2, ItemBuilder.of(Material.REDSTONE).name("Red Cocaine").get());
 		}
+		addToolItems();
 		invisMana = 1;
 	}
 	

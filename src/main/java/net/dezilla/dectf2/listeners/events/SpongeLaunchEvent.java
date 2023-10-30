@@ -1,4 +1,4 @@
-package net.dezilla.dectf2.listeners;
+package net.dezilla.dectf2.listeners.events;
 
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
@@ -7,8 +7,9 @@ import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.util.Vector;
 
 public class SpongeLaunchEvent extends PlayerEvent implements Cancellable{
+	private static final HandlerList hlist = new HandlerList();
+	
 	private boolean cancelled = false;
-	private HandlerList hlist = new HandlerList();
 	private boolean complete = false;
 	private Vector vector;
 	private int taskId;
@@ -67,6 +68,10 @@ public class SpongeLaunchEvent extends PlayerEvent implements Cancellable{
 
 	@Override
 	public HandlerList getHandlers() {
+		return hlist;
+	}
+	
+	public static HandlerList getHandlerList() {
 		return hlist;
 	}
 

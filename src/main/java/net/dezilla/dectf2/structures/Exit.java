@@ -24,12 +24,11 @@ public class Exit extends BaseStructure{
 	
 	private void placeBlocks() {
 		Block b = location.getBlock().getRelative(BlockFace.DOWN);
-		previousMaterial.add(b.getType());
-		b.setType(owner.getTeam().getColor().wool());
-		blocks.add(b);
 		plate = b.getRelative(BlockFace.UP);
+		addBlock(plate);
+		addBlock(b);
+		b.setType(owner.getTeam().getColor().wool());
 		plate.setType(Material.LIGHT_WEIGHTED_PRESSURE_PLATE);
-		blocks.add(plate);
 		display = (ArmorStand) location.getWorld().spawnEntity(plate.getLocation().add(.5,.1,.5), EntityType.ARMOR_STAND);
 		display.setVisible(false);
 		display.setMarker(true);

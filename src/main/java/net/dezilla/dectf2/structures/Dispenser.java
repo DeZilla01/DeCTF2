@@ -33,11 +33,11 @@ public class Dispenser extends BaseStructure{
 	
 	private void placeBlocks() {
 		Block b = location.getBlock();
+		addBlock(b);
 		b.setType(owner.getTeam().getColor().stainedGlass());
-		blocks.add(b);
 		cake = b.getRelative(BlockFace.UP);
+		addBlock(cake);
 		cake.setType(Material.CAKE);
-		blocks.add(cake);
 		updateCake();
 		/*display = (ArmorStand) location.getWorld().spawnEntity(b.getLocation().add(.5,1.3,.5), EntityType.ARMOR_STAND);
 		display.setMarker(true);

@@ -57,7 +57,8 @@ public class ZonesGame extends GameBase implements Listener{
 										double d = Double.parseDouble(ll);
 										z.setCaptureRate(d);
 										s.getSide(ss).setLine(c, "");
-										z.setName(Util.grabConfigText(s));
+										name = Util.grabConfigText(s);
+										z.setName(name);
 										break;
 									}catch(Exception e) {}
 									c++;
@@ -65,7 +66,9 @@ public class ZonesGame extends GameBase implements Listener{
 							}
 							for(Block b : z.blocks) {
 								Location l = b.getLocation().add(.5,1,.5);
-								match.addRestrictedArea(new RestrictArea(l, 1));
+								RestrictArea a = new RestrictArea(l, 1);
+								a.setReason("Ye can't put fucking shit on fucking "+name);
+								match.addRestrictedArea(a);
 							}
 							zones.add(z);
 							match.addCallout(new GameCallout(loc, name));

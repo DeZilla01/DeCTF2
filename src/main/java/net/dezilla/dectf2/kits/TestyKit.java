@@ -25,6 +25,7 @@ import org.bukkit.util.Vector;
 
 import net.dezilla.dectf2.GamePlayer;
 import net.dezilla.dectf2.Util;
+import net.dezilla.dectf2.listeners.events.SpongeLaunchEvent;
 import net.dezilla.dectf2.structures.BaseStructure;
 import net.dezilla.dectf2.structures.CannotBuildException;
 import net.dezilla.dectf2.structures.Dispenser;
@@ -95,6 +96,7 @@ public class TestyKit extends BaseKit{
 			inv.setItem(2, ItemBuilder.of(Material.IRON_NUGGET).data("4x4").name("4x4 block test").get());
 			inv.setItem(3, ItemBuilder.of(Material.IRON_NUGGET).data("trident_test").name("trident test").get());
 			inv.setItem(4, ItemBuilder.of(Material.IRON_NUGGET).data("struct_check").name("structure check").get());
+			inv.setItem(5, ItemBuilder.of(Material.DIAMOND_SWORD).enchant(Enchantment.DAMAGE_ALL, -5).name("very good sword").get());
 		}
 	}
 	
@@ -218,6 +220,14 @@ public class TestyKit extends BaseKit{
 		}
 	}
 	
+	@EventHandler
+	public void onSponge(SpongeLaunchEvent event) {
+		if(!event.getPlayer().equals(player.getPlayer()))
+			return;
+		event.setCancelled(true);
+	}
+	
+	@EventHandler
 	public void onProjectileHit(ProjectileHitEvent event) {
 		GamePlayer p = Util.getOwner((Entity) event.getEntity().getShooter());
 		if(p == null || !p.getPlayer().equals(player.getPlayer()) || event.getHitEntity() == null)

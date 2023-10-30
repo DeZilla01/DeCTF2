@@ -12,7 +12,6 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.Sound;
-import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.AreaEffectCloud;
@@ -49,6 +48,8 @@ import net.dezilla.dectf2.GameMain;
 import net.dezilla.dectf2.GamePlayer;
 import net.dezilla.dectf2.Util;
 import net.dezilla.dectf2.game.GameTimer;
+import net.dezilla.dectf2.structures.CannotBuildException;
+import net.dezilla.dectf2.structures.IceBox;
 import net.dezilla.dectf2.util.CustomDamageCause;
 import net.dezilla.dectf2.util.GameConfig;
 import net.dezilla.dectf2.util.ItemBuilder;
@@ -138,6 +139,7 @@ public class MageKit extends BaseKit{
 			inv.setItem(3, ItemBuilder.of(Material.IRON_HOE).data("freeze_spell").name("Freeze Spell").unbreakable().get());
 			inv.setItem(4, ItemBuilder.of(Material.GOLDEN_HOE).data("heal_spell").name("Heal Spell").unbreakable().get());
 		}
+		addToolItems();
 		killMinions();
 	}
 	
@@ -608,31 +610,11 @@ public class MageKit extends BaseKit{
 	}
 	
 	private void freeze(Entity e) {
-		List<Block> blocks = new ArrayList<Block>();
-		Location l = e.getLocation();
-		for(int x = l.getBlockX()-1; x<=l.getBlockX()+1;x++) {
-			for(int z = l.getBlockZ()-1; z<=l.getBlockZ()+1; z++) {
-				for(int y = l.getBlockY()-1; y<=l.getBlockY()+2; y++) {
-					if(x == l.getBlockX() && z == l.getBlockZ()) {
-						if(y == l.getBlockY() || y == l.getBlockY()+1)
-							continue;
-					}
-					Location loc = new Location(l.getWorld(), x, y, z);
-					Block b = loc.getBlock();
-					if(b.getType() == Material.AIR) {
-						b.setType(Material.ICE);
-						blocks.add(b);
-					}
-				}
-			}
-		}
-		e.setFreezeTicks(120);
-		Bukkit.getScheduler().scheduleSyncDelayedTask(GameMain.getInstance(), () -> {
-			for(Block b : blocks) {
-				b.setType(Material.AIR);
-			}
-			l.getWorld().playSound(l, Sound.BLOCK_GLASS_BREAK, 1, 1);
-		}, 60);
+		if(!(e instanceof LivingEntity))
+			return;
+		try {
+			new IceBox(player, (LivingEntity) e);
+		} catch(CannotBuildException ex) {}
 	}
 	
 	private void cure(Location loc) {

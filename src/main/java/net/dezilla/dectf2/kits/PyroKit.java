@@ -28,7 +28,8 @@ import org.bukkit.potion.PotionEffectType;
 import net.dezilla.dectf2.GameMain;
 import net.dezilla.dectf2.GamePlayer;
 import net.dezilla.dectf2.Util;
-import net.dezilla.dectf2.game.GameTimer;
+import net.dezilla.dectf2.structures.CannotBuildException;
+import net.dezilla.dectf2.structures.PyroFire;
 import net.dezilla.dectf2.util.GameConfig;
 import net.dezilla.dectf2.util.ItemBuilder;
 
@@ -40,10 +41,9 @@ public class PyroKit extends BaseKit{
 	static double PYRO_FRENZY_MANA_GAIN_RATE = .012;
 	
 	boolean frenzy = false;
-	//boolean bowCharged = false;
 	float frenzyMana = 0;
 	boolean frenzyMode = false;
-	List<Block> fire = new ArrayList<Block>();
+	List<PyroFire> fires = new ArrayList<PyroFire>();
 	List<Arrow> chargedArrows = new ArrayList<Arrow>();
 
 	public PyroKit(GamePlayer player) {
@@ -66,6 +66,7 @@ public class PyroKit extends BaseKit{
 		inv.setItem(2, ItemBuilder.of(Material.FLINT_AND_STEEL).name("Pyro Flint & Steel").unbreakable().get());
 		inv.setItem(9, new ItemStack(Material.ARROW));
 		inv.addItem(ItemBuilder.of(GameConfig.foodMaterial).name("Steak").amount(3).get());
+		addToolItems();
 		frenzyMana = 0;
 	}
 	
@@ -106,17 +107,9 @@ public class PyroKit extends BaseKit{
 						Block b = block.getLocation().add(x, 0, z).getBlock();
 						if(b.getType() != Material.AIR)
 							return;
-						b.setType(Material.FIRE);
-						fire.add(b);
-						GameTimer timer = new GameTimer(2);
-						timer.unpause();
-						timer.onEnd((t) -> {
-							if(b.getType() == Material.FIRE)
-								b.setType(Material.AIR);
-							if(fire.contains(b))
-								fire.remove(b);
-							timer.unregister();
-						});
+						try {
+							new PyroFire(player, b.getLocation());
+						} catch(CannotBuildException e) {}
 					}
 				}
 				player.getPlayer().setCooldown(Material.FLINT_AND_STEEL, 300);
@@ -198,7 +191,19 @@ public class PyroKit extends BaseKit{
 	}
 	
 	public boolean isPyroFire(Block block) {
-		return fire.contains(block);
+		List<PyroFire> toRemove = new ArrayList<PyroFire>();
+		for(PyroFire f : fires) {
+			if(f.isDead()) {
+				toRemove.add(f);
+				continue;
+			}
+			if(f.isStructure(block))
+				return true;
+		}
+		for(PyroFire f : toRemove) {
+			fires.remove(f);
+		}
+		return false;
 	}
 	
 	private void updateFrenzyMode() {

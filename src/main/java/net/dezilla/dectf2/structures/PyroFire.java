@@ -6,16 +6,16 @@ import org.bukkit.block.Block;
 
 import net.dezilla.dectf2.GamePlayer;
 
-public class MedicWeb extends BaseStructure{
-	
+public class PyroFire extends BaseStructure{
+
 	int tickLeft = 40;
 
-	public MedicWeb(GamePlayer owner, Location location) throws CannotBuildException {
+	public PyroFire(GamePlayer owner, Location location) throws CannotBuildException {
 		super(owner, location);
 		destroyable = true;
 		Block b = location.getBlock();
 		addBlock(b);
-		b.setType(Material.COBWEB);
+		b.setType(Material.FIRE);
 		dead=false;
 	}
 	
@@ -32,5 +32,4 @@ public class MedicWeb extends BaseStructure{
 	public boolean canPlace(Location location) {
 		return true;
 	}
-
 }

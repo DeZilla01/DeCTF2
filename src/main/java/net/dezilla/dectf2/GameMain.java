@@ -160,6 +160,7 @@ public class GameMain extends JavaPlugin{
 					new PlayerChatCommand(),
 					new NotificationCommand(),
 					new ZoneCommand(),
+					new ToolsCommand(),
 					kitCommand);
 			commandMap.registerAll("dectf2", commands);
 		} catch(Exception e) {

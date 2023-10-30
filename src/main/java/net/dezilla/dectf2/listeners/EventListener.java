@@ -37,6 +37,7 @@ import org.bukkit.event.entity.EntityPotionEffectEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
+import org.bukkit.event.hanging.HangingBreakByEntityEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerGameModeChangeEvent;
@@ -45,6 +46,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.server.ServerListPingEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.projectiles.ProjectileSource;
@@ -163,10 +165,6 @@ public class EventListener implements Listener{
 				return;
 			}
 			damager.incrementDamageDealt(event.getFinalDamage());
-			if(match.getGame() instanceof TDMGame && damager.getTeam() != null) {
-				TDMGame g = (TDMGame) match.getGame();
-				g.addDamage(damager.getTeam(), event.getFinalDamage());
-			}
 			
 			victim.setLastAttacker(damager);
 		}
@@ -222,13 +220,11 @@ public class EventListener implements Listener{
 		if(killer != null) {
 			killer.incrementStats("kills", 1);
 			killer.incrementStats("streak", 1);
-			p.setLastAttacker(null);
-			if(match.getGame() instanceof TDMGame && killer.getTeam() != null) {
-				TDMGame game = (TDMGame) match.getGame();
-				game.addKill(killer.getTeam());
-			}
 		}
-		Bukkit.getScheduler().scheduleSyncDelayedTask(GameMain.getInstance(), () -> match.respawnPlayer(p), 3);
+		Bukkit.getScheduler().scheduleSyncDelayedTask(GameMain.getInstance(), () -> {
+			match.respawnPlayer(p);
+			p.setLastAttacker(null);
+			}, 3);
 	}
 	
 	@EventHandler(ignoreCancelled=true)
@@ -378,19 +374,45 @@ public class EventListener implements Listener{
 			Material.FURNACE, Material.CRAFTING_TABLE, Material.HOPPER, Material.DISPENSER, Material.DROPPER);
 	@EventHandler(ignoreCancelled=true)
 	public void onInteract(PlayerInteractEvent event) {
+		Block block = event.getClickedBlock();
+		if(GameMatch.currentMatch != null && GameMatch.currentMatch.getGameState() == GameState.PREGAME && event.getPlayer().getGameMode() != GameMode.CREATIVE) {
+			event.setCancelled(true);
+			return;
+		}
+		if(block == null || event.getPlayer().getGameMode() == GameMode.CREATIVE)
+			return;
+		if(dontTouchThat.contains(block.getType()) || block.getType().toString().contains("SHULKER_BOX") || block.getType().toString().contains("SIGN")) {
+			event.setCancelled(true);
+			return;
+		}
+	}
+	
+	@EventHandler
+	public void onToolUse(PlayerInteractEvent event) {
 		if(event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK) {
 			if(ItemBuilder.dataMatch(event.getItem(), "kit_selector")) {
 				event.getPlayer().performCommand("kit");
 				event.setCancelled(true);
 				return;
 			}
-		}
-		Block block = event.getClickedBlock();
-		if(block == null || event.getPlayer().getGameMode() == GameMode.CREATIVE)
-			return;
-		if(dontTouchThat.contains(block.getType()) || block.getType().toString().contains("SHULKER_BOX") || block.getType().toString().contains("SIGN")) {
-			event.setCancelled(true);
-			return;
+			if(ItemBuilder.dataMatch(event.getItem(), "switch_team")) {
+				event.getPlayer().performCommand("switch");
+				ItemStack is = event.getItem();
+				is.setType(GamePlayer.get(event.getPlayer()).getTeam().getColor().wool());
+				ItemBuilder.of(is).name("Switch Team").data("switch_team").get();
+				event.setCancelled(true);
+				return;
+			}
+			if(ItemBuilder.dataMatch(event.getItem(), "map_vote")) {
+				event.getPlayer().performCommand("vote");
+				event.setCancelled(true);
+				return;
+			}
+			if(ItemBuilder.dataMatch(event.getItem(), "tool_select")) {
+				event.getPlayer().performCommand("tools");
+				event.setCancelled(true);
+				return;
+			}
 		}
 	}
 	
@@ -428,6 +450,18 @@ public class EventListener implements Listener{
 	public void onItemDrop(PlayerDropItemEvent event) {
 		if(event.getPlayer().getGameMode() == GameMode.CREATIVE)
 			return;
+		event.setCancelled(true);
+	}
+	
+	@EventHandler(ignoreCancelled=true)
+	public void onHangBreak(HangingBreakByEntityEvent event) {
+		if(GameMatch.currentMatch == null)
+			return;
+		if(event.getRemover().getType() == EntityType.PLAYER) {
+			Player p = (Player) event.getRemover();
+			if(p.getGameMode() == GameMode.CREATIVE)
+				return;
+		}
 		event.setCancelled(true);
 	}
 	

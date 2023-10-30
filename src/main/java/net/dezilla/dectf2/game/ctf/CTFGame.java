@@ -24,6 +24,7 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
 import net.dezilla.dectf2.GameMain;
@@ -64,6 +65,64 @@ public class CTFGame extends GameBase implements Listener{
 	}
 	
 	private void onTick() {
+		for(Player p : match.getWorld().getPlayers()) {
+			GamePlayer gp = GamePlayer.get(p);
+			CTFFlag held = getHeldFlag(gp);
+			for(GameTeam team : match.getTeams()) {
+				if(!flags.containsKey(team))
+					continue;
+				CTFFlag flag = flags.get(team);
+				if(!flag.isHome() && !flag.isDropped())
+					continue;
+				if(held != null)
+					continue;
+				if(!flag.inStealRange(gp) || stealDelays.containsKey(gp))
+					continue;
+					
+				//pick flag from home
+				if(flag.isHome()) {
+					if(gp.isInvisible() || gp.getTeam().equals(flag.getTeam()))
+						continue;
+					GameTimer timer = new GameTimer(-1);
+					timer.onTick((t) -> {
+						if(GameMatch.currentMatch == null || GameMatch.currentMatch.getGameState() != GameState.INGAME) {
+							t.unregister();
+							stealDelays.remove(gp);
+						}
+						if(t.getTicks() >= gp.getKit().getStealDelay()) {
+							t.unregister();
+							stealDelays.remove(gp);
+							gp.incrementStats("steals", 1);
+							flag.setCarrier(gp);
+							flag.getLocation().getWorld().strikeLightningEffect(flag.getLocation());
+							for(Player pl : Bukkit.getOnlinePlayers()) {
+								GamePlayer.get(pl).notify(gp.getColoredName()+ChatColor.RESET+" has taken "+flag.getTeam().getColoredTeamName()+ChatColor.RESET+" "+flag.getFlagType().flag());
+							}
+							return;
+						}
+						if(!flag.inStealRange(gp)||!flag.isHome()) {
+							t.unregister();
+							stealDelays.remove(gp);
+						}
+					});
+					stealDelays.put(gp, timer);
+				}
+				//pick flag from dropped
+				else {
+					//prevent player dropping the flag from instant re-pickup (else it's kinda janky)
+					if(gp.equals(flag.getLastCarrier()) && flag.getResetTimer().getSeconds()==GameConfig.flagReset)
+						continue;
+					if(p.isInvisible())
+						continue;
+					flag.setCarrier(gp);
+					flag.getLocation().getWorld().strikeLightningEffect(flag.getLocation());
+					for(Player pl : Bukkit.getOnlinePlayers()) {
+						GamePlayer.get(pl).notify(gp.getColoredName()+ChatColor.RESET+" has taken "+flag.getTeam().getColoredTeamName()+ChatColor.RESET+" "+flag.getFlagType().flag());
+					}
+					break;
+				}
+			}
+		}
 	}
 	
 	@Override
@@ -80,6 +139,7 @@ public class CTFGame extends GameBase implements Listener{
 						flags.put(team, flag);
 						match.addCallout(new GameCallout(e.getValue(), team, "Flag"));
 						RestrictArea area = new RestrictArea(flag.getLocation(), FLAG_BUILDING_RESTRICT_RADIUS);
+						area.setReason("Ye can't fucking put shit near da flag");
 						match.addRestrictedArea(area);
 					}catch(Exception ex) {}
 				}
@@ -124,52 +184,6 @@ public class CTFGame extends GameBase implements Listener{
 					p.incrementStats("recoveries", 1);
 				}
 				continue;
-			}
-			if((f.isHome() || f.isDropped()) && held == null) {
-				if(f.inStealRange(p) && !stealDelays.containsKey(p)) {
-					//pick flag from home
-					if(f.isHome()) {
-						if(p.isInvisible())
-							return;
-						GameTimer timer = new GameTimer(-1);
-						timer.onTick((t) -> {
-							if(GameMatch.currentMatch == null || GameMatch.currentMatch.getGameState() != GameState.INGAME) {
-								t.unregister();
-								stealDelays.remove(p);
-							}
-							if(t.getTicks() >= p.getKit().getStealDelay()) {
-								t.unregister();
-								stealDelays.remove(p);
-								p.incrementStats("steals", 1);
-								f.setCarrier(p);
-								f.getLocation().getWorld().strikeLightningEffect(f.getLocation());
-								for(Player pl : Bukkit.getOnlinePlayers()) {
-									GamePlayer.get(pl).notify(p.getColoredName()+ChatColor.RESET+" has taken "+f.getTeam().getColoredTeamName()+ChatColor.RESET+" "+f.getFlagType().flag());
-								}
-								return;
-							}
-							if(!f.inStealRange(p)||!f.isHome()) {
-								t.unregister();
-								stealDelays.remove(p);
-							}
-						});
-						stealDelays.put(p, timer);
-					}
-					//pick flag from dropped
-					else {
-						//prevent player dropping the flag from instant re-pickup (else it's kinda janky)
-						if(p.equals(f.getLastCarrier()) && f.getResetTimer().getSeconds()==GameConfig.flagReset)
-							return;
-						if(p.isInvisible())
-							return;
-						f.setCarrier(p);
-						f.getLocation().getWorld().strikeLightningEffect(f.getLocation());
-						for(Player pl : Bukkit.getOnlinePlayers()) {
-							GamePlayer.get(pl).notify(p.getColoredName()+ChatColor.RESET+" has taken "+f.getTeam().getColoredTeamName()+ChatColor.RESET+" "+f.getFlagType().flag());
-						}
-						break;
-					}
-				}
 			}
 		}
 	}
@@ -239,12 +253,25 @@ public class CTFGame extends GameBase implements Listener{
 			CTFFlag f = entry.getValue();
 			if(f.getFlagType() == FlagType.CHEST && f.getHomeChest() != null && p.getPlayer().getOpenInventory().getTopInventory().equals(f.getHomeChest().getInventory())) {
 				event.setCancelled(true);
+				CTFFlag held = this.getHeldFlag(p);
+				if(held != null && f.getTeam().equals(p.getTeam()) && f.isHome()) {
+					ItemStack is = event.getCurrentItem();
+					if(is != null && held.getFlagItem().getType() == is.getType()) {
+						p.incrementStats("captures", 1);
+						held.resetFlag();
+						for(Player pl : Bukkit.getOnlinePlayers()) {
+							GamePlayer.get(pl).notify(held.getTeam().getColoredTeamName()+ChatColor.RESET+" "+held.getFlagType().flag()+" has been captured");
+						}
+						f.getLocation().getWorld().strikeLightningEffect(f.getLocation());
+						p.getTeam().incrementScore(1);
+					}
+				}
 				if(event.getCurrentItem() != null && event.getCurrentItem().getType() == f.getFlagItem().getType() && f.isHome()) {
 					if(p.getTeam().equals(f.getTeam())) {
 						p.notify("You cannot steal your team's flag");
 					} else if(p.isInvisible()) {
 						p.notify("You cannot steal the flag while invisible");
-					} else if(getHeldFlag(p) != null) {
+					} else if(held != null) {
 						p.notify("You already have a flag to capture");
 					} else {
 						p.incrementStats("steals", 1);

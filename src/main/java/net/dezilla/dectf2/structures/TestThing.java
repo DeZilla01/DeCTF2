@@ -24,12 +24,10 @@ public class TestThing extends BaseStructure{
 	
 	private void placeBlocks() {
 		Block b = location.getBlock();
-		this.previousMaterial.add(b.getType());
-		this.blocks.add(b);
+		addBlock(b);
 		b.setType(Material.STONE);
 		b = b.getRelative(BlockFace.UP);
-		this.previousMaterial.add(b.getType());
-		this.blocks.add(b);
+		addBlock(b);
 		b.setType(Material.STONE);
 		ArmorStand a = (ArmorStand) location.getWorld().spawnEntity(b.getLocation().add(.5,.5,.5), EntityType.ARMOR_STAND);
 		entities.add(a);

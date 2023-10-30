@@ -81,6 +81,11 @@ public class GamePlayer {
 	private int inversionTicks = 0;
 	List<InvertPosition> moveHistory = new ArrayList<InvertPosition>();
 	private int objectiveIndex = 0;
+	//tools
+	private boolean objectiveTracker = true;
+	private boolean spyglass = false;
+	private boolean kitSelector = false;
+	private boolean pointer = false;
 	
 	private GamePlayer(Player player) {
 		this.player = player;
@@ -303,6 +308,38 @@ public class GamePlayer {
 	
 	public void resetInversionHistory() {
 		moveHistory.clear();
+	}
+	
+	public boolean useTracker() {
+		return objectiveTracker;
+	}
+	
+	public void setTracker(boolean value) {
+		objectiveTracker = value;
+	}
+	
+	public boolean useSpyglass() {
+		return spyglass;
+	}
+	
+	public void setSpyglass(boolean value) {
+		spyglass = value;
+	}
+	
+	public boolean useKitSelector() {
+		return kitSelector;
+	}
+	
+	public void setKitSelector(boolean value) {
+		kitSelector = value;
+	}
+	
+	public boolean usePointer() {
+		return pointer;
+	}
+	
+	public void setPointer(boolean value) {
+		pointer = value;
 	}
 	
 	public void setInvisible(boolean value) {

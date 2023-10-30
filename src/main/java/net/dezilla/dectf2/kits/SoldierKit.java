@@ -64,6 +64,7 @@ public class SoldierKit extends BaseKit {
 		}
 		inv.addItem(ItemBuilder.of(GameConfig.foodMaterial).name("Steak").amount(3).get());
 		inv.setItemInOffHand(ShieldUtil.getShield(player));
+		addToolItems();
 		exp = 1f;
 		sword1 = 1f;
 		sword2 = 1f;
