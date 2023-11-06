@@ -5,6 +5,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import net.dezilla.dectf2.gui.ToolGui;
+import net.md_5.bungee.api.ChatColor;
 
 public class ToolsCommand extends Command{
 	public ToolsCommand() {
@@ -16,7 +17,7 @@ public class ToolsCommand extends Command{
 	@Override
 	public boolean execute(CommandSender sender, String commandLabel, String[] args) {
 		if(!(sender instanceof Player)) {
-			sender.sendMessage("You must be a player to use this command.");
+			sender.sendMessage(ChatColor.RED+"You must be a player to use this command.");
 			return false;
 		}
 		Player p = (Player) sender;

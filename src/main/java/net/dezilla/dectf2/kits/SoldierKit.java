@@ -65,6 +65,7 @@ public class SoldierKit extends BaseKit {
 		inv.addItem(ItemBuilder.of(GameConfig.foodMaterial).name("Steak").amount(3).get());
 		inv.setItemInOffHand(ShieldUtil.getShield(player));
 		addToolItems();
+		player.applyInvSave();
 		exp = 1f;
 		sword1 = 1f;
 		sword2 = 1f;
@@ -120,7 +121,8 @@ public class SoldierKit extends BaseKit {
 			} else
 				player.getPlayer().setExp(0);
 			if(airborne) {
-				if(player.getPlayer().isOnGround() || player.getLocation().add(0,-.1,0).getBlock().getType() != Material.AIR)
+				//if(player.getPlayer().isOnGround() || player.getLocation().add(0,-.1,0).getBlock().getType() != Material.AIR)
+				if(Util.onGround(player.getPlayer()))
 					airborne = false;
 			}
 		}

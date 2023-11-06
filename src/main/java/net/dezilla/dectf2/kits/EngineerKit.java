@@ -51,6 +51,7 @@ public class EngineerKit extends BaseKit{
 		inv.setItem(5, ItemBuilder.of(Material.HEAVY_WEIGHTED_PRESSURE_PLATE).name("Entrance").data("entrance").get());
 		inv.setItem(6, ItemBuilder.of(Material.LIGHT_WEIGHTED_PRESSURE_PLATE).name("Exit").data("exit").get());
 		addToolItems();
+		player.applyInvSave();
 	}
 	
 	//to prevent double clicking

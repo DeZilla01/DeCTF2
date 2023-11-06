@@ -13,6 +13,7 @@ import java.util.regex.Pattern;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.ChunkSnapshot;
+import org.bukkit.Difficulty;
 import org.bukkit.GameMode;
 import org.bukkit.GameRule;
 import org.bukkit.Location;
@@ -43,6 +44,7 @@ import net.dezilla.dectf2.util.GameColor;
 import net.dezilla.dectf2.util.GameConfig;
 import net.dezilla.dectf2.util.ItemBuilder;
 import net.dezilla.dectf2.util.MapPreview;
+import net.dezilla.dectf2.util.Portal;
 import net.dezilla.dectf2.util.RestrictArea;
 
 public class GameMatch {
@@ -82,6 +84,7 @@ public class GameMatch {
 	private List<GameCallout> callouts = new ArrayList<GameCallout>();
 	private ItemStack mapIcon = new ItemStack(Material.PAPER);
 	private List<RestrictArea> restrictedAreas = new ArrayList<RestrictArea>();
+	private List<Portal> portals = new ArrayList<Portal>();
 	
 	public GameMatch(String levelName) throws FileNotFoundException {
 		//Set chosen level
@@ -142,6 +145,7 @@ public class GameMatch {
 				world.setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, false);
 				world.setGameRule(GameRule.TNT_EXPLOSION_DROP_DECAY, false);
 				world.setGameRule(GameRule.RANDOM_TICK_SPEED, 0);
+				world.setDifficulty(Difficulty.EASY);
 				spawn = world.getSpawnLocation();
 				scoreboardNotif("Parsing signs");
 				parseSigns();
@@ -271,6 +275,8 @@ public class GameMatch {
 		timer.unregister();
 		gameLoaded = false;
 		game.unregister();
+		for(Portal p : portals)
+			p.remove();
 		File worldFolder = world.getWorldFolder();
 		if(currentMatch.equals(this))
 			currentMatch = null;
@@ -476,6 +482,20 @@ public class GameMatch {
 								}catch(Exception e) {}
 								RestrictArea area = new RestrictArea(sign.getBlock(), radius);
 								restrictedAreas.add(area);
+							}
+							//portal
+							else if(line.equals("portal")) {
+								List<Double> numbers = Util.grabNumbers(sign);
+								if(numbers.size()>=3) {
+									Location dest = new Location(sign.getWorld(), numbers.get(0), numbers.get(1), numbers.get(2));
+									if(numbers.size()>=5) {
+										double yaw = numbers.get(3);
+										double pitch = numbers.get(4);
+										dest.setYaw((float) yaw);
+										dest.setPitch((float) pitch);
+									}
+									portals.add(new Portal(loc, Portal.BlocktoPortalFace(face), dest));
+								}
 							}
 							
 						}

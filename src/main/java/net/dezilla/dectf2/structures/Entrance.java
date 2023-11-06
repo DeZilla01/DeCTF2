@@ -87,7 +87,7 @@ public class Entrance extends BaseStructure{
 			return;
 		GamePlayer gp = GamePlayer.get(event.getPlayer());
 		if(!owner.getTeam().equals(gp.getTeam())) {
-			gp.notify("You can't use enemy teleporters you dumb fuck");
+			gp.getPlayer().spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText("You can't use enemy teleporters you dumb fuck"));
 			return;
 		}
 		if(!delays.containsKey(gp))

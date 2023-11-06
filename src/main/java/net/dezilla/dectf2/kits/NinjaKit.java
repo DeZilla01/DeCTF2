@@ -24,6 +24,8 @@ import org.bukkit.potion.PotionEffectType;
 import net.dezilla.dectf2.GameMain;
 import net.dezilla.dectf2.GamePlayer;
 import net.dezilla.dectf2.Util;
+import net.dezilla.dectf2.game.GameTimer;
+import net.dezilla.dectf2.listeners.events.SpongeLaunchEvent;
 import net.dezilla.dectf2.util.CustomDamageCause;
 import net.dezilla.dectf2.util.GameConfig;
 import net.dezilla.dectf2.util.ItemBuilder;
@@ -41,6 +43,7 @@ public class NinjaKit extends BaseKit{
 	private int ticksHpRegen = NINJA_HP_REGEN;
 	private boolean classic = false;
 	private int invisInterval = NINJA_CLASSIC_INVIS_INTERVAL;
+	private boolean canPearl = true;
 
 	public NinjaKit(GamePlayer player) {
 		super(player);
@@ -63,6 +66,7 @@ public class NinjaKit extends BaseKit{
 			inv.setItem(2, ItemBuilder.of(Material.REDSTONE).name("Red Cocaine").get());
 		}
 		addToolItems();
+		player.applyInvSave();
 		invisMana = 1;
 	}
 	
@@ -167,17 +171,37 @@ public class NinjaKit extends BaseKit{
 	}
 	
 	@EventHandler
+	public void onSponge(SpongeLaunchEvent event) {
+		if(!event.getPlayer().equals(player.getPlayer()))
+			return;
+		canPearl = false;
+		GameTimer timer = new GameTimer(-1);
+		timer.onTick(t -> {
+			if(event.isComplete()) {
+				canPearl = true;
+				t.unregister();
+			}
+		});
+	}
+	
+	@EventHandler
 	public void onItemUse(PlayerInteractEvent event) {
 		if(!event.getPlayer().equals(player.getPlayer()))
 			return;
 		//pearl
 		if(ItemBuilder.dataMatch(event.getItem(), "ninja_pearl")) {
 			if(event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+				if(!canPearl) {
+					event.setCancelled(true);
+					Bukkit.getScheduler().runTask(GameMain.getInstance(), () -> {
+						player.getPlayer().setCooldown(Material.ENDER_PEARL, 0);
+					});
+					return;
+				}
 				if(ItemBuilder.dataMatch(player.getPlayer().getInventory().getItemInMainHand(), "flash_bomb")) {
 					event.setCancelled(true);
 					Bukkit.getScheduler().runTask(GameMain.getInstance(), () -> {
-						if(player.getPlayer().getCooldown(Material.ENDER_PEARL)>0)
-							player.getPlayer().setCooldown(Material.ENDER_PEARL, 0);
+						player.getPlayer().setCooldown(Material.ENDER_PEARL, 0);
 					});
 					return;
 				}

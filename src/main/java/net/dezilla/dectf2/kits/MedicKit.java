@@ -76,6 +76,7 @@ public class MedicKit extends BaseKit{
 			inv.setItemInOffHand(ShieldUtil.getShield(player));
 		}
 		addToolItems();
+		player.applyInvSave();
 	}
 	
 	@Override

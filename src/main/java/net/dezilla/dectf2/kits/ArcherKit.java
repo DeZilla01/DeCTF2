@@ -55,6 +55,7 @@ public class ArcherKit extends BaseKit{
 		else
 			inv.addItem(ItemBuilder.of(GameConfig.foodMaterial).name("Steak").amount(3).get());
 		addToolItems();
+		player.applyInvSave();
 	}
 	
 	@EventHandler
@@ -93,6 +94,15 @@ public class ArcherKit extends BaseKit{
 	}
 	
 	@Override
+	public ItemStack getIcon(String variation) {
+		if(variation.equalsIgnoreCase("crossbow"))
+			return new ItemStack(Material.CROSSBOW);
+		if(variation.equalsIgnoreCase("arbalist"))
+			return new ItemStack(Material.CROSSBOW);
+		return getIcon();
+	}
+	
+	@Override
 	public void setVariation(String variation) {
 		if(variation.equalsIgnoreCase("crossbow")) 
 			crossbow = true;
@@ -109,15 +119,15 @@ public class ArcherKit extends BaseKit{
 	@Override
 	public ItemStack[] getFancyDisplay() {
 		return new ItemStack[] {
+				new ItemStack(Material.NETHER_STAR),
+				new ItemStack(Material.STONE_SWORD),
+				new ItemStack(Material.CROSSBOW),
+				new ItemStack(Material.BOW),
+				new ItemStack(Material.ARROW),
 				new ItemStack(Material.BOW),
 				new ItemStack(Material.CROSSBOW),
 				new ItemStack(Material.STONE_SWORD),
-				new ItemStack(Material.ARROW),
-				new ItemStack(Material.ARROW),
-				new ItemStack(Material.ARROW),
-				new ItemStack(Material.STONE_SWORD),
-				new ItemStack(Material.CROSSBOW),
-				new ItemStack(Material.BOW)
+				new ItemStack(Material.NETHER_STAR)
 		};
 	}
 

@@ -166,7 +166,7 @@ public abstract class BaseKit implements Listener{
 	protected void addToolItems() {
 		PlayerInventory inv = player.getPlayer().getInventory();
 		if(player.useTracker() && GameMatch.currentMatch != null && GameMatch.currentMatch.getGame().hasObjectiveLocations()) {
-			inv.addItem(ItemBuilder.of(Material.COMPASS).name("Poiting to "+player.getObjectiveLocationName()).data("objective_tracker").get());
+			inv.addItem(ItemBuilder.of(Material.COMPASS).name("Pointing to "+player.getObjectiveLocationName()).data("objective_tracker").get());
 		}
 		if(player.usePointer()) {
 			inv.addItem(ItemBuilder.of(Material.GOLDEN_CARROT).name("Pointer").data("pointer").get());

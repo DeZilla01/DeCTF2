@@ -98,6 +98,7 @@ public class TestyKit extends BaseKit{
 			inv.setItem(4, ItemBuilder.of(Material.IRON_NUGGET).data("struct_check").name("structure check").get());
 			inv.setItem(5, ItemBuilder.of(Material.DIAMOND_SWORD).enchant(Enchantment.DAMAGE_ALL, -5).name("very good sword").get());
 		}
+		player.applyInvSave();
 	}
 	
 	@Override

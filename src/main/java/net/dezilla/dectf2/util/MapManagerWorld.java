@@ -9,6 +9,7 @@ import java.util.regex.Pattern;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
+import org.bukkit.Difficulty;
 import org.bukkit.GameRule;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -76,6 +77,7 @@ public class MapManagerWorld {
 				world.setGameRule(GameRule.ANNOUNCE_ADVANCEMENTS, false);
 				world.setGameRule(GameRule.TNT_EXPLOSION_DROP_DECAY, false);
 				world.setGameRule(GameRule.RANDOM_TICK_SPEED, 0);
+				world.setDifficulty(Difficulty.EASY);
 				parseSigns();
 				loaded = true;
 				onLoaded.run(world);

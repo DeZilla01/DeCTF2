@@ -35,6 +35,7 @@ public class ChemistKit extends BaseKit{
 		inv.setItem(5, ItemBuilder.of(Material.SPLASH_POTION).potionEffect(PotionEffectType.HEAL, 0, 2).name("Instant Health III").potionColor(PotionEffectType.HEAL.getColor()).amount(5).get());
 		inv.setItem(6, ItemBuilder.of(Material.SPLASH_POTION).potionEffect(PotionEffectType.REGENERATION, 320, 2).potionColor(PotionEffectType.REGENERATION.getColor()).name("Regeneration III").amount(5).get());
 		addToolItems();
+		player.applyInvSave();
 	}
 
 	@Override

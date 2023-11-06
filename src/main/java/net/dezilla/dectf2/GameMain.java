@@ -161,6 +161,7 @@ public class GameMain extends JavaPlugin{
 					new NotificationCommand(),
 					new ZoneCommand(),
 					new ToolsCommand(),
+					new InvSaveCommand(),
 					kitCommand);
 			commandMap.registerAll("dectf2", commands);
 		} catch(Exception e) {

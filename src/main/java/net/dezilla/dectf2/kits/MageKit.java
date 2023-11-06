@@ -32,6 +32,7 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerItemDamageEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
 import org.bukkit.inventory.EntityEquipment;
@@ -51,7 +52,6 @@ import net.dezilla.dectf2.game.GameTimer;
 import net.dezilla.dectf2.structures.CannotBuildException;
 import net.dezilla.dectf2.structures.IceBox;
 import net.dezilla.dectf2.util.CustomDamageCause;
-import net.dezilla.dectf2.util.GameConfig;
 import net.dezilla.dectf2.util.ItemBuilder;
 import net.dezilla.dectf2.util.Minion;
 import net.md_5.bungee.api.ChatColor;
@@ -67,12 +67,16 @@ public class MageKit extends BaseKit{
 	private static double ICE_BLAST_RADIUS = 2.8;
 	private static int MINION_CAP = 3;
 	private static int BLOOD_HIT_AMOUNT = 4;
-	private static double SHULKER_DMG = 7;
+	private static double SHULKER_DMG = 5;
 	private static int INVERSION_DURATION = 40;
 	private static int SELF_INVERSION_DURATION = 60;
 	private static int CURE_AREA_DURATION = 30;
 	private static float CURE_AREA_RADIUS = 2.5f;
 	private static float WITHER_SWORD_USAGE = .025f;
+	private static Color DEFAULT_COLOR = Color.fromRGB(204, 102, 255);
+	private static Color DARK_COLOR = Color.PURPLE;
+	private static Color MYSTIC_COLOR = Color.fromRGB(191, 255, 220);
+	private static Color DRAGON_COLOR = Color.BLACK;
 	
 	static {
 		SPELL_REGENS.put("dmg_spell", .066f);
@@ -108,9 +112,13 @@ public class MageKit extends BaseKit{
 	public void setInventory() {
 		super.setInventory();
 		PlayerInventory inv = player.getPlayer().getInventory();
-		Color armorColor = (dark ? Color.PURPLE : mystic ? Color.fromRGB(191, 255, 220) : Color.fromRGB(204, 102, 255));
-		if(dragon)
-			armorColor = Color.BLACK;
+		Color armorColor = DEFAULT_COLOR;
+		if(dark)
+			armorColor = DARK_COLOR;
+		else if(mystic)
+			armorColor = MYSTIC_COLOR;
+		else if(dragon)
+			armorColor = DRAGON_COLOR;
 		inv.setChestplate(ItemBuilder.of(Material.LEATHER_CHESTPLATE).unbreakable().leatherColor(armorColor).armorTrim(TrimPattern.VEX, color().getTrimMaterial()).enchant(Enchantment.PROTECTION_ENVIRONMENTAL, 1).get());
 		inv.setLeggings(ItemBuilder.of(Material.LEATHER_LEGGINGS).unbreakable().leatherColor(armorColor).armorTrim(TrimPattern.VEX, color().getTrimMaterial()).enchant(Enchantment.PROTECTION_ENVIRONMENTAL, 1).get());
 		inv.setBoots(ItemBuilder.of(Material.LEATHER_BOOTS).unbreakable().leatherColor(armorColor).armorTrim(TrimPattern.VEX, color().getTrimMaterial()).enchant(Enchantment.PROTECTION_ENVIRONMENTAL, 1).get());
@@ -140,6 +148,7 @@ public class MageKit extends BaseKit{
 			inv.setItem(4, ItemBuilder.of(Material.GOLDEN_HOE).data("heal_spell").name("Heal Spell").unbreakable().get());
 		}
 		addToolItems();
+		player.applyInvSave();
 		killMinions();
 	}
 	
@@ -169,6 +178,8 @@ public class MageKit extends BaseKit{
 					witherSword = false;
 					updateWitherSword();
 				}
+			} else if(key.equals("inversion_spell") && !Util.onGround(player.getPlayer())) {
+				//nothing lol
 			} else
 				charge+=SPELL_REGENS.get(key);
 			if(charge>1)
@@ -214,6 +225,10 @@ public class MageKit extends BaseKit{
 					break;
 				}
 			}
+		}
+		while(bullets.size()>2) {
+			bullets.get(0).remove();
+			bullets.remove(0);
 		}
 	}
 	
@@ -264,8 +279,14 @@ public class MageKit extends BaseKit{
 				strike(event.getClickedBlock().getLocation());
 				return;
 			}
-			Snowball light = player.getPlayer().launchProjectile(Snowball.class, Util.inFront(player.getPlayer(), .5));
+			Snowball light = player.getPlayer().launchProjectile(Snowball.class, Util.inFront(player.getPlayer(), 1.8));
 			light.setItem(MAGE_LIGHTNING_HEAD.clone());
+			Bukkit.getScheduler().scheduleSyncDelayedTask(GameMain.getInstance(), () -> {
+				if(!light.isDead()) {
+					strike(light.getLocation());
+					light.remove();
+				}
+			}, 6);
 		}
 		else if(ItemBuilder.dataMatch(event.getItem(), "freeze_spell")) {
 			float charge = charges.get("freeze_spell");
@@ -396,12 +417,10 @@ public class MageKit extends BaseKit{
 				return;
 			if(m != null) {
 				m.getEntity().damage(SHULKER_DMG);
-				m.addEffect(PotionEffectType.LEVITATION, 5, 0);
 			} else if(pl != null) {
 				pl.setCustomDamageCause(CustomDamageCause.MAGE_SHULKER);
 				pl.setLastAttacker(player);
 				pl.getPlayer().damage(SHULKER_DMG, player.getPlayer());
-				pl.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.LEVITATION, 15, 0));
 			}
 		}
 		if(event.getEntityType() == EntityType.SNOWBALL) {
@@ -486,6 +505,13 @@ public class MageKit extends BaseKit{
 			return;
 		if(event.getCause() == TeleportCause.ENDER_PEARL)
 			event.setCancelled(true);
+	}
+	
+	@EventHandler(ignoreCancelled=true)
+	public void onItemDamage(PlayerItemDamageEvent event) {
+		if(!event.getPlayer().equals(player.getPlayer()))
+			return;
+		event.setCancelled(true);
 	}
 	
 	private void dmgEffect(Location location) {
@@ -581,6 +607,11 @@ public class MageKit extends BaseKit{
 			victims.add((LivingEntity) e);
 		}
 		for(LivingEntity e : victims) {
+			if(e.getType() == EntityType.PLAYER) {
+				GamePlayer gp = GamePlayer.get((Player) e);
+				gp.setFrozenTicks(ICE_BLAST_DURATION);
+				continue;
+			}
 			e.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, ICE_BLAST_DURATION, 50));
 			e.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, ICE_BLAST_DURATION, -5));
 			e.setFreezeTicks(ICE_BLAST_DURATION*2);
@@ -596,11 +627,11 @@ public class MageKit extends BaseKit{
 			Bukkit.getScheduler().scheduleSyncDelayedTask(GameMain.getInstance(), () -> {
 				if(e.isDead())
 					return;
-				if(e instanceof Player) {
+				/*if(e instanceof Player) {
 					GamePlayer gp = GamePlayer.get((Player) e);
 					if(gp.isSpawnProtected())
 						return;
-				}
+				}*/
 				inv.setHelmet(helmet);
 				inv.setChestplate(chestplate);
 				inv.setLeggings(leggings);
@@ -642,6 +673,8 @@ public class MageKit extends BaseKit{
 				GamePlayer gp = GamePlayer.get(p);
 				if(gp.getInversionTicks()>0)
 					gp.setInversionTicks(0);
+				if(gp.getFrozenTicks()>0)
+					gp.setFrozenTicks(0);
 				if(!p.hasPotionEffect(PotionEffectType.REGENERATION)) {
 					p.addPotionEffect(new PotionEffect(PotionEffectType.REGENERATION, 80, 1));
 				}
@@ -739,6 +772,17 @@ public class MageKit extends BaseKit{
 	}
 	
 	@Override
+	public ItemStack getIcon(String variation) {
+		if(variation.equalsIgnoreCase("dark"))
+			return ItemBuilder.of(Material.LEATHER_CHESTPLATE).leatherColor(DARK_COLOR).get();
+		if(variation.equalsIgnoreCase("mystic"))
+			return ItemBuilder.of(Material.LEATHER_CHESTPLATE).leatherColor(MYSTIC_COLOR).get();
+		if(variation.equalsIgnoreCase("dragon"))
+			return ItemBuilder.of(Material.LEATHER_CHESTPLATE).leatherColor(DRAGON_COLOR).get();
+		return ItemBuilder.of(Material.LEATHER_CHESTPLATE).leatherColor(DEFAULT_COLOR).get();
+	}
+	
+	@Override
 	public void setVariation(String variation) {
 		if(variation.equalsIgnoreCase("dark"))
 			dark = true;
@@ -757,15 +801,15 @@ public class MageKit extends BaseKit{
 	@Override
 	public ItemStack[] getFancyDisplay() {
 		return new ItemStack[] {
-				new ItemStack(Material.DIAMOND_SWORD),
-				new ItemStack(Material.DIAMOND_CHESTPLATE),
-				new ItemStack(Material.DIAMOND_LEGGINGS),
-				new ItemStack(Material.DIAMOND_HELMET),
-				new ItemStack(GameConfig.foodMaterial),
-				new ItemStack(Material.DIAMOND_BOOTS),
-				new ItemStack(Material.DIAMOND_LEGGINGS),
-				new ItemStack(Material.DIAMOND_CHESTPLATE),
-				new ItemStack(Material.DIAMOND_SWORD)
+				new ItemStack(Material.NETHER_STAR),
+				new ItemStack(Material.NETHERITE_HOE),
+				new ItemStack(Material.WOODEN_HOE),
+				new ItemStack(Material.GOLDEN_HOE),
+				new ItemStack(Material.DIAMOND_HOE),
+				new ItemStack(Material.IRON_HOE),
+				new ItemStack(Material.STONE_HOE),
+				new ItemStack(Material.STONE_SWORD),
+				new ItemStack(Material.NETHER_STAR)
 		};
 	}
 

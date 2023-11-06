@@ -91,6 +91,14 @@ public class Util {
 	    folder.delete();
 	}
 	
+	public static String captitalize(String s) {
+		return s.substring(0, 1).toUpperCase() + s.substring(1);
+	}
+	
+	public static boolean onGround(LivingEntity e) {
+		return e.getVelocity().getY() >= -.08 && e.getLocation().add(0,-.1,0).getBlock().getType() != Material.AIR;
+	}
+	
 	public static float getYaw(Vector vector) {
 		return (float) Math.toDegrees(Math.atan2(-vector.getX(), vector.getZ()));
 	}
@@ -291,6 +299,25 @@ public class Util {
 			s+=i;
 		}
 		return s;
+	}
+	
+	public static List<Double> grabNumbers(Sign sign) {
+		String pattern1 = Pattern.quote("{") + "(.*)" + Pattern.quote("}");
+		String pattern2 = Pattern.quote("{") + "(.*)=(.*)" + Pattern.quote("}");
+		List<String> lines = new ArrayList<String>();
+		lines.addAll(Arrays.asList(sign.getSide(Side.FRONT).getLines()));
+		lines.addAll(Arrays.asList(sign.getSide(Side.BACK).getLines()));
+		List<Double> numbers = new ArrayList<Double>();
+		for(String i : lines) {
+			if(i.matches(pattern1) || i.matches(pattern2))
+				continue;
+			for(String s : i.split(" ")) {
+				try {
+					numbers.add(Double.parseDouble(s));
+				}catch(Exception e) {}
+			}
+		}
+		return numbers;
 	}
 	
 	public static ItemStack createTexturedHead(String texture) {

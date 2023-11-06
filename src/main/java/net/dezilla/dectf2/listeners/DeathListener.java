@@ -63,7 +63,6 @@ public class DeathListener implements Listener{
 						list.add("relied too much on his shield and got killed");
 						break;
 					case ARCHER_HEADSHOT:
-						list.add("was headshoted");
 						list.add("got snipped");
 						break;
 					case NINJA_TELEPORT:
@@ -72,6 +71,18 @@ public class DeathListener implements Listener{
 						list.add("died from teleportation");
 						list.add("pearled to his death");
 						notByKiller=true;
+					case MAGE_LIGHTNING:
+						list.add("was striked by lightning");
+						list.add("tasted the lightning");
+						list.add("was grilled");
+						break;
+					case MAGE_BLOOD_LEACH:
+						list.add("was leached to death");
+						break;
+					case MAGE_SHULKER:
+						list.add("killed");
+						list.add("bite the bullet");
+						list.add("was shot");
 					default:
 						break;
 				}

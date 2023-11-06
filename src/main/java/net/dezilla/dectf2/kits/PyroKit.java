@@ -35,13 +35,18 @@ import net.dezilla.dectf2.util.ItemBuilder;
 
 public class PyroKit extends BaseKit{
 	static double PYRO_SPEED = .11;
+	static double LIGHT_SPEED = .13;
 	static int PYRO_BOW_FIRE = 100;
 	static int PYRO_FRENZY_BOW_FIRE = 200;
 	static double PYRO_FRENZY_MANA_DRAIN = .01;
 	static double PYRO_FRENZY_MANA_GAIN_RATE = .012;
+	static double LIGHT_MANA_USE = .08;
+	static double LIGHT_MANA_RECHARGE = 0.003;
 	
 	boolean frenzy = false;
+	boolean light = false;
 	float frenzyMana = 0;
+	float lightMana = 1;
 	boolean frenzyMode = false;
 	List<PyroFire> fires = new ArrayList<PyroFire>();
 	List<Arrow> chargedArrows = new ArrayList<Arrow>();
@@ -54,19 +59,29 @@ public class PyroKit extends BaseKit{
 	public void setInventory() {
 		super.setInventory();
 		PlayerInventory inv = player.getPlayer().getInventory();
+		//armor
 		inv.setHelmet(ItemBuilder.of(Material.LEATHER_HELMET).name("Pyro Helmet").unbreakable().armorTrim(TrimPattern.SHAPER, color().getTrimMaterial()).data("pyro_armor").get());
 		inv.setChestplate(ItemBuilder.of(Material.IRON_CHESTPLATE).name("Pyro Chestplate").unbreakable().data("pyro_armor").get());
 		inv.setLeggings(ItemBuilder.of(Material.LEATHER_LEGGINGS).name("Pyro Leggings").unbreakable().armorTrim(TrimPattern.TIDE, color().getTrimMaterial()).data("pyro_armor").get());
 		inv.setBoots(ItemBuilder.of(Material.LEATHER_BOOTS).name("Pyro Boots").unbreakable().armorTrim(TrimPattern.TIDE, color().getTrimMaterial()).data("pyro_armor").get());
-		inv.setItemInOffHand(ItemBuilder.of(Material.BOW).name("Pyro Bow").unbreakable().enchant(Enchantment.ARROW_INFINITE, 1).get());
+		//items
+		if(!light)
+			inv.setItemInOffHand(ItemBuilder.of(Material.BOW).name("Pyro Bow").unbreakable().enchant(Enchantment.ARROW_INFINITE, 1).get());
 		if(frenzy)
 			inv.setItem(0, ItemBuilder.of(Material.DIAMOND_AXE).unbreakable().name("Pyro Axe").damageModifier(7).data("pyro_axe").get());
+		else if(light)
+			inv.setItem(0, ItemBuilder.of(Material.IRON_AXE).unbreakable().name("Pyro Axe").damageModifier(3).get());
 		else
 			inv.setItem(0, ItemBuilder.of(Material.GOLDEN_AXE).unbreakable().name("Pyro Axe").damageModifier(5).get());
-		inv.setItem(2, ItemBuilder.of(Material.FLINT_AND_STEEL).name("Pyro Flint & Steel").unbreakable().get());
-		inv.setItem(9, new ItemStack(Material.ARROW));
+		if(light)
+			inv.setItemInOffHand(ItemBuilder.of(Material.FLINT_AND_STEEL).name("Pyro Flint & Steel").data("light_flint").unbreakable().get());
+		else
+			inv.setItem(2, ItemBuilder.of(Material.FLINT_AND_STEEL).name("Pyro Flint & Steel").data("pyro_flint").unbreakable().get());
+		if(!light)
+			inv.setItem(9, new ItemStack(Material.ARROW));
 		inv.addItem(ItemBuilder.of(GameConfig.foodMaterial).name("Steak").amount(3).get());
 		addToolItems();
+		player.applyInvSave();
 		frenzyMana = 0;
 	}
 	
@@ -80,6 +95,12 @@ public class PyroKit extends BaseKit{
 				updateFrenzyMode();
 			}
 			player.getPlayer().setExp(frenzyMana);
+		}
+		if(light) {
+			lightMana+=LIGHT_MANA_RECHARGE;
+			if(lightMana>1)
+				lightMana=1;
+			player.getPlayer().setExp(lightMana);
 		}
 	}
 	
@@ -100,19 +121,31 @@ public class PyroKit extends BaseKit{
 		if(!event.getPlayer().equals(player.getPlayer()))
 			return;
 		if(event.getItem() != null && event.getItem().getType() == Material.FLINT_AND_STEEL) {
+			event.setCancelled(true);
 			if(event.getAction() == Action.RIGHT_CLICK_BLOCK && player.getPlayer().getCooldown(Material.FLINT_AND_STEEL)==0) {
 				Block block = event.getClickedBlock().getRelative(event.getBlockFace());
-				for(int x = -1 ; x <= 1 ; x++) {
-					for(int z = -1 ; z <= 1 ; z++) {
-						Block b = block.getLocation().add(x, 0, z).getBlock();
-						if(b.getType() != Material.AIR)
-							return;
+				if(ItemBuilder.dataMatch(event.getItem(), "pyro_flint")) {
+					for(int x = -1 ; x <= 1 ; x++) {
+						for(int z = -1 ; z <= 1 ; z++) {
+							Block b = block.getLocation().add(x, 0, z).getBlock();
+							if(b.getType() != Material.AIR)
+								return;
+							try {
+								PyroFire f = new PyroFire(player, b.getLocation());
+								fires.add(f);
+							} catch(CannotBuildException e) {}
+						}
+					}
+					player.getPlayer().setCooldown(Material.FLINT_AND_STEEL, 300);
+				} else if(ItemBuilder.dataMatch(event.getItem(), "light_flint")) {
+					if(lightMana>LIGHT_MANA_USE) {
 						try {
-							new PyroFire(player, b.getLocation());
-						} catch(CannotBuildException e) {}
+							PyroFire f = new PyroFire(player, block.getLocation());
+							fires.add(f);
+							lightMana -= LIGHT_MANA_USE;
+						}catch(CannotBuildException e) {}
 					}
 				}
-				player.getPlayer().setCooldown(Material.FLINT_AND_STEEL, 300);
 			}
 		}
 		if(frenzy && event.getItem() != null && event.getItem().getType() == Material.DIAMOND_AXE && !frenzyMode && frenzyMana==1 && player.getPlayer().isSneaking()) {
@@ -235,6 +268,8 @@ public class PyroKit extends BaseKit{
 	public String getVariation() {
 		if(frenzy)
 			return "Frenzy";
+		if(light)
+			return "Light";
 		return "Default";
 	}
 
@@ -244,7 +279,18 @@ public class PyroKit extends BaseKit{
 	}
 	
 	@Override
+	public ItemStack getIcon(String variation) {
+		if(variation.equalsIgnoreCase("frenzy"))
+			return new ItemStack(Material.DIAMOND_AXE);
+		if(variation.equalsIgnoreCase("light"))
+			return new ItemStack(Material.IRON_AXE);
+		return new ItemStack(Material.GOLDEN_AXE);
+	}
+	
+	@Override
 	public double getMovementSpeed() {
+		if(light)
+			return LIGHT_SPEED;
 		return PYRO_SPEED;
 	}
 	
@@ -252,26 +298,28 @@ public class PyroKit extends BaseKit{
 	public void setVariation(String variation) {
 		if(variation.equalsIgnoreCase("frenzy")) 
 			frenzy = true;
+		else if(variation.equalsIgnoreCase("light"))
+			light = true;
 	}
 
 	@Override
 	public String[] getVariations() {
-		String[] variations = {"default", "frenzy"};
+		String[] variations = {"default", "frenzy", "light"};
 		return variations;
 	}
 	
 	@Override
 	public ItemStack[] getFancyDisplay() {
 		return new ItemStack[] {
-				new ItemStack(Material.DIAMOND_SWORD),
-				new ItemStack(Material.DIAMOND_CHESTPLATE),
-				new ItemStack(Material.DIAMOND_LEGGINGS),
-				new ItemStack(Material.DIAMOND_HELMET),
-				new ItemStack(GameConfig.foodMaterial),
-				new ItemStack(Material.DIAMOND_BOOTS),
-				new ItemStack(Material.DIAMOND_LEGGINGS),
-				new ItemStack(Material.DIAMOND_CHESTPLATE),
-				new ItemStack(Material.DIAMOND_SWORD)
+				new ItemStack(Material.NETHER_STAR),
+				new ItemStack(Material.FLINT_AND_STEEL),
+				new ItemStack(Material.FLINT_AND_STEEL),
+				new ItemStack(Material.BOW),
+				new ItemStack(Material.GOLDEN_AXE),
+				new ItemStack(Material.BOW),
+				new ItemStack(Material.FLINT_AND_STEEL),
+				new ItemStack(Material.FLINT_AND_STEEL),
+				new ItemStack(Material.NETHER_STAR)
 		};
 	}
 

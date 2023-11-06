@@ -5,11 +5,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 
+import net.dezilla.dectf2.GameMain;
 import net.dezilla.dectf2.GamePlayer;
 import net.dezilla.dectf2.Util;
 import net.dezilla.dectf2.game.GameBase;
@@ -25,6 +28,7 @@ public class TDMGame extends GameBase implements Listener{
 	
 	public TDMGame(GameMatch match) {
 		this.match = match;
+		Bukkit.getPluginManager().registerEvents(this, GameMain.getInstance());
 	}
 	
 	@Override
@@ -37,6 +41,7 @@ public class TDMGame extends GameBase implements Listener{
 	
 	@Override
 	public void unregister() {
+		HandlerList.unregisterAll(this);
 	}
 	
 	public void addKill(GameTeam team) {

@@ -58,7 +58,6 @@ import net.dezilla.dectf2.Util;
 import net.dezilla.dectf2.game.GameMatch;
 import net.dezilla.dectf2.game.GameMatch.GameState;
 import net.dezilla.dectf2.game.GameTeam;
-import net.dezilla.dectf2.game.tdm.TDMGame;
 import net.dezilla.dectf2.kits.PyroKit;
 import net.dezilla.dectf2.util.CustomDamageCause;
 import net.dezilla.dectf2.util.GameConfig;
@@ -221,10 +220,12 @@ public class EventListener implements Listener{
 			killer.incrementStats("kills", 1);
 			killer.incrementStats("streak", 1);
 		}
+		p.setInversionTicks(-1);
+		p.setFrozenTicks(-1);
 		Bukkit.getScheduler().scheduleSyncDelayedTask(GameMain.getInstance(), () -> {
 			match.respawnPlayer(p);
 			p.setLastAttacker(null);
-			}, 3);
+		}, 3);
 	}
 	
 	@EventHandler(ignoreCancelled=true)

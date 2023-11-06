@@ -9,8 +9,10 @@ import java.util.List;
 import java.util.Map;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Color;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
@@ -18,6 +20,12 @@ import org.bukkit.boss.BarColor;
 import org.bukkit.boss.BarStyle;
 import org.bukkit.boss.BossBar;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.meta.trim.TrimMaterial;
+import org.bukkit.inventory.meta.trim.TrimPattern;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scoreboard.Criteria;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
@@ -35,6 +43,8 @@ import net.dezilla.dectf2.kits.BaseKit;
 import net.dezilla.dectf2.kits.HeavyKit;
 import net.dezilla.dectf2.kits.PyroKit;
 import net.dezilla.dectf2.util.CustomDamageCause;
+import net.dezilla.dectf2.util.InvSave;
+import net.dezilla.dectf2.util.ItemBuilder;
 import net.dezilla.dectf2.util.ObjectiveLocation;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ChatMessageType;
@@ -43,6 +53,7 @@ import net.md_5.bungee.api.chat.TextComponent;
 public class GamePlayer {
 	private final static String[] filler = new String[] {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"};//used for scoreboards
 	private static List<GamePlayer> PLAYERS = new ArrayList<GamePlayer>();
+	private static ItemStack FROZEN_HEAD = Util.createTexturedHead("eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYTI2NDQwNzFiNmM3YmJhZTdiNWU0NWQ5ZjgyZjk2ZmZiNWVlOGUxNzdhMjNiODI1YTQ0NjU2MDdmMWM5YyJ9fX0=");
 	
 	public static GamePlayer get(Player player) {
 		if(player == null)
@@ -81,11 +92,14 @@ public class GamePlayer {
 	private int inversionTicks = 0;
 	List<InvertPosition> moveHistory = new ArrayList<InvertPosition>();
 	private int objectiveIndex = 0;
+	private int frozenTicks = 0;
+	private boolean frozen = false;
 	//tools
 	private boolean objectiveTracker = true;
 	private boolean spyglass = false;
 	private boolean kitSelector = false;
 	private boolean pointer = false;
+	private List<InvSave> invSaves = new ArrayList<InvSave>();
 	
 	private GamePlayer(Player player) {
 		this.player = player;
@@ -110,6 +124,7 @@ public class GamePlayer {
 			moveHistory.remove(ip);
 			player.getPlayer().teleport(ip.getLocation());
 			player.getPlayer().setVelocity(ip.getVelocity().multiply(-1));
+			player.getPlayer().setFallDistance(0);
 			inversionTicks -=1;
 			player.getPlayer().playSound(getLocation(), Sound.BLOCK_AMETHYST_BLOCK_CHIME, 1, 1);
 		} else {
@@ -127,6 +142,13 @@ public class GamePlayer {
 				player.setCompassTarget(locs.get(objectiveIndex).getLocation());
 			}
 		}
+		if(!frozen && frozenTicks>0) {
+			freeze();
+		} else if(frozen && frozenTicks == 0) {
+			unfreeze();
+		}
+		if(frozenTicks>0)
+			frozenTicks--;
 	}
 	
 	public void toggleObjectiveLocation() {
@@ -228,6 +250,44 @@ public class GamePlayer {
 		}
 	}
 	
+	public void addInvSave(InvSave save) {
+		InvSave old = null;
+		for(InvSave s : invSaves) {
+			if(s.getKit().equals(save.getKit()) && s.getVariation().equalsIgnoreCase(save.getVariation())) {
+				old = s;
+				break;
+			}
+		}
+		if(old != null)
+			invSaves.remove(old);
+		invSaves.add(save);
+	}
+	
+	public void applyInvSave() {
+		for(InvSave s : invSaves) {
+			if(kit.getClass().equals(s.getKit()) && kit.getVariation().equalsIgnoreCase(s.getVariation())) {
+				s.apply(player.getInventory());
+				break;
+			}
+		}
+	}
+	
+	public boolean resetInvSave() {
+		InvSave save = null;
+		for(InvSave s : invSaves) {
+			if(kit.getClass().equals(s.getKit()) && kit.getVariation().equalsIgnoreCase(s.getVariation())) {
+				save = s;
+				break;
+			}
+		}
+		if(save != null) {
+			invSaves.remove(save);
+			return true;
+		}
+		else
+			return false;
+	}
+	
 	public void setStats(String key, int amount) {
 		stats.put(key, amount);
 	}
@@ -261,7 +321,6 @@ public class GamePlayer {
 	public String getName() {
 		return player.getDisplayName();
 	}
-	
 	public Location getLocation() {
 		return player.getLocation();
 	}
@@ -340,6 +399,59 @@ public class GamePlayer {
 	
 	public void setPointer(boolean value) {
 		pointer = value;
+	}
+	
+	public void setFrozenTicks(int value) {
+		frozenTicks = value;
+	}
+	
+	public int getFrozenTicks() {
+		return frozenTicks;
+	}
+	
+	public boolean isFrozen() {
+		return frozen;
+	}
+	
+	private ItemStack fHelmet = null;
+	private ItemStack fChestplate = null;
+	private ItemStack fLeggings = null;
+	private ItemStack fBoots = null;
+	
+	private void freeze() {
+		player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW, -1, 50));
+		player.addPotionEffect(new PotionEffect(PotionEffectType.JUMP, -1, -5));
+		player.setFreezeTicks(100);
+		PlayerInventory inv = player.getInventory();
+		fHelmet = inv.getHelmet();
+		fChestplate = inv.getChestplate();
+		fLeggings = inv.getLeggings();
+		fBoots = inv.getBoots();
+		inv.setHelmet(FROZEN_HEAD.clone());
+		inv.setChestplate(ItemBuilder.of(Material.LEATHER_CHESTPLATE).unbreakable().leatherColor(Color.fromRGB(106, 142, 203)).armorTrim(TrimPattern.RAISER, TrimMaterial.IRON).get());
+		inv.setLeggings(ItemBuilder.of(Material.LEATHER_LEGGINGS).unbreakable().leatherColor(Color.fromRGB(106, 142, 203)).armorTrim(TrimPattern.RAISER, TrimMaterial.IRON).get());
+		inv.setBoots(ItemBuilder.of(Material.LEATHER_BOOTS).unbreakable().leatherColor(Color.fromRGB(106, 142, 203)).armorTrim(TrimPattern.RAISER, TrimMaterial.IRON).get());
+		frozen = true;
+	}
+	
+	private void unfreeze() {
+		if(player.hasPotionEffect(PotionEffectType.SLOW)) {
+			PotionEffect eff = player.getPotionEffect(PotionEffectType.SLOW);
+			if(eff.getAmplifier() == 50)
+				player.removePotionEffect(PotionEffectType.SLOW);
+		}
+		if(player.hasPotionEffect(PotionEffectType.JUMP)) {
+			PotionEffect eff = player.getPotionEffect(PotionEffectType.JUMP);
+			if(eff.getAmplifier() == -5)
+				player.removePotionEffect(PotionEffectType.JUMP);
+		}
+		PlayerInventory inv = player.getInventory();
+		inv.setHelmet(fHelmet);
+		inv.setChestplate(fChestplate);
+		inv.setLeggings(fLeggings);
+		inv.setBoots(fBoots);
+		player.setFreezeTicks(0);
+		frozen = false;
 	}
 	
 	public void setInvisible(boolean value) {
@@ -519,7 +631,7 @@ public class GamePlayer {
 				player.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(msg));
 				break;
 			case SUBTITLE:
-				player.sendTitle(ChatColor.RESET+"", msg, 0, 50, 10);
+				player.sendTitle(ChatColor.RESET+" ", msg, 0, 50, 10);
 				break;
 			case CHAT:
 				player.sendMessage(msg);

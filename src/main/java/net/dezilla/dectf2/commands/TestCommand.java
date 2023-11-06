@@ -3,8 +3,7 @@ package net.dezilla.dectf2.commands;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-
-import net.dezilla.dectf2.gui.ToolGui;
+import org.bukkit.potion.PotionEffectType;
 
 public class TestCommand extends Command{
 	//This command is for testing shit during development.
@@ -17,7 +16,7 @@ public class TestCommand extends Command{
 	public boolean execute(CommandSender sender, String commandLabel, String[] args) {
 		sender.sendMessage("don't fuck with my test command >=(");
 		Player p = (Player) sender;
-		new ToolGui(p).display();
+		p.sendMessage(p.getPotionEffect(PotionEffectType.JUMP).getAmplifier()+"");
 		
 		return true;
 	}

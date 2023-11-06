@@ -52,6 +52,7 @@ public class HeavyKit extends BaseKit {
 		inv.setItem(1, ItemBuilder.of(GameConfig.foodMaterial).name("Steak").amount(3).get());
 		inv.setItemInOffHand(ShieldUtil.getShield(player));
 		addToolItems();
+		player.applyInvSave();
 		if(level != 0) {
 			level /=2;
 		}

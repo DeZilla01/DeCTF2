@@ -8,6 +8,7 @@ import org.bukkit.inventory.ItemStack;
 
 import net.dezilla.dectf2.GameMain;
 import net.dezilla.dectf2.GamePlayer;
+import net.dezilla.dectf2.Util;
 import net.dezilla.dectf2.kits.BaseKit;
 import net.dezilla.dectf2.util.ItemBuilder;
 
@@ -61,7 +62,7 @@ public class KitSelectionGui extends GuiPage{
 				}
 			}
 			for(String alt : kit.getVariations()) {
-				ItemStack icon = ItemBuilder.of(kit.getIcon(alt)).name(alt).get();
+				ItemStack icon = ItemBuilder.of(kit.getIcon(alt)).name(Util.captitalize(alt)).get();
 				GuiItem item = new GuiItem(icon);
 				item.setRun(event -> {
 					GamePlayer p = GamePlayer.get(getPlayer());
