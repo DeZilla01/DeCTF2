@@ -16,7 +16,6 @@ public class PyroFire extends BaseStructure{
 		Block b = location.getBlock();
 		addBlock(b);
 		b.setType(Material.FIRE);
-		dead=false;
 	}
 	
 	@Override

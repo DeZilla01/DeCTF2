@@ -7,6 +7,7 @@ import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -26,10 +27,13 @@ import org.bukkit.util.Vector;
 import net.dezilla.dectf2.GamePlayer;
 import net.dezilla.dectf2.Util;
 import net.dezilla.dectf2.listeners.events.SpongeLaunchEvent;
+import net.dezilla.dectf2.structures.Ballista;
 import net.dezilla.dectf2.structures.BaseStructure;
+import net.dezilla.dectf2.structures.Cannon;
 import net.dezilla.dectf2.structures.CannotBuildException;
 import net.dezilla.dectf2.structures.Dispenser;
 import net.dezilla.dectf2.structures.MobSpawner;
+import net.dezilla.dectf2.structures.SpeedPad;
 import net.dezilla.dectf2.structures.TestThing;
 import net.dezilla.dectf2.structures.Turret;
 import net.dezilla.dectf2.util.GameConfig;
@@ -73,11 +77,15 @@ public class TestyKit extends BaseKit{
 			moveHistory.clear();
 		}
 		else if(structure) {
-			inv.setItem(2, ItemBuilder.of(Material.IRON_NUGGET).data("building").name("Test structure").get());
-			inv.setItem(3, ItemBuilder.of(Material.IRON_NUGGET).data("inspect").name("inspect").get());
-			inv.setItem(4, ItemBuilder.of(Material.IRON_NUGGET).data("turret").name("turret").get());
-			inv.setItem(5, ItemBuilder.of(Material.IRON_NUGGET).data("dispenser").name("dispenser").get());
-			inv.setItem(6, ItemBuilder.of(Material.IRON_NUGGET).data("spawner").name("spawner").get());
+			inv.setItem(0, ItemBuilder.of(Material.DIAMOND_PICKAXE).enchant(Enchantment.DIG_SPEED, 10).unbreakable().get());
+			inv.setItem(9, ItemBuilder.of(Material.IRON_NUGGET).data("building").name("Test structure").get());
+			inv.setItem(10, ItemBuilder.of(Material.IRON_NUGGET).data("inspect").name("inspect").get());
+			inv.setItem(11, ItemBuilder.of(Material.IRON_NUGGET).data("turret").name("turret").get());
+			inv.setItem(12, ItemBuilder.of(Material.IRON_NUGGET).data("dispenser").name("dispenser").get());
+			inv.setItem(2, ItemBuilder.of(Material.IRON_NUGGET).data("spawner").name("spawner").get());
+			inv.setItem(3, ItemBuilder.of(Material.IRON_NUGGET).data("ballista").name("ballista").get());
+			inv.setItem(4, ItemBuilder.of(Material.IRON_NUGGET).data("speed").name("Speed Pad").get());
+			inv.setItem(5, ItemBuilder.of(Material.IRON_NUGGET).data("cannon").name("Cannon").get());
 		} else if(pissmaster) {
 			inv.setHelmet(ItemBuilder.of(Material.LEATHER_HELMET).leatherColor(Color.fromRGB(228, 247, 82)).unbreakable().armorTrim(TrimPattern.TIDE, color().getTrimMaterial()).get());
 			inv.setChestplate(ItemBuilder.of(Material.LEATHER_CHESTPLATE).leatherColor(Color.fromRGB(228, 247, 82)).unbreakable().armorTrim(TrimPattern.TIDE, color().getTrimMaterial()).get());
@@ -96,7 +104,8 @@ public class TestyKit extends BaseKit{
 			inv.setItem(2, ItemBuilder.of(Material.IRON_NUGGET).data("4x4").name("4x4 block test").get());
 			inv.setItem(3, ItemBuilder.of(Material.IRON_NUGGET).data("trident_test").name("trident test").get());
 			inv.setItem(4, ItemBuilder.of(Material.IRON_NUGGET).data("struct_check").name("structure check").get());
-			inv.setItem(5, ItemBuilder.of(Material.DIAMOND_SWORD).enchant(Enchantment.DAMAGE_ALL, -5).name("very good sword").get());
+			inv.setItem(5, ItemBuilder.of(Material.IRON_NUGGET).data("block_above").name("block above").get());
+			inv.setItem(6, ItemBuilder.of(Material.DIAMOND_SWORD).enchant(Enchantment.DAMAGE_ALL, -5).name("very good sword").get());
 		}
 		player.applyInvSave();
 	}
@@ -200,6 +209,36 @@ public class TestyKit extends BaseKit{
 				player.notify(e.getMessage());
 			}
 		}
+		if(ItemBuilder.dataMatch(event.getItem(), "ballista") && event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+			if(event.getClickedBlock().getType().toString().contains("_STAINED_GLASS"))
+				return;
+			try {
+				Location l = event.getClickedBlock().getLocation();
+				new Ballista(player, l.add(0,1,0));
+			}catch(CannotBuildException e) {
+				player.notify(e.getMessage());
+			}
+		}
+		if(ItemBuilder.dataMatch(event.getItem(), "cannon") && event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+			if(event.getClickedBlock().getType().toString().contains("_STAINED_GLASS"))
+				return;
+			try {
+				Location l = event.getClickedBlock().getLocation();
+				new Cannon(player, l.add(0,1,0));
+			}catch(CannotBuildException e) {
+				player.notify(e.getMessage());
+			}
+		}
+		if(ItemBuilder.dataMatch(event.getItem(), "speed") && event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+			if(event.getClickedBlock().getType().toString().contains("_STAINED_GLASS"))
+				return;
+			try {
+				Location l = event.getClickedBlock().getLocation();
+				new SpeedPad(player, l.add(0,1,0));
+			}catch(CannotBuildException e) {
+				player.notify(e.getMessage());
+			}
+		}
 		if(ItemBuilder.dataMatch(event.getItem(), "inspect")) {
 			if(event.getClickedBlock() != null) {
 				Location l = event.getClickedBlock().getLocation();
@@ -209,6 +248,11 @@ public class TestyKit extends BaseKit{
 		if(ItemBuilder.dataMatch(event.getItem(), "struct_check")) {
 			if(event.getClickedBlock() != null) {
 				player.notify(""+BaseStructure.getStructure(event.getClickedBlock()));
+			}
+		}
+		if(ItemBuilder.dataMatch(event.getItem(), "block_above")) {
+			if(event.getClickedBlock() != null) {
+				player.notify(""+event.getClickedBlock().getRelative(BlockFace.UP).getType());
 			}
 		}
 		if(ItemBuilder.dataMatch(event.getItem(), "piss")) {

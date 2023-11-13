@@ -16,7 +16,6 @@ public class MedicWeb extends BaseStructure{
 		Block b = location.getBlock();
 		addBlock(b);
 		b.setType(Material.COBWEB);
-		dead=false;
 	}
 	
 	@Override

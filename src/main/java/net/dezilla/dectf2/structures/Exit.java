@@ -9,6 +9,7 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 
 import net.dezilla.dectf2.GamePlayer;
+import net.dezilla.dectf2.Util;
 
 public class Exit extends BaseStructure{
 	Block plate = null;
@@ -22,7 +23,7 @@ public class Exit extends BaseStructure{
 		placeBlocks();
 	}
 	
-	private void placeBlocks() {
+	private void placeBlocks() throws CannotBuildException {
 		Block b = location.getBlock().getRelative(BlockFace.DOWN);
 		plate = b.getRelative(BlockFace.UP);
 		addBlock(plate);
@@ -37,7 +38,6 @@ public class Exit extends BaseStructure{
 		display.setCustomNameVisible(true);
 		display.setCustomName("Exit");
 		entities.add(display);
-		dead = false;
 	}
 	
 	public void teleport(LivingEntity entity) {
@@ -52,7 +52,7 @@ public class Exit extends BaseStructure{
 	@Override
 	public boolean canPlace(Location location) {
 		Block b = location.getBlock();
-		if(b.getType() != Material.AIR || b.getRelative(BlockFace.UP).getType() != Material.AIR)
+		if(!Util.air(b) || !Util.air(b.getRelative(BlockFace.UP)) || !Util.air(b.getRelative(BlockFace.UP).getRelative(BlockFace.UP)))
 			return false;
 		return !areaRestricted(b);
 	}

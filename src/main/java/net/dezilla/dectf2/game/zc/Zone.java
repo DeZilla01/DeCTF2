@@ -13,6 +13,7 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 
 import net.dezilla.dectf2.GamePlayer;
+import net.dezilla.dectf2.Util;
 import net.dezilla.dectf2.game.GameTeam;
 import net.md_5.bungee.api.ChatColor;
 
@@ -176,7 +177,7 @@ public class Zone {
 	
 	public boolean isStandingOnZone(Player player) {
 		Block b = player.getLocation().add(0,-1,0).getBlock();
-		if(b.getType() == Material.AIR)
+		if(Util.air(b))
 			b = b.getRelative(BlockFace.DOWN);
 		return blocks.contains(b);
 	}

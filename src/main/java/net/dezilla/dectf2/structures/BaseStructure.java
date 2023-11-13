@@ -96,6 +96,7 @@ public abstract class BaseStructure implements Listener {
 		}, 1, 1);
 		Bukkit.getServer().getPluginManager().registerEvents(this, GameMain.getInstance());
 		STRUCTURES.add(this);
+		dead = false;
 	}
 	
 	public void onTick() {}
@@ -114,7 +115,11 @@ public abstract class BaseStructure implements Listener {
 		return owner;
 	}
 	
-	protected void addBlock(Block block) {
+	protected void addBlock(Block block) throws CannotBuildException {
+		if(!singleBlockStructureCheck(block)) {
+			this.remove();
+			throw new CannotBuildException("Ye can't build on another structure u dumbfuck");
+		}
 		previousMaterial.add(block.getType());
 		previousData.add(block.getBlockData());
 		blocks.add(block);
@@ -191,6 +196,10 @@ public abstract class BaseStructure implements Listener {
 	
 	public static boolean structureCheck(Block b) {
 		return getStructure(b.getRelative(BlockFace.DOWN)) == null && getStructure(b) == null;
+	}
+	
+	public static boolean singleBlockStructureCheck(Block b) {
+		return getStructure(b) == null;
 	}
 	
 	public static boolean spawnArea(Block b) {

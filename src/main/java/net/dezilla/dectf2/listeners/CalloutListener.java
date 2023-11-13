@@ -28,6 +28,7 @@ import com.google.common.collect.Sets;
 
 import net.dezilla.dectf2.GameMain;
 import net.dezilla.dectf2.GamePlayer;
+import net.dezilla.dectf2.Util;
 import net.dezilla.dectf2.game.GameCallout;
 import net.dezilla.dectf2.game.GameMatch;
 import net.dezilla.dectf2.game.GameTeam;
@@ -47,8 +48,8 @@ public class CalloutListener implements Listener{
 		if(event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK)
 			return;
 		GamePlayer p = GamePlayer.get(event.getPlayer());
-		Block b = p.getPlayer().getTargetBlock(Sets.newHashSet(Material.AIR), (int) (GameConfig.calloutRadius-1));
-		if(b.getType() == Material.AIR) {
+		Block b = p.getPlayer().getTargetBlock(Util.airListSet(), (int) (GameConfig.calloutRadius-1));
+		if(Util.air(b)) {
 			p.setLastItemDrop(null);
 			return;
 		}
@@ -76,8 +77,8 @@ public class CalloutListener implements Listener{
 		}
 		Timestamp last = p.getLastItemDrop();
 		if(now.getTime()-last.getTime() < 500) {
-			Block b = p.getPlayer().getTargetBlock(Sets.newHashSet(Material.AIR), (int) (GameConfig.calloutRadius-1));
-			if(b.getType() == Material.AIR) {
+			Block b = p.getPlayer().getTargetBlock(Util.airListSet(), (int) (GameConfig.calloutRadius-1));
+			if(Util.air(b)) {
 				p.setLastItemDrop(null);
 				return;
 			}
@@ -161,7 +162,7 @@ public class CalloutListener implements Listener{
 	
 	private static BlockFace getTargetFace(Player player, Block block) {
 		Iterator<Block> itr = new BlockIterator(player, 50);
-		Block previous = null;
+		Block previous = player.getEyeLocation().getBlock();
 		while(itr.hasNext()) {
 			Block b = itr.next();
 			if(b.equals(block))

@@ -8,7 +8,9 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Pattern;
 
@@ -96,11 +98,41 @@ public class Util {
 	}
 	
 	public static boolean onGround(LivingEntity e) {
-		return e.getVelocity().getY() >= -.08 && e.getLocation().add(0,-.1,0).getBlock().getType() != Material.AIR;
+		return e.getVelocity().getY() >= -.08 && e.getVelocity().getY() < 0 && e.getLocation().add(0,-.1,0).getBlock().getType() != Material.AIR;
 	}
 	
 	public static float getYaw(Vector vector) {
 		return (float) Math.toDegrees(Math.atan2(-vector.getX(), vector.getZ()));
+	}
+	
+	static List<Material> airList = Arrays.asList(
+			Material.AIR, 
+			Material.CAVE_AIR,
+			Material.VOID_AIR,
+			Material.LIGHT,
+			Material.GRASS,
+			Material.DEAD_BUSH,
+			Material.FERN,
+			Material.DANDELION,
+			Material.POPPY,
+			Material.BROWN_MUSHROOM,
+			Material.RED_MUSHROOM,
+			Material.BLUE_ORCHID,
+			Material.ALLIUM,
+			Material.AZURE_BLUET,
+			Material.RED_TULIP,
+			Material.ORANGE_TULIP,
+			Material.WHITE_TULIP,
+			Material.PINK_TULIP,
+			Material.OXEYE_DAISY,
+			Material.CORNFLOWER,
+			Material.LILY_OF_THE_VALLEY);
+	public static boolean air(Block block) {
+		return airList.contains(block.getType());
+	}
+	
+	public static Set<Material> airListSet() {
+		return new HashSet<Material>(airList);
 	}
 	
 	public static BlockFace getFacing(Location loc) {

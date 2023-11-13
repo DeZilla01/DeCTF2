@@ -13,7 +13,6 @@ import net.dezilla.dectf2.util.InvSave;
 import net.md_5.bungee.api.ChatColor;
 
 public class InvSaveCommand extends Command{
-	//This command is for testing shit during development.
 	public InvSaveCommand() {
 		super("invsave");
 		setPermission("dectf2.command.invsave");

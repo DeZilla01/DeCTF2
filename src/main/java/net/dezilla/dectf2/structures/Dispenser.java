@@ -18,7 +18,6 @@ import net.dezilla.dectf2.Util;
 public class Dispenser extends BaseStructure{
 	static int DISPENSER_REGEN = 100;
 	
-	//ArmorStand display = null;
 	Block cake = null;
 	int cakelvl = 6; //6 == empty, 0 == full
 	int regen = DISPENSER_REGEN;
@@ -31,7 +30,7 @@ public class Dispenser extends BaseStructure{
 		placeBlocks();
 	}
 	
-	private void placeBlocks() {
+	private void placeBlocks() throws CannotBuildException {
 		Block b = location.getBlock();
 		addBlock(b);
 		b.setType(owner.getTeam().getColor().stainedGlass());
@@ -39,15 +38,6 @@ public class Dispenser extends BaseStructure{
 		addBlock(cake);
 		cake.setType(Material.CAKE);
 		updateCake();
-		/*display = (ArmorStand) location.getWorld().spawnEntity(b.getLocation().add(.5,1.3,.5), EntityType.ARMOR_STAND);
-		display.setMarker(true);
-		display.setGravity(false);
-		display.setInvisible(true);
-		display.setInvulnerable(true);
-		display.setCustomNameVisible(true);
-		display.setCustomName("Dispenser Test");
-		entities.add(display);*/
-		dead = false;
 	}
 	
 	@Override
@@ -93,7 +83,7 @@ public class Dispenser extends BaseStructure{
 	@Override
 	public boolean canPlace(Location location) {
 		Block b = location.getBlock();
-		if(b.getType() != Material.AIR || b.getRelative(BlockFace.UP).getType() != Material.AIR || b.getRelative(BlockFace.UP).getRelative(BlockFace.UP).getType() != Material.AIR)
+		if(!Util.air(b) || !Util.air(b.getRelative(BlockFace.UP)) || !Util.air(b.getRelative(BlockFace.UP).getRelative(BlockFace.UP)))
 			return false;
 		return !areaRestricted(b);
 	}

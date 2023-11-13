@@ -14,6 +14,7 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 
 import net.dezilla.dectf2.GamePlayer;
+import net.dezilla.dectf2.Util;
 import net.dezilla.dectf2.util.Minion;
 
 public class MobSpawner extends BaseStructure{
@@ -74,6 +75,14 @@ public class MobSpawner extends BaseStructure{
 				return;
 			}
 			Block b = spawnAreas.get((int)(Math.random()*spawnAreas.size()));
+			while(!Util.air(b)) {
+				spawnAreas.remove(b);
+				if(spawnAreas.isEmpty()) {
+					remove();
+					return;
+				}
+				b = spawnAreas.get((int)(Math.random()*spawnAreas.size()));
+			}
 			Location l = b.getLocation().add(.5,0,.5);
 			Minion m = new Minion(spawner.getSpawnedType(), owner.getTeam(), l, owner);
 			minions.add(m);
@@ -92,7 +101,7 @@ public class MobSpawner extends BaseStructure{
 		}
 	}
 	
-	private void placeBlocks() {
+	private void placeBlocks() throws CannotBuildException {
 		Block b = location.getBlock();
 		addBlock(b);
 		b.setType(Material.NETHER_BRICK_FENCE);
@@ -106,25 +115,24 @@ public class MobSpawner extends BaseStructure{
 		spawner.setSpawnedType(EntityType.ZOMBIE);
 		spawner.setSpawnCount(0);
 		spawner.update();
-		dead = false;
 	}
 	
 	private void spawnAreas() {
 		for(int x = -MOB_SPAWN_RADIUS; x <= MOB_SPAWN_RADIUS; x++) {
 			for(int z = -MOB_SPAWN_RADIUS; z <= MOB_SPAWN_RADIUS; z++) {
 				Block b = location.clone().add(x, 0, z).getBlock();
-				if(b.getType() == Material.AIR) {
+				if(Util.air(b)) {
 					int c = 0;
-					while(b.getRelative(BlockFace.DOWN).getType() == Material.AIR && c<3) {
+					while(Util.air(b.getRelative(BlockFace.DOWN)) && c<3) {
 						b = b.getRelative(BlockFace.DOWN);
 						c++;
 					}
 					spawnAreas.add(b);
 				}
-				else if(b.getType() != Material.AIR) {
+				else if(!Util.air(b)) {
 					int c = 0;
 					b = b.getRelative(BlockFace.UP);
-					while(b.getType() != Material.AIR && c<3) {
+					while(!Util.air(b) && c<3) {
 						b = b.getRelative(BlockFace.UP);
 						c++;
 					}

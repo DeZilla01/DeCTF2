@@ -8,6 +8,7 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.entity.LivingEntity;
 
 import net.dezilla.dectf2.GamePlayer;
+import net.dezilla.dectf2.Util;
 
 public class IceBox extends BaseStructure{
 	
@@ -26,7 +27,9 @@ public class IceBox extends BaseStructure{
 					if((y == 1 || y == 2) && (x == 0 && z == 0))
 						continue;
 					Block block = b.getLocation().add(x, y, z).getBlock();
-					if(block.getType() != Material.AIR)
+					if(!Util.air(block))
+						continue;
+					if(!structureCheck(block))
 						continue;
 					addBlock(block);
 					block.setType(Material.ICE);
@@ -34,7 +37,6 @@ public class IceBox extends BaseStructure{
 			}
 		}
 		victim.setFreezeTicks(tickLeft*2);
-		dead=false;
 	}
 	
 	@Override

@@ -22,7 +22,7 @@ public class TestThing extends BaseStructure{
 		placeBlocks();
 	}
 	
-	private void placeBlocks() {
+	private void placeBlocks() throws CannotBuildException {
 		Block b = location.getBlock();
 		addBlock(b);
 		b.setType(Material.STONE);
@@ -37,7 +37,6 @@ public class TestThing extends BaseStructure{
 		a.setCustomName("Structure Test");
 		a.setCustomNameVisible(true);
 		a.setInvulnerable(true);
-		dead = false;
 	}
 	
 	@Override
@@ -66,7 +65,7 @@ public class TestThing extends BaseStructure{
 	@Override
 	public boolean canPlace(Location location) {
 		Block b = location.getBlock();
-		return b.getType() == Material.AIR && b.getRelative(BlockFace.UP).getType() == Material.AIR && !areaRestricted(b) && !spawnArea(b);
+		return !Util.air(b) || !Util.air(b.getRelative(BlockFace.UP)) || !Util.air(b.getRelative(BlockFace.UP).getRelative(BlockFace.UP)) && !areaRestricted(b) && !spawnArea(b);
 	}
 		
 }

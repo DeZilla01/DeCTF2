@@ -16,6 +16,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerMoveEvent;
 
 import net.dezilla.dectf2.GamePlayer;
+import net.dezilla.dectf2.Util;
 import net.dezilla.dectf2.game.GameCallout;
 import net.dezilla.dectf2.game.GameMatch;
 import net.md_5.bungee.api.ChatMessageType;
@@ -94,7 +95,7 @@ public class Entrance extends BaseStructure{
 			delays.put(gp, TELEPORTING_DELAY);
 	}
 	
-	private void placeBlocks() {
+	private void placeBlocks() throws CannotBuildException {
 		Block b = location.getBlock().getRelative(BlockFace.DOWN);
 		plate = b.getRelative(BlockFace.UP);
 		addBlock(plate);
@@ -109,7 +110,6 @@ public class Entrance extends BaseStructure{
 		display.setCustomNameVisible(true);
 		display.setCustomName("Entry");
 		entities.add(display);
-		dead = false;
 	}
 	
 	public void setExit(Exit exit) {
@@ -119,7 +119,7 @@ public class Entrance extends BaseStructure{
 	@Override
 	public boolean canPlace(Location location) {
 		Block b = location.getBlock();
-		if(b.getType() != Material.AIR || b.getRelative(BlockFace.UP).getType() != Material.AIR)
+		if(!Util.air(b) || !Util.air(b.getRelative(BlockFace.UP)) || !Util.air(b.getRelative(BlockFace.UP).getRelative(BlockFace.UP)))
 			return false;
 		return !areaRestricted(b);
 	}

@@ -41,7 +41,7 @@ public class Turret extends BaseStructure{
 		placeBlocks();
 	}
 	
-	private void placeBlocks() {
+	private void placeBlocks() throws CannotBuildException {
 		Block b = location.getBlock();
 		addBlock(b);
 		b.setType(Material.OAK_FENCE);
@@ -72,7 +72,6 @@ public class Turret extends BaseStructure{
 		entities.add(dispenser);
 		entities.add(display);
 		entities.add(hitbox);
-		dead = false;
 	}
 	
 	@EventHandler
@@ -159,7 +158,7 @@ public class Turret extends BaseStructure{
 	@Override
 	public boolean canPlace(Location location) {
 		Block b = location.getBlock();
-		if(b.getType() != Material.AIR || b.getRelative(BlockFace.UP).getType() != Material.AIR || b.getRelative(BlockFace.UP).getRelative(BlockFace.UP).getType() != Material.AIR)
+		if(!Util.air(b) || !Util.air(b.getRelative(BlockFace.UP)) || !Util.air(b.getRelative(BlockFace.UP).getRelative(BlockFace.UP)))
 			return false;
 		return !areaRestricted(b);
 	}

@@ -215,6 +215,7 @@ public class EventListener implements Listener{
 		p.incrementStats("deaths", 1);
 		p.setStats("streak", 0);
 		p.resetInversionHistory();
+		p.setSpawnProtection();
 		GamePlayer killer = p.getLastAttacker();
 		if(killer != null) {
 			killer.incrementStats("kills", 1);
@@ -224,6 +225,7 @@ public class EventListener implements Listener{
 		p.setFrozenTicks(-1);
 		Bukkit.getScheduler().scheduleSyncDelayedTask(GameMain.getInstance(), () -> {
 			match.respawnPlayer(p);
+			p.setSpawnProtection();
 			p.setLastAttacker(null);
 		}, 3);
 	}

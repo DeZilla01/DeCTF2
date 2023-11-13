@@ -18,6 +18,7 @@ import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.util.Vector;
 
 import net.dezilla.dectf2.GameMain;
+import net.dezilla.dectf2.Util;
 import net.dezilla.dectf2.game.GameTimer;
 import net.dezilla.dectf2.listeners.events.SpongeLaunchEvent;
 
@@ -124,7 +125,7 @@ public class SpongeListener implements Listener{
 							t.unregister();
 							return;
 						}
-						if(p.getVelocity().getY() >= -.08 && p.getLocation().add(0,-.1,0).getBlock().getType() != Material.AIR) {
+						if(Util.onGround(p)) {
 							Bukkit.getScheduler().scheduleSyncDelayedTask(GameMain.getInstance(), () -> {
 								if(cancelFall.contains(p)) {
 									cancelFall.remove(p);
