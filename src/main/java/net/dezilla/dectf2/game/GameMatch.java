@@ -37,6 +37,7 @@ import net.dezilla.dectf2.util.WorldRunnable;
 import net.dezilla.dectf2.util.ZipUtility;
 import net.md_5.bungee.api.ChatColor;
 import net.dezilla.dectf2.game.ctf.CTFGame;
+import net.dezilla.dectf2.game.pl.PayloadGame;
 import net.dezilla.dectf2.game.tdm.TDMGame;
 import net.dezilla.dectf2.game.zc.ZonesGame;
 import net.dezilla.dectf2.gui.MapVoteGui;
@@ -85,6 +86,7 @@ public class GameMatch {
 	private ItemStack mapIcon = new ItemStack(Material.PAPER);
 	private List<RestrictArea> restrictedAreas = new ArrayList<RestrictArea>();
 	private List<Portal> portals = new ArrayList<Portal>();
+	private boolean selectable = true;
 	
 	public GameMatch(String levelName) throws FileNotFoundException {
 		//Set chosen level
@@ -154,6 +156,8 @@ public class GameMatch {
 					game = new CTFGame(this);
 				else if(mode.equalsIgnoreCase("zc"))
 					game = new ZonesGame(this);
+				else if(mode.equalsIgnoreCase("pl"))
+					game = new PayloadGame(this);
 				else 
 					game = new TDMGame(this); //fallback gamemode incase mode is not valid
 				if(scoreToWin <= 0) {
@@ -304,10 +308,15 @@ public class GameMatch {
 	public void createMapVote(boolean openGui) {
 		List<File> files = Arrays.asList(Util.getWorldList());
 		List<String> choices = new ArrayList<String>();
-		while(choices.size() < GameConfig.mapVoteAmount && choices.size() < files.size()) {
+		int max = files.size();
+		while(choices.size() < GameConfig.mapVoteAmount && choices.size() < max) {
 			File f = files.get((int) (Math.random()*files.size()));
 			if(choices.contains(f.getName()))
 				continue;
+			if(!new MapPreview(f.getName()).isSelectable()) {
+				max--;//TODO rewrite this bit
+				continue;
+			}
 			choices.add(f.getName());
 		}
 		List<MapPreview> selected = new ArrayList<MapPreview>();
@@ -333,7 +342,8 @@ public class GameMatch {
 				setPostgameInventory(player);
 			player.getPlayer().teleport(spawn);
 		} else {
-			player.getKit().setInventory();
+			player.setSpawnProtection();
+			player.getKit().setInventory(true);
 			player.getPlayer().teleport(team.getSpawn());
 		}
 	}
@@ -463,6 +473,12 @@ public class GameMatch {
 							//Map Author
 							else if(line.equals("author")) {
 								author = Util.grabConfigText(sign);
+							}
+							//Selectable
+							else if(line.equals("selectable")) {
+								try {
+									selectable = Boolean.parseBoolean(Util.grabConfigText(sign));
+								} catch(Exception e) {}
 							}
 							//Neutral Callout (not team sided)
 							else if(line.equals("callout")) {
@@ -652,6 +668,10 @@ public class GameMatch {
 	
 	public String getMapName() {
 		return name;
+	}
+	
+	public boolean isSelectable() {
+		return selectable;
 	}
 	
 	public String getMapAuthor() {

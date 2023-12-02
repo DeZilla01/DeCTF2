@@ -12,6 +12,7 @@ import java.util.Map.Entry;
 
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
+import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandMap;
 import org.bukkit.entity.Player;
@@ -33,6 +34,7 @@ import net.dezilla.dectf2.util.GameConfig;
 import net.dezilla.dectf2.util.LuckPermsStuff;
 import net.dezilla.dectf2.util.MapManagerWorld;
 import net.luckperms.api.LuckPerms;
+import net.md_5.bungee.api.ChatColor;
 
 public class GameMain extends JavaPlugin{
 	
@@ -118,10 +120,17 @@ public class GameMain extends JavaPlugin{
 					MapManagerWorld w = MapManagerWorld.get(p.getWorld());
 					List<String> display = new ArrayList<String>();
 					display.add("Map Manager Mode");
-					display.add("Welcome to Map");
-					display.add("Manager Mode.");
-					display.add("To get started, ");
-					display.add("use /loadmap");
+					display.add(ChatColor.BOLD+"Loaded Worlds");
+					for(World world : Bukkit.getWorlds()) {
+						if(world.equals(Bukkit.getWorlds().get(0)))
+							continue;
+						display.add(" "+world.getName());
+					}
+					display.add(ChatColor.BOLD+"Commands");
+					display.add(" /loadmap");
+					display.add(" /unload");
+					display.add(" /save");
+					display.add(" /world");
 					if(w != null) {
 						display = w.getDisplay();
 					}

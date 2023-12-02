@@ -27,8 +27,8 @@ public class ArcherKit extends BaseKit{
 	}
 	
 	@Override
-	public void setInventory() {
-		super.setInventory();
+	public void setInventory(boolean resetStats) {
+		super.setInventory(resetStats);
 		PlayerInventory inv = player.getPlayer().getInventory();
 		inv.setHelmet(ItemBuilder.of(Material.CHAINMAIL_HELMET).name("Archer Helmet").unbreakable().armorTrim(TrimPattern.SHAPER, color().getTrimMaterial()).get());
 		inv.setChestplate(ItemBuilder.of(Material.CHAINMAIL_CHESTPLATE).name("Archer Chestplate").unbreakable().get());
@@ -98,7 +98,7 @@ public class ArcherKit extends BaseKit{
 		if(variation.equalsIgnoreCase("crossbow"))
 			return new ItemStack(Material.CROSSBOW);
 		if(variation.equalsIgnoreCase("arbalist"))
-			return new ItemStack(Material.CROSSBOW);
+			return ItemBuilder.of(Material.CROSSBOW).amount(3).get();
 		return getIcon();
 	}
 	

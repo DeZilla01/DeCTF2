@@ -249,7 +249,7 @@ public class Util {
 		int delay = (int) ((now.getTime() - player.getLastRegen().getTime()) / 50);
 		if(delay < GameConfig.regenDelay)
 			return false;
-		player.getKit().setInventory();
+		player.getKit().setInventory(false);
 		player.getPlayer().playSound(player.getPlayer(), Sound.ENTITY_SLIME_HURT_SMALL, 1, 1);
 		player.setLastRegen(now);
 		return true;

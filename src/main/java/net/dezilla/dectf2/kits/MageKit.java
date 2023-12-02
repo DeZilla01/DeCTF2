@@ -30,6 +30,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
+import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemDamageEvent;
@@ -98,7 +99,6 @@ public class MageKit extends BaseKit{
 	
 	private boolean dark = false;
 	private boolean mystic = false;
-	private boolean dragon = false;
 	private Map<String, Float> charges = new HashMap<String, Float>();
 	private List<Minion> minions = new ArrayList<Minion>();
 	private boolean witherSword = false;
@@ -109,16 +109,14 @@ public class MageKit extends BaseKit{
 	}
 	
 	@Override
-	public void setInventory() {
-		super.setInventory();
+	public void setInventory(boolean resetStats) {
+		super.setInventory(resetStats);
 		PlayerInventory inv = player.getPlayer().getInventory();
 		Color armorColor = DEFAULT_COLOR;
 		if(dark)
 			armorColor = DARK_COLOR;
 		else if(mystic)
 			armorColor = MYSTIC_COLOR;
-		else if(dragon)
-			armorColor = DRAGON_COLOR;
 		inv.setChestplate(ItemBuilder.of(Material.LEATHER_CHESTPLATE).unbreakable().leatherColor(armorColor).armorTrim(TrimPattern.VEX, color().getTrimMaterial()).enchant(Enchantment.PROTECTION_ENVIRONMENTAL, 1).get());
 		inv.setLeggings(ItemBuilder.of(Material.LEATHER_LEGGINGS).unbreakable().leatherColor(armorColor).armorTrim(TrimPattern.VEX, color().getTrimMaterial()).enchant(Enchantment.PROTECTION_ENVIRONMENTAL, 1).get());
 		inv.setBoots(ItemBuilder.of(Material.LEATHER_BOOTS).unbreakable().leatherColor(armorColor).armorTrim(TrimPattern.VEX, color().getTrimMaterial()).enchant(Enchantment.PROTECTION_ENVIRONMENTAL, 1).get());
@@ -133,13 +131,6 @@ public class MageKit extends BaseKit{
 			inv.setItem(1, ItemBuilder.of(Material.IRON_HOE).data("inversion_spell").name("Inversion Spell").unbreakable().get());
 			inv.setItem(3, ItemBuilder.of(Material.NETHERITE_HOE).data("thorn_spell").name("Thorns Spell").unbreakable().get());
 			inv.setItem(2, ItemBuilder.of(Material.GOLDEN_HOE).data("cure_spell").name("Cure Spell").unbreakable().get());
-		} else if(dragon) {
-			inv.setItem(0, ItemBuilder.of(Material.IRON_NUGGET).data("dragon_fireball_spell").name("Dragon Fireball Spell").unbreakable().get());
-			inv.setItem(1, ItemBuilder.of(Material.IRON_NUGGET).data("dragon_breath_spell").name("Dragon Breath Spell").unbreakable().get());
-			inv.setItem(2, ItemBuilder.of(Material.IRON_NUGGET).data("heal_crystal_spell").name("Heal Crystal Spell").unbreakable().get());
-			//dragon fireball
-			//dragon breath
-			//crystal heal
 		} else {
 			inv.setItem(0, ItemBuilder.of(Material.DIAMOND_HOE).data("dmg_spell").name("Damage Spell").unbreakable().get());
 			inv.setItem(1, ItemBuilder.of(Material.WOODEN_HOE).data("fire_spell").name("Flame Spell").unbreakable().get());
@@ -149,13 +140,18 @@ public class MageKit extends BaseKit{
 		}
 		addToolItems();
 		player.applyInvSave();
-		killMinions();
+		if(resetStats) {
+			killMinions();
+			charges.clear();
+		}
 	}
 	
 	@Override
 	public void unregister() {
 		super.unregister();
 		killMinions();
+		for(ShulkerBullet b : bullets)
+			b.remove();
 	}
 	
 	@Override
@@ -283,7 +279,10 @@ public class MageKit extends BaseKit{
 			light.setItem(MAGE_LIGHTNING_HEAD.clone());
 			Bukkit.getScheduler().scheduleSyncDelayedTask(GameMain.getInstance(), () -> {
 				if(!light.isDead()) {
-					strike(light.getLocation());
+					Location l = light.getLocation();
+					while(l.getWorld().getMinHeight() < l.getY() && Util.air(l.getBlock()))
+						l.add(0,-1,0);
+					strike(l);
 					light.remove();
 				}
 			}, 6);
@@ -497,6 +496,13 @@ public class MageKit extends BaseKit{
 			LivingEntity e = (LivingEntity) event.getEntity();
 			e.addPotionEffect(new PotionEffect(PotionEffectType.WITHER, 120, 0));
 		}
+	}
+	
+	public void onDeath(PlayerDeathEvent event) {
+		for(ShulkerBullet b : bullets) {
+			b.remove();
+		}
+		bullets.clear();
 	}
 	
 	@EventHandler(ignoreCancelled=true)
@@ -761,8 +767,6 @@ public class MageKit extends BaseKit{
 			return "Dark";
 		if(mystic)
 			return "Mystic";
-		if(dragon)
-			return "Dragon";
 		return "Default";
 	}
 
@@ -788,8 +792,6 @@ public class MageKit extends BaseKit{
 			dark = true;
 		if(variation.equalsIgnoreCase("mystic"))
 			mystic = true;
-		if(variation.equalsIgnoreCase("dragon"))
-			dragon = true;
 	}
 
 	@Override

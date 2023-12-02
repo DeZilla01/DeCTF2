@@ -54,8 +54,8 @@ public class MedicKit extends BaseKit{
 	}
 	
 	@Override
-	public void setInventory() {
-		super.setInventory();
+	public void setInventory(boolean resetStats) {
+		super.setInventory(resetStats);
 		PlayerInventory inv = player.getPlayer().getInventory();
 		inv.setHelmet(ItemBuilder.of(Material.GOLDEN_HELMET).name("Medic Helmet").unbreakable().armorTrim(TrimPattern.SILENCE, color().getTrimMaterial()).get());
 		inv.setChestplate(ItemBuilder.of(Material.GOLDEN_CHESTPLATE).name("Medic Chestplate").unbreakable().armorTrim(TrimPattern.SENTRY, color().getTrimMaterial()).get());
@@ -151,7 +151,7 @@ public class MedicKit extends BaseKit{
 			return;
 		if(!(event.getEntity() instanceof Player))
 			return;
-		if(player.getPlayer().getInventory().getItemInMainHand() == null || ItemBuilder.dataMatch(player.getPlayer().getInventory().getItemInMainHand(), "heal_sword"))
+		if(player.getPlayer().getInventory().getItemInMainHand() == null || !ItemBuilder.dataMatch(player.getPlayer().getInventory().getItemInMainHand(), "heal_sword"))
 			return;
 		GamePlayer target = GamePlayer.get((Player) event.getEntity());
 		if(target.getTeam() != null && player.getTeam() != null && target.getTeam().equals(player.getTeam())) {
@@ -160,7 +160,7 @@ public class MedicKit extends BaseKit{
 				if(Util.regenPlayer(target))
 					player.getPlayer().playSound(player.getPlayer(), Sound.ENTITY_SLIME_HURT_SMALL, 1, 1);
 				else
-					player.notify(target.getName()+"'s inventory cannot be regenerated yet");
+					player.notify(target.getName()+"'s inventory is on cooldown. ("+target.getRegenTickDelay()/20+" seconds)");
 			}
 			else if(now.getTime() - target.getLastHeal().getTime() >= MEDIC_HEAL_COOLDOWN*1000) {
 				target.setCustomDamageCause(CustomDamageCause.MEDIC_HEAL);
@@ -236,15 +236,15 @@ public class MedicKit extends BaseKit{
 	@Override
 	public ItemStack[] getFancyDisplay() {
 		return new ItemStack[] {
-				new ItemStack(Material.DIAMOND_SWORD),
-				new ItemStack(Material.DIAMOND_CHESTPLATE),
-				new ItemStack(Material.DIAMOND_LEGGINGS),
-				new ItemStack(GameConfig.foodMaterial),
+				new ItemStack(Material.NETHER_STAR),
+				new ItemStack(Material.GOLDEN_CHESTPLATE),
+				new ItemStack(Material.COBWEB),
+				new ItemStack(Material.GOLDEN_HELMET),
 				new ItemStack(Material.GOLDEN_SWORD),
-				new ItemStack(GameConfig.foodMaterial),
-				new ItemStack(Material.DIAMOND_LEGGINGS),
-				new ItemStack(Material.DIAMOND_CHESTPLATE),
-				new ItemStack(Material.DIAMOND_SWORD)
+				new ItemStack(Material.GOLDEN_HELMET),
+				new ItemStack(Material.COBWEB),
+				new ItemStack(Material.GOLDEN_CHESTPLATE),
+				new ItemStack(Material.NETHER_STAR)
 		};
 	}
 

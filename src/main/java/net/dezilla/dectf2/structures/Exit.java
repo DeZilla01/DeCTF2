@@ -54,7 +54,12 @@ public class Exit extends BaseStructure{
 		Block b = location.getBlock();
 		if(!Util.air(b) || !Util.air(b.getRelative(BlockFace.UP)) || !Util.air(b.getRelative(BlockFace.UP).getRelative(BlockFace.UP)))
 			return false;
-		return !areaRestricted(b);
+		return true;
+	}
+	
+	@Override
+	public boolean bypassRestrictedAreas() {
+		return false;
 	}
 
 }

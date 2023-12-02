@@ -43,6 +43,7 @@ import net.dezilla.dectf2.kits.BaseKit;
 import net.dezilla.dectf2.kits.HeavyKit;
 import net.dezilla.dectf2.kits.PyroKit;
 import net.dezilla.dectf2.util.CustomDamageCause;
+import net.dezilla.dectf2.util.GameConfig;
 import net.dezilla.dectf2.util.InvSave;
 import net.dezilla.dectf2.util.ItemBuilder;
 import net.dezilla.dectf2.util.ObjectiveLocation;
@@ -500,6 +501,14 @@ public class GamePlayer {
 	
 	public Timestamp getLastRegen() {
 		return lastRegen;
+	}
+	
+	public int getRegenTickDelay() {
+		Timestamp now = new Timestamp(new Date().getTime());
+		int a = (int) (GameConfig.regenDelay - ((now.getTime() - lastRegen.getTime())/50));
+		if(a<0)
+			a=0;
+		return a;
 	}
 	
 	public void setSpawnProtection() {

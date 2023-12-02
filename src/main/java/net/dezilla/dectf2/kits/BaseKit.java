@@ -5,6 +5,7 @@ import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Banner;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -14,6 +15,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryType.SlotType;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -40,6 +43,7 @@ public abstract class BaseKit implements Listener{
 	protected static double defaultMovementSpeed = .12;
 	private int tickTaskId = -1;
 	private boolean unregistered = true;
+	private boolean armorLocked = true;
 	
 	GamePlayer player;
 	
@@ -97,7 +101,7 @@ public abstract class BaseKit implements Listener{
 		return unregistered;
 	}
 	
-	public void setInventory() {
+	public void setInventory(boolean resetStats) {
 		register();
 		player.getPlayer().getInventory().clear();
 		player.getPlayer().setItemOnCursor(null);
@@ -231,7 +235,7 @@ public abstract class BaseKit implements Listener{
 		if(!(event.getEntity() instanceof Player) || !((Player) event.getEntity()).equals(player.getPlayer()))
 			return;
 		long now = GameMain.getServerTick();
-		if(event.getDamager() != null && player.getPlayer().isBlocking() && event.getCause() != DamageCause.CUSTOM && now-lastAttack >= 10) {
+		if(event.getDamager() != null && player.getPlayer().isHandRaised() && event.getCause() != DamageCause.CUSTOM && now-lastAttack >= 10) {
 			event.setCancelled(true);
 			GamePlayer killer = Util.getOwner(event.getDamager());
 			if(killer != null)
@@ -251,6 +255,13 @@ public abstract class BaseKit implements Listener{
 		}
 		if(now-lastAttack >= 10)
 			lastAttack = now;
+	}
+	
+	@EventHandler(ignoreCancelled=true)
+	public void onTouchTheArmor(InventoryClickEvent event) {
+		if(event.getSlotType() == SlotType.ARMOR && armorLocked) {
+			event.setCancelled(true);
+		}
 	}
 	
 	protected GameColor color() {
@@ -281,6 +292,15 @@ public abstract class BaseKit implements Listener{
 	
 	protected boolean sameTeam(GamePlayer p) {
 		return (p.getTeam() != null && player.getTeam() != null && p.getTeam().equals(player.getTeam()));
+	}
+	
+	protected boolean sameTeam(LivingEntity e) {
+		if(e.getType() == EntityType.PLAYER)
+			return sameTeam(GamePlayer.get((Player) e));
+		Minion m = Minion.get(e);
+		if(m == null)
+			return false;
+		return m.getTeam().equals(player.getTeam());
 	}
 
 }

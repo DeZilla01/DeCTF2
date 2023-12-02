@@ -56,8 +56,8 @@ public class TestyKit extends BaseKit{
 	}
 
 	@Override
-	public void setInventory() {
-		super.setInventory();
+	public void setInventory(boolean resetStats) {
+		super.setInventory(resetStats);
 		PlayerInventory inv = player.getPlayer().getInventory();
 		inv.clear();
 		inv.setItem(0, ItemBuilder.of(Material.DEBUG_STICK).name("test").unbreakable().get());
@@ -106,6 +106,7 @@ public class TestyKit extends BaseKit{
 			inv.setItem(4, ItemBuilder.of(Material.IRON_NUGGET).data("struct_check").name("structure check").get());
 			inv.setItem(5, ItemBuilder.of(Material.IRON_NUGGET).data("block_above").name("block above").get());
 			inv.setItem(6, ItemBuilder.of(Material.DIAMOND_SWORD).enchant(Enchantment.DAMAGE_ALL, -5).name("very good sword").get());
+			inv.setItem(7, ItemBuilder.of(Material.SHIELD).get());
 		}
 		player.applyInvSave();
 	}
@@ -127,6 +128,10 @@ public class TestyKit extends BaseKit{
 				if(moveHistory.size()>300)
 					moveHistory.remove(0);
 			}
+		}
+		ItemStack offhand = player.getPlayer().getInventory().getItemInOffHand();
+		if(offhand != null && offhand.getType() == Material.SHIELD) {
+			player.getPlayer().sendMessage(player.getPlayer().isHandRaised() ? "blocking": "not blocking");
 		}
 	}
 	
@@ -363,15 +368,15 @@ public class TestyKit extends BaseKit{
 	@Override
 	public ItemStack[] getFancyDisplay() {
 		return new ItemStack[] {
-				new ItemStack(Material.DIAMOND_SWORD),
-				new ItemStack(Material.DIAMOND_CHESTPLATE),
-				new ItemStack(Material.DIAMOND_LEGGINGS),
-				new ItemStack(Material.DIAMOND_HELMET),
-				new ItemStack(GameConfig.foodMaterial),
-				new ItemStack(Material.DIAMOND_BOOTS),
-				new ItemStack(Material.DIAMOND_LEGGINGS),
-				new ItemStack(Material.DIAMOND_CHESTPLATE),
-				new ItemStack(Material.DIAMOND_SWORD)
+				new ItemStack(Material.NETHER_STAR),
+				new ItemStack(Material.REPEATING_COMMAND_BLOCK),
+				new ItemStack(Material.CHAIN_COMMAND_BLOCK),
+				new ItemStack(Material.COMMAND_BLOCK),
+				new ItemStack(Material.COMMAND_BLOCK),
+				new ItemStack(Material.COMMAND_BLOCK),
+				new ItemStack(Material.CHAIN_COMMAND_BLOCK),
+				new ItemStack(Material.REPEATING_COMMAND_BLOCK),
+				new ItemStack(Material.NETHER_STAR)
 		};
 	}
 

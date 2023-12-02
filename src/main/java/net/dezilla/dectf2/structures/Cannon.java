@@ -50,5 +50,10 @@ public class Cannon extends BaseStructure{
 	public boolean canPlace(Location location) {
 		return true;
 	}
+	
+	@Override
+	public boolean bypassRestrictedAreas() {
+		return false;
+	}
 
 }

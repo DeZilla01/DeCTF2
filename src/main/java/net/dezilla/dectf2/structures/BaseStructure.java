@@ -75,17 +75,20 @@ public abstract class BaseStructure implements Listener {
 		this.owner = owner;
 		this.location = location;
 		if(spawnArea(location.getBlock()))
-			throw new CannotBuildException("Ye can't place shit on spawn u dumdum");
+			throw new CannotBuildException("Cannot build on spawn");
 		if(!structureCheck(location.getBlock()))
-			throw new CannotBuildException("Ye can't build on another structure u idiot");
-		if(!canPlace(location)) {
+			throw new CannotBuildException("Cannot build on top of another structure");
+		if(!bypassRestrictedAreas() && areaRestricted(location.getBlock())) {
 			GameMatch match = GameMatch.currentMatch;
 			if(match != null) {
 				String s = match.getRestrictionReason(location);
 				if(s != null)
 					throw new CannotBuildException(s);
 			}
-			throw new CannotBuildException("Ye can't place fucking shit here mate");
+			throw new CannotBuildException("This area is restricted");
+		}
+		if(!canPlace(location)) {
+			throw new CannotBuildException("Not enough room to build a structure");
 		}
 		onTickTaskID = Bukkit.getScheduler().scheduleSyncRepeatingTask(GameMain.getInstance(), () -> {
 			onTick();
@@ -103,6 +106,8 @@ public abstract class BaseStructure implements Listener {
 	
 	public abstract boolean canPlace(Location location);
 	
+	public abstract boolean bypassRestrictedAreas();
+	
 	public boolean isStructure(Block block) {
 		return blocks.contains(block);
 	}
@@ -118,7 +123,7 @@ public abstract class BaseStructure implements Listener {
 	protected void addBlock(Block block) throws CannotBuildException {
 		if(!singleBlockStructureCheck(block)) {
 			this.remove();
-			throw new CannotBuildException("Ye can't build on another structure u dumbfuck");
+			throw new CannotBuildException("Cannot build on top of another structure");
 		}
 		previousMaterial.add(block.getType());
 		previousData.add(block.getBlockData());

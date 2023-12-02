@@ -19,6 +19,8 @@ import net.dezilla.dectf2.GamePlayer;
 import net.dezilla.dectf2.Util;
 import net.dezilla.dectf2.game.GameCallout;
 import net.dezilla.dectf2.game.GameMatch;
+import net.dezilla.dectf2.game.ctf.CTFFlag;
+import net.dezilla.dectf2.game.ctf.CTFGame;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
 
@@ -91,6 +93,14 @@ public class Entrance extends BaseStructure{
 			gp.getPlayer().spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText("You can't use enemy teleporters you dumb fuck"));
 			return;
 		}
+		if(GameMatch.currentMatch != null && GameMatch.currentMatch.getGame() instanceof CTFGame) {
+			CTFGame game = (CTFGame) GameMatch.currentMatch.getGame();
+			CTFFlag flag = game.getHeldFlag(gp);
+			if(flag != null) {
+				gp.getPlayer().spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText("So you want to teleport away with the flag heh? Well not today bitch!"));
+				return;
+			}
+		}
 		if(!delays.containsKey(gp))
 			delays.put(gp, TELEPORTING_DELAY);
 	}
@@ -121,7 +131,12 @@ public class Entrance extends BaseStructure{
 		Block b = location.getBlock();
 		if(!Util.air(b) || !Util.air(b.getRelative(BlockFace.UP)) || !Util.air(b.getRelative(BlockFace.UP).getRelative(BlockFace.UP)))
 			return false;
-		return !areaRestricted(b);
+		return true;
+	}
+	
+	@Override
+	public boolean bypassRestrictedAreas() {
+		return false;
 	}
 
 }

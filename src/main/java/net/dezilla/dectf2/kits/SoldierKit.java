@@ -36,6 +36,7 @@ public class SoldierKit extends BaseKit {
 	
 	private boolean cannon = false;
 	private boolean brawler = false;
+	private boolean dasher = false;
 	private float exp = 1f;
 	private float sword1 = 1f;
 	private float sword2 = 1f;
@@ -46,8 +47,8 @@ public class SoldierKit extends BaseKit {
 	}
 
 	@Override
-	public void setInventory() {
-		super.setInventory();
+	public void setInventory(boolean resetStats) {
+		super.setInventory(resetStats);
 		PlayerInventory inv = player.getPlayer().getInventory();
 		inv.clear();
 		inv.setHelmet(ItemBuilder.of(Material.IRON_HELMET).name("Soldier Helmet").unbreakable().armorTrim(TrimPattern.SPIRE, color().getTrimMaterial()).get());
@@ -66,9 +67,11 @@ public class SoldierKit extends BaseKit {
 		inv.setItemInOffHand(ShieldUtil.getShield(player));
 		addToolItems();
 		player.applyInvSave();
-		exp = 1f;
-		sword1 = 1f;
-		sword2 = 1f;
+		if(resetStats) {
+			exp = 1f;
+			sword1 = 1f;
+			sword2 = 1f;
+		}
 	}
 	
 	@Override
@@ -147,7 +150,7 @@ public class SoldierKit extends BaseKit {
 		if(event.getAction() == Action.RIGHT_CLICK_BLOCK && event.getClickedBlock().getType() == Material.COAL_ORE)
 			return;
 		//default
-		if(!cannon && !brawler && event.getItem() != null && event.getItem().getType() == Material.IRON_SWORD && event.getClickedBlock() != null &&
+		if(!cannon && !brawler && !dasher && event.getItem() != null && event.getItem().getType() == Material.IRON_SWORD && event.getClickedBlock() != null &&
 				event.getAction() == Action.RIGHT_CLICK_BLOCK && exp >= CLIMB_EXP_COST) {
 			event.getPlayer().setVelocity(new Vector(0,.9,0));
 			exp -= CLIMB_EXP_COST;
@@ -188,6 +191,12 @@ public class SoldierKit extends BaseKit {
 				});
 			}
 		}
+		//dasher
+		if(dasher && event.getItem() != null && event.getItem().getType() == Material.IRON_SWORD) {
+			if(event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK) {
+				player.getPlayer().setVelocity(Util.inFront(player.getPlayer(), 2));
+			}
+		}
 	}
 	
 	@EventHandler(ignoreCancelled=true)
@@ -196,6 +205,13 @@ public class SoldierKit extends BaseKit {
 			return;
 		if(event.getCause() == DamageCause.FALL)
 			event.setCancelled(true);
+	}
+	
+	@Override
+	public double getMovementSpeed() {
+		if(brawler)
+			return .13;
+		return defaultMovementSpeed;
 	}
 	
 	@Override
@@ -209,6 +225,8 @@ public class SoldierKit extends BaseKit {
 			return "Cannon";
 		if(brawler)
 			return "Brawler";
+		if(dasher)
+			return "Dasher";
 		return "Default";
 	}
 	
@@ -218,11 +236,22 @@ public class SoldierKit extends BaseKit {
 			cannon = true;
 		if(variation.equalsIgnoreCase("brawler"))
 			brawler = true;
+		if(variation.equalsIgnoreCase("dasher"))
+			dasher = true;
 	}
 
 	@Override
 	public ItemStack getIcon() {
 		return new ItemStack(Material.IRON_SWORD);
+	}
+	
+	@Override
+	public ItemStack getIcon(String variation) {
+		if(variation.equalsIgnoreCase("brawler"))
+			return new ItemStack(Material.NETHERITE_SWORD);
+		if(variation.equalsIgnoreCase("cannon"))
+			return ItemBuilder.of(Material.IRON_SWORD).amount(2).get();
+		return getIcon();
 	}
 
 	@Override
@@ -234,15 +263,15 @@ public class SoldierKit extends BaseKit {
 	@Override
 	public ItemStack[] getFancyDisplay() {
 		return new ItemStack[] {
-				new ItemStack(Material.DIAMOND_SWORD),
-				new ItemStack(Material.DIAMOND_CHESTPLATE),
-				new ItemStack(Material.DIAMOND_LEGGINGS),
-				new ItemStack(Material.DIAMOND_HELMET),
-				new ItemStack(GameConfig.foodMaterial),
-				new ItemStack(Material.DIAMOND_BOOTS),
-				new ItemStack(Material.DIAMOND_LEGGINGS),
-				new ItemStack(Material.DIAMOND_CHESTPLATE),
-				new ItemStack(Material.DIAMOND_SWORD)
+				new ItemStack(Material.NETHER_STAR),
+				new ItemStack(Material.IRON_SWORD),
+				new ItemStack(Material.IRON_CHESTPLATE),
+				new ItemStack(Material.IRON_BOOTS),
+				new ItemStack(Material.IRON_HELMET),
+				new ItemStack(Material.IRON_LEGGINGS),
+				new ItemStack(Material.IRON_CHESTPLATE),
+				new ItemStack(Material.IRON_SWORD),
+				new ItemStack(Material.NETHER_STAR)
 		};
 	}
 	

@@ -35,8 +35,8 @@ public class EngineerKit extends BaseKit{
 	}
 	
 	@Override
-	public void setInventory() {
-		super.setInventory();
+	public void setInventory(boolean resetStats) {
+		super.setInventory(resetStats);
 		PlayerInventory inv = player.getPlayer().getInventory();
 		inv.setHelmet(ItemBuilder.of(Material.IRON_HELMET).unbreakable().name("Engineer Helmet").armorTrim(TrimPattern.SENTRY, color().getTrimMaterial()).get());
 		inv.setChestplate(ItemBuilder.of(Material.LEATHER_CHESTPLATE).unbreakable().name("Engineer Chestplate").armorTrim(TrimPattern.SILENCE, TrimMaterial.COPPER).get());
@@ -45,13 +45,23 @@ public class EngineerKit extends BaseKit{
 		
 		inv.setItem(0, ItemBuilder.of(Material.DIAMOND_PICKAXE).unbreakable().name("Engineer Pickaxe").enchant(Enchantment.DAMAGE_ALL, 0).get());
 		inv.setItem(1, ItemBuilder.of(GameConfig.foodMaterial).name("Steak").amount(4).get());
-		inv.setItem(2, ItemBuilder.of(Material.WOODEN_SWORD).name("Engineer Sword").unbreakable().get());
+		inv.setItem(2, ItemBuilder.of(Material.WOODEN_SWORD).name("Manual Aiming Sword").data("aim_tool").unbreakable().get());
 		inv.setItem(3, ItemBuilder.of(Material.DISPENSER).name("Turret").data("turret").get());
 		inv.setItem(4, ItemBuilder.of(Material.CAKE).name("Dispenser").data("dispenser").get());
 		inv.setItem(5, ItemBuilder.of(Material.HEAVY_WEIGHTED_PRESSURE_PLATE).name("Entrance").data("entrance").get());
 		inv.setItem(6, ItemBuilder.of(Material.LIGHT_WEIGHTED_PRESSURE_PLATE).name("Exit").data("exit").get());
 		addToolItems();
 		player.applyInvSave();
+		if(resetStats) {
+			if(turret != null && !turret.isDead())
+				turret.remove();
+			if(dispenser != null && !dispenser.isDead())
+				dispenser.remove();
+			if(entry != null && !entry.isDead())
+				entry.remove();
+			if(exit != null && !exit.isDead())
+				exit.remove();
+		}
 	}
 	
 	//to prevent double clicking
@@ -74,8 +84,13 @@ public class EngineerKit extends BaseKit{
 		Location l = event.getClickedBlock().getLocation().add(.5,1,.5);
 		event.setCancelled(true);
 		if(key.equals("turret")) {
-			if(turret != null && !turret.isDead())
+			if(turret != null && !turret.isDead()) {
+				if(player.getPlayer().isSneaking()) {
+					turret.remove();
+					player.notify("Turret Recalled");
+				}
 				return;
+			}
 			try {
 				turret = new Turret(player, l);
 			}catch(CannotBuildException e) {
@@ -83,8 +98,13 @@ public class EngineerKit extends BaseKit{
 			}
 		}
 		else if(key.equals("dispenser")) {
-			if(dispenser != null && !dispenser.isDead())
+			if(dispenser != null && !dispenser.isDead()) {
+				if(player.getPlayer().isSneaking()) {
+					dispenser.remove();
+					player.notify("Dispenser Recalled");
+				}
 				return;
+			}
 			try {
 				dispenser = new Dispenser(player, l);
 			}catch(CannotBuildException e) {
@@ -92,8 +112,13 @@ public class EngineerKit extends BaseKit{
 			}
 		}
 		else if(key.equals("entrance")) {
-			if(entry != null && !entry.isDead())
+			if(entry != null && !entry.isDead()) {
+				if(player.getPlayer().isSneaking()) {
+					entry.remove();
+					player.notify("Entrance Recalled");
+				}
 				return;
+			}
 			try {
 				entry = new Entrance(player, l);
 				if(exit != null && !exit.isDead())
@@ -103,8 +128,13 @@ public class EngineerKit extends BaseKit{
 			}
 		}
 		else if(key.equals("exit")) {
-			if(exit != null && !exit.isDead())
+			if(exit != null && !exit.isDead()) {
+				if(player.getPlayer().isSneaking()) {
+					exit.remove();
+					player.notify("Exit Recalled");
+				}
 				return;
+			}
 			try {
 				exit = new Exit(player, l);
 				if(entry != null && !entry.isDead())
@@ -139,7 +169,7 @@ public class EngineerKit extends BaseKit{
 	@Override
 	public ItemStack[] getFancyDisplay() {
 		return new ItemStack[] {
-				new ItemStack(Material.DIAMOND_PICKAXE),
+				new ItemStack(Material.NETHER_STAR),
 				new ItemStack(Material.DISPENSER),
 				new ItemStack(Material.CAKE),
 				new ItemStack(Material.LIGHT_WEIGHTED_PRESSURE_PLATE),
@@ -147,7 +177,7 @@ public class EngineerKit extends BaseKit{
 				new ItemStack(Material.HEAVY_WEIGHTED_PRESSURE_PLATE),
 				new ItemStack(Material.CAKE),
 				new ItemStack(Material.DISPENSER),
-				new ItemStack(Material.DIAMOND_PICKAXE)
+				new ItemStack(Material.NETHER_STAR)
 		};
 	}
 

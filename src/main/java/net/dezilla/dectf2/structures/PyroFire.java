@@ -31,4 +31,9 @@ public class PyroFire extends BaseStructure{
 	public boolean canPlace(Location location) {
 		return true;
 	}
+	
+	@Override
+	public boolean bypassRestrictedAreas() {
+		return true;
+	}
 }

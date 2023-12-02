@@ -21,7 +21,7 @@ public class GameConfig {
 	
 	//kit stuff
 	public static Material foodMaterial = Material.COOKED_BEEF;
-	public static int regenDelay = 400;
+	public static int regenDelay = 300;
 	
 	//ctf config
 	public static FlagType flagType = FlagType.BANNER;
@@ -31,5 +31,5 @@ public class GameConfig {
 	public static boolean flagGlow = true;
 	
 	//zc config
-	public static int captureBarSize = 12;
+	public static int captureBarSize = 45;
 }

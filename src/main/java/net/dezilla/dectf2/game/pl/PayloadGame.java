@@ -1,5 +1,6 @@
 package net.dezilla.dectf2.game.pl;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import net.dezilla.dectf2.GamePlayer;
@@ -43,8 +44,13 @@ public class PayloadGame extends GameBase{
 
 	@Override
 	public List<String> getScoreboardDisplay(GamePlayer player) {
-		// TODO Auto-generated method stub
-		return null;
+		List<String> display = new ArrayList<String>();
+		display.add("Payload Test");
+		display.add("this is where useful");
+		display.add("information would");
+		display.add("display if I wasn't");
+		display.add("so lazy");
+		return display;
 	}
 
 	@Override

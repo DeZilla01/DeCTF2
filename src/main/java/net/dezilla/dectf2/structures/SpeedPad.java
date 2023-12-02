@@ -17,15 +17,24 @@ import net.dezilla.dectf2.util.ASBuilder;
 public class SpeedPad extends BaseStructure {
 	static int SPEED_TIME = 120;
 	static int SPEED_AMP = 2;
+	static int SPEED_USES = 8;
 	
 	ArmorStand display = null;
 	Block plate = null;
+	int usesLeft = SPEED_USES;
 	public SpeedPad(GamePlayer owner, Location location) throws CannotBuildException {
 		super(owner, location);
 		removedOnDeath = true;
 		removeOnSpawnProtection = true;
 		destroyable = true;
 		placeBlocks();
+	}
+	
+	@Override
+	public void onTick() {
+		String m = usesLeft+" use(s) left";
+		if(display.getCustomName() == null || !display.getCustomName().equals(m))
+			display.setCustomName(m);
 	}
 	
 	private void placeBlocks() throws CannotBuildException {
@@ -35,7 +44,7 @@ public class SpeedPad extends BaseStructure {
 		addBlock(plate);
 		base.setType(owner.getTeam().getColor().concrete());
 		plate.setType(Material.STONE_PRESSURE_PLATE);
-		display = ASBuilder.create(plate.getLocation().add(.5,.1,.5)).gravity(false).visible(false).invulnerable(false).marker(true).display("Speed Pad").get();
+		display = ASBuilder.create(plate.getLocation().add(.5,.1,.5)).gravity(false).visible(false).invulnerable(false).marker(true).display("").get();
 		entities.add(display);
 	}
 	
@@ -48,6 +57,9 @@ public class SpeedPad extends BaseStructure {
 			return;
 		if(gp.getLocation().getBlock().equals(plate)) {
 			gp.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.SPEED, SPEED_TIME, SPEED_AMP-1));
+			usesLeft--;
+			if(usesLeft<=0)
+				remove();
 		}
 	}
 	
@@ -56,7 +68,12 @@ public class SpeedPad extends BaseStructure {
 		Block b = location.getBlock();
 		if(!Util.air(b) || !Util.air(b.getRelative(BlockFace.UP)) || !Util.air(b.getRelative(BlockFace.UP).getRelative(BlockFace.UP)))
 			return false;
-		return !areaRestricted(b);
+		return true;
+	}
+	
+	@Override
+	public boolean bypassRestrictedAreas() {
+		return false;
 	}
 
 }

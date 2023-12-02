@@ -21,6 +21,7 @@ public class MapPreview {
 	String gamemode = "";
 	ItemStack icon = new ItemStack(Material.PAPER);
 	int teams = 2;
+	boolean selectable = true;
 	
 	public MapPreview(File file) {
 		this.file = file;
@@ -52,6 +53,10 @@ public class MapPreview {
 	
 	public String getGamemodeKey() {
 		return gamemode;
+	}
+	
+	public boolean isSelectable() {
+		return selectable;
 	}
 	
 	public String getGamemodeName() {
@@ -89,6 +94,7 @@ public class MapPreview {
 			try {gamemode = (String) mapjson.get("gamemode");}catch(Exception e) {}
 			try {teams = (int) mapjson.get("teams");}catch(Exception e) {}
 			try {icon = new ItemStack(Material.valueOf((String) mapjson.get("icon")));}catch(Exception e) {}
+			try {selectable = (boolean) mapjson.get("selectable");}catch(Exception e) {}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -115,6 +121,7 @@ public class MapPreview {
 			mapjson.put("gamemode", match.getGame().getGamemodeKey());
 			mapjson.put("icon", match.getMapIcon().getType().toString());
 			mapjson.put("teams", match.getTeamAmount());
+			mapjson.put("selectable", match.isSelectable());
 			json.put(match.getSourceZip().getName(), mapjson);
 			try(FileWriter writer = new FileWriter(jsonFile)){
 				writer.write(json.toString());

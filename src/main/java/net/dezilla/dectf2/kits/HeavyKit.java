@@ -28,8 +28,8 @@ public class HeavyKit extends BaseKit {
 	}
 
 	@Override
-	public void setInventory() {
-		super.setInventory();
+	public void setInventory(boolean resetStats) {
+		super.setInventory(resetStats);
 		PlayerInventory inv = player.getPlayer().getInventory();
 		inv.clear();
 		if(tank) {
@@ -53,11 +53,13 @@ public class HeavyKit extends BaseKit {
 		inv.setItemInOffHand(ShieldUtil.getShield(player));
 		addToolItems();
 		player.applyInvSave();
-		if(level != 0) {
-			level /=2;
-		}
-		if(exp != 0) {
-			exp=0;
+		if(resetStats) {
+			if(level != 0) {
+				level /=2;
+			}
+			if(exp != 0) {
+				exp=0;
+			}
 		}
 	}
 	
@@ -142,6 +144,15 @@ public class HeavyKit extends BaseKit {
 	public ItemStack getIcon() {
 		return new ItemStack(Material.DIAMOND_SWORD);
 	}
+	
+	@Override
+	public ItemStack getIcon(String variation) {
+		if(variation.equalsIgnoreCase("powerup"))
+			return ItemBuilder.of(Material.DIAMOND_SWORD).enchant(Enchantment.DAMAGE_ALL, 0).get();
+		if(variation.equalsIgnoreCase("tank"))
+			return ItemBuilder.of(Material.STONE_SWORD).get();
+		return getIcon();
+	}
 
 	@Override
 	public String[] getVariations() {
@@ -152,15 +163,15 @@ public class HeavyKit extends BaseKit {
 	@Override
 	public ItemStack[] getFancyDisplay() {
 		return new ItemStack[] {
-				new ItemStack(Material.DIAMOND_SWORD),
+				new ItemStack(Material.NETHER_STAR),
 				new ItemStack(Material.DIAMOND_CHESTPLATE),
 				new ItemStack(Material.DIAMOND_LEGGINGS),
 				new ItemStack(Material.DIAMOND_HELMET),
-				new ItemStack(GameConfig.foodMaterial),
+				new ItemStack(Material.DIAMOND_SWORD),
 				new ItemStack(Material.DIAMOND_BOOTS),
 				new ItemStack(Material.DIAMOND_LEGGINGS),
 				new ItemStack(Material.DIAMOND_CHESTPLATE),
-				new ItemStack(Material.DIAMOND_SWORD)
+				new ItemStack(Material.NETHER_STAR)
 		};
 	}
 	

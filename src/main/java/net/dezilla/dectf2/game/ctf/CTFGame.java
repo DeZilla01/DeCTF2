@@ -114,6 +114,8 @@ public class CTFGame extends GameBase implements Listener{
 						continue;
 					if(p.isInvisible())
 						continue;
+					if(flag.getTeam().equals(gp.getTeam()))
+						continue;
 					flag.setCarrier(gp);
 					flag.getLocation().getWorld().strikeLightningEffect(flag.getLocation());
 					for(Player pl : Bukkit.getOnlinePlayers()) {
@@ -139,7 +141,7 @@ public class CTFGame extends GameBase implements Listener{
 						flags.put(team, flag);
 						match.addCallout(new GameCallout(e.getValue(), team, "Flag"));
 						RestrictArea area = new RestrictArea(flag.getLocation(), FLAG_BUILDING_RESTRICT_RADIUS);
-						area.setReason("Ye can't fucking put shit near da flag");
+						area.setReason("Cannot build too close to the flag");
 						match.addRestrictedArea(area);
 					}catch(Exception ex) {}
 				}

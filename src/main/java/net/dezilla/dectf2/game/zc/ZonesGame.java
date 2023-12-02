@@ -67,7 +67,7 @@ public class ZonesGame extends GameBase implements Listener{
 							for(Block b : z.blocks) {
 								Location l = b.getLocation().add(.5,1,.5);
 								RestrictArea a = new RestrictArea(l, 1);
-								a.setReason("Ye can't put fucking shit on fucking "+name);
+								a.setReason("Cannot build on "+name);
 								match.addRestrictedArea(a);
 							}
 							zones.add(z);
@@ -159,9 +159,9 @@ public class ZonesGame extends GameBase implements Listener{
 			for(int i = 0; i < GameConfig.captureBarSize ; i++) {
 				double a = ((double) i)/GameConfig.captureBarSize;
 				if(z.getOwningTeam() != null && z.getCaptureProgress()>a)
-					bar+=z.getOwningTeam().getColor().getChatColor()+"▒";
+					bar+=z.getOwningTeam().getColor().getChatColor()+"|";//▒
 				else
-					bar+=ChatColor.WHITE+"▒";
+					bar+=ChatColor.WHITE+"|";
 			}
 			list.add(bar);
 		}

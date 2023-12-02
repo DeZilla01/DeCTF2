@@ -27,7 +27,6 @@ import net.dezilla.dectf2.Util;
 import net.dezilla.dectf2.game.GameTimer;
 import net.dezilla.dectf2.listeners.events.SpongeLaunchEvent;
 import net.dezilla.dectf2.util.CustomDamageCause;
-import net.dezilla.dectf2.util.GameConfig;
 import net.dezilla.dectf2.util.ItemBuilder;
 import net.dezilla.dectf2.util.ShieldUtil;
 
@@ -50,8 +49,8 @@ public class NinjaKit extends BaseKit{
 	}
 	
 	@Override
-	public void setInventory() {
-		super.setInventory();
+	public void setInventory(boolean resetStats) {
+		super.setInventory(resetStats);
 		PlayerInventory inv = player.getPlayer().getInventory();
 		if(classic) {
 			inv.setItemInOffHand(ShieldUtil.getShield(player));
@@ -67,7 +66,8 @@ public class NinjaKit extends BaseKit{
 		}
 		addToolItems();
 		player.applyInvSave();
-		invisMana = 1;
+		if(resetStats)
+			invisMana = 1;
 	}
 	
 	@Override
@@ -305,6 +305,13 @@ public class NinjaKit extends BaseKit{
 	}
 	
 	@Override
+	public ItemStack getIcon(String variation) {
+		if(variation.equalsIgnoreCase("classic"))
+			return ItemBuilder.of(Material.ENDER_PEARL).amount(10).get();
+		return getIcon();
+	}
+	
+	@Override
 	public void setVariation(String variation) {
 		if(variation.equalsIgnoreCase("classic")) 
 			classic = true;
@@ -319,15 +326,15 @@ public class NinjaKit extends BaseKit{
 	@Override
 	public ItemStack[] getFancyDisplay() {
 		return new ItemStack[] {
-				new ItemStack(Material.DIAMOND_SWORD),
-				new ItemStack(Material.DIAMOND_CHESTPLATE),
-				new ItemStack(Material.DIAMOND_LEGGINGS),
-				new ItemStack(Material.DIAMOND_HELMET),
-				new ItemStack(GameConfig.foodMaterial),
-				new ItemStack(Material.DIAMOND_BOOTS),
-				new ItemStack(Material.DIAMOND_LEGGINGS),
-				new ItemStack(Material.DIAMOND_CHESTPLATE),
-				new ItemStack(Material.DIAMOND_SWORD)
+				new ItemStack(Material.NETHER_STAR),
+				new ItemStack(Material.ENDER_PEARL),
+				new ItemStack(Material.EGG),
+				new ItemStack(Material.REDSTONE),
+				new ItemStack(ItemBuilder.of(Material.GOLDEN_SWORD).enchant(Enchantment.DAMAGE_ALL, 4).get()),
+				new ItemStack(Material.REDSTONE),
+				new ItemStack(Material.EGG),
+				new ItemStack(Material.ENDER_PEARL),
+				new ItemStack(Material.NETHER_STAR)
 		};
 	}
 

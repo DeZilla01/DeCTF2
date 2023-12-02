@@ -29,4 +29,9 @@ public class Ballista extends BaseStructure{
 		return true;
 	}
 
+	@Override
+	public boolean bypassRestrictedAreas() {
+		return false;
+	}
+
 }

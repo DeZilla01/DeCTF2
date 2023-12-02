@@ -12,6 +12,7 @@ import org.bukkit.block.Block;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -32,14 +33,15 @@ import net.dezilla.dectf2.structures.CannotBuildException;
 import net.dezilla.dectf2.structures.PyroFire;
 import net.dezilla.dectf2.util.GameConfig;
 import net.dezilla.dectf2.util.ItemBuilder;
+import net.dezilla.dectf2.util.Minion;
 
 public class PyroKit extends BaseKit{
 	static double PYRO_SPEED = .11;
 	static double LIGHT_SPEED = .13;
 	static int PYRO_BOW_FIRE = 100;
-	static int PYRO_FRENZY_BOW_FIRE = 200;
+	static int PYRO_FRENZY_BOW_FIRE = 250;
 	static double PYRO_FRENZY_MANA_DRAIN = .01;
-	static double PYRO_FRENZY_MANA_GAIN_RATE = .012;
+	static double PYRO_FRENZY_MANA_GAIN_RATE = .02;
 	static double LIGHT_MANA_USE = .08;
 	static double LIGHT_MANA_RECHARGE = 0.003;
 	
@@ -56,8 +58,8 @@ public class PyroKit extends BaseKit{
 	}
 	
 	@Override
-	public void setInventory() {
-		super.setInventory();
+	public void setInventory(boolean resetStats) {
+		super.setInventory(resetStats);
 		PlayerInventory inv = player.getPlayer().getInventory();
 		//armor
 		inv.setHelmet(ItemBuilder.of(Material.LEATHER_HELMET).name("Pyro Helmet").unbreakable().armorTrim(TrimPattern.SHAPER, color().getTrimMaterial()).data("pyro_armor").get());
@@ -68,11 +70,11 @@ public class PyroKit extends BaseKit{
 		if(!light)
 			inv.setItemInOffHand(ItemBuilder.of(Material.BOW).name("Pyro Bow").unbreakable().enchant(Enchantment.ARROW_INFINITE, 1).get());
 		if(frenzy)
-			inv.setItem(0, ItemBuilder.of(Material.DIAMOND_AXE).unbreakable().name("Pyro Axe").damageModifier(7).data("pyro_axe").get());
+			inv.setItem(0, ItemBuilder.of(Material.DIAMOND_AXE).unbreakable().name("Pyro Axe").damageModifier(7.5).data("pyro_axe").get());
 		else if(light)
 			inv.setItem(0, ItemBuilder.of(Material.IRON_AXE).unbreakable().name("Pyro Axe").damageModifier(3).get());
 		else
-			inv.setItem(0, ItemBuilder.of(Material.GOLDEN_AXE).unbreakable().name("Pyro Axe").damageModifier(5).get());
+			inv.setItem(0, ItemBuilder.of(Material.GOLDEN_AXE).unbreakable().name("Pyro Axe").damageModifier(4.5).get());
 		if(light)
 			inv.setItemInOffHand(ItemBuilder.of(Material.FLINT_AND_STEEL).name("Pyro Flint & Steel").data("light_flint").unbreakable().get());
 		else
@@ -82,7 +84,8 @@ public class PyroKit extends BaseKit{
 		inv.addItem(ItemBuilder.of(GameConfig.foodMaterial).name("Steak").amount(3).get());
 		addToolItems();
 		player.applyInvSave();
-		frenzyMana = 0;
+		if(resetStats)
+			frenzyMana = 0;
 	}
 	
 	@Override
@@ -177,7 +180,7 @@ public class PyroKit extends BaseKit{
 			return;
 		LivingEntity victim = (LivingEntity) event.getEntity();
 		if(!frenzy && victim.getFireTicks()>0 && !victim.hasPotionEffect(PotionEffectType.FIRE_RESISTANCE)) {
-			event.setDamage(event.getDamage()*4);
+			event.setDamage(event.getDamage()*3.5);
 		}
 		else if(frenzy && frenzyMode) {
 			if(victim.getFireTicks()>0 && !victim.hasPotionEffect(PotionEffectType.FIRE_RESISTANCE))
@@ -204,23 +207,42 @@ public class PyroKit extends BaseKit{
 			return;
 		if(event.getEntity() instanceof Arrow && chargedArrows.contains(event.getEntity())) {
 			Location l = event.getEntity().getLocation();
-			for(Player pl : l.getWorld().getPlayers()) {
-				GamePlayer victim = GamePlayer.get(pl);
-				if(victim.getTeam() != null && player.getTeam() != null && victim.getTeam().equals(player.getTeam()))
+			for(LivingEntity e : l.getWorld().getLivingEntities()) {
+				if(e.getLocation().distance(l) > 4)
 					continue;
-				if(victim.getPlayer().getLocation().distance(l) > 4)
-					continue;
-				float modifier = .5f;
-				if(event.getHitEntity() != null && event.getHitEntity().equals(pl))
-					modifier = 1;
-				victim.setLastAttacker(player);
-				final float M = modifier;
-				final int fireTicks = (frenzy ? PYRO_FRENZY_BOW_FIRE : PYRO_BOW_FIRE);
-				Bukkit.getScheduler().runTask(GameMain.getInstance(), () -> pl.setFireTicks((int) (M*fireTicks)));
+				if(e.getType() == EntityType.PLAYER) {
+					GamePlayer victim = GamePlayer.get((Player) e);
+					if(sameTeam(victim))
+						continue;
+					float modifier = .5f;
+					if(event.getHitEntity() != null && event.getHitEntity().equals(e))
+						modifier = 1;
+					setOnFire(e, modifier);
+				} else {
+					Minion m = Minion.get(e);
+					if(m == null)
+						continue;
+					if(sameTeam(e))
+						continue;
+					float modifier = .5f;
+					if(event.getHitEntity() != null && event.getHitEntity().equals(e))
+						modifier = 1;
+					setOnFire(e, modifier);
+				}
 			}
 			l.getWorld().createExplosion(l, 0);
 			chargedArrows.remove(event.getEntity());
 		}
+	}
+	
+	private void setOnFire(LivingEntity e, float modifier) {
+		if(e.getType() == EntityType.PLAYER) {
+			GamePlayer victim = GamePlayer.get((Player) e);
+			victim.setLastAttacker(player);
+		}
+		final float M = modifier;
+		final int fireTicks = (frenzy ? PYRO_FRENZY_BOW_FIRE : PYRO_BOW_FIRE);
+		Bukkit.getScheduler().runTask(GameMain.getInstance(), () -> e.setFireTicks((int) (M*fireTicks)));
 	}
 	
 	public boolean isPyroFire(Block block) {

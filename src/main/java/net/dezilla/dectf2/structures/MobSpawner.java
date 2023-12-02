@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Particle;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.CreatureSpawner;
@@ -87,6 +88,17 @@ public class MobSpawner extends BaseStructure{
 			Minion m = new Minion(spawner.getSpawnedType(), owner.getTeam(), l, owner);
 			minions.add(m);
 			delay = MOB_SPAWN_DELAY;
+			fancyParticles(l);
+		}
+	}
+	
+	private void fancyParticles(Location l) {
+		for(int i = 0; i<25; i++) {
+			double x = (Math.random()*2)-1;
+			double y = (Math.random()*2);
+			double z = (Math.random()*2)-1;
+			Location loc = l.clone().add(x, y, z);
+			loc.getWorld().spawnParticle(Particle.SMALL_FLAME, loc, 1, 0, 0, 0, 0);
 		}
 	}
 	
@@ -146,7 +158,15 @@ public class MobSpawner extends BaseStructure{
 
 	@Override
 	public boolean canPlace(Location location) {
+		Block b = location.getBlock();
+		if(!Util.air(b) || !Util.air(b.getRelative(BlockFace.UP)) || !Util.air(b.getRelative(BlockFace.UP).getRelative(BlockFace.UP)))
+			return false;
 		return true;
+	}
+	
+	@Override
+	public boolean bypassRestrictedAreas() {
+		return false;
 	}
 
 }

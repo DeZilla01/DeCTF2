@@ -26,12 +26,14 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockExplodeEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent.SpawnReason;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
+import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.EntityPotionEffectEvent;
 import org.bukkit.event.entity.FoodLevelChangeEvent;
@@ -384,7 +386,7 @@ public class EventListener implements Listener{
 		}
 		if(block == null || event.getPlayer().getGameMode() == GameMode.CREATIVE)
 			return;
-		if(dontTouchThat.contains(block.getType()) || block.getType().toString().contains("SHULKER_BOX") || block.getType().toString().contains("SIGN")) {
+		if(dontTouchThat.contains(block.getType()) || block.getType().toString().contains("SHULKER_BOX") || block.getType().toString().contains("SIGN") || block.getType().toString().endsWith("_BED")) {
 			event.setCancelled(true);
 			return;
 		}
@@ -466,6 +468,12 @@ public class EventListener implements Listener{
 				return;
 		}
 		event.setCancelled(true);
+	}
+	
+	@EventHandler(ignoreCancelled=true)
+	public void onBoom(EntityExplodeEvent event) {
+		if(event.getEntityType() == EntityType.PRIMED_TNT)
+			event.setCancelled(true);
 	}
 	
 	@EventHandler

@@ -64,12 +64,13 @@ public class Dispenser extends BaseStructure{
 		event.setCancelled(true);
 		GamePlayer p = GamePlayer.get(event.getPlayer());
 		if(cakelvl == 6) {
-			p.notify("dispenser is empty, sucks to be you lol");
+			p.notify("Dispenser is empty");
 			return;
 		}
 		if(p.getPlayer().getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue() <= p.getPlayer().getHealth()) {
 			if(!Util.regenPlayer(p)) {
-				p.notify("wait u dumb fuck");
+				int delay = (p.getRegenTickDelay()/20);
+				p.notify("You must wait "+delay+" second(s) to regenerate your inventory");
 				return;
 			}
 		} else if(!p.getPlayer().hasPotionEffect(PotionEffectType.REGENERATION)){
@@ -85,7 +86,12 @@ public class Dispenser extends BaseStructure{
 		Block b = location.getBlock();
 		if(!Util.air(b) || !Util.air(b.getRelative(BlockFace.UP)) || !Util.air(b.getRelative(BlockFace.UP).getRelative(BlockFace.UP)))
 			return false;
-		return !areaRestricted(b);
+		return true;
+	}
+	
+	@Override
+	public boolean bypassRestrictedAreas() {
+		return false;
 	}
 	
 	private void updateCake() {

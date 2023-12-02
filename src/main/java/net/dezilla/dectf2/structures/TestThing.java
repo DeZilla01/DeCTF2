@@ -65,7 +65,12 @@ public class TestThing extends BaseStructure{
 	@Override
 	public boolean canPlace(Location location) {
 		Block b = location.getBlock();
-		return !Util.air(b) || !Util.air(b.getRelative(BlockFace.UP)) || !Util.air(b.getRelative(BlockFace.UP).getRelative(BlockFace.UP)) && !areaRestricted(b) && !spawnArea(b);
+		return !Util.air(b) || !Util.air(b.getRelative(BlockFace.UP)) || !Util.air(b.getRelative(BlockFace.UP).getRelative(BlockFace.UP)) && !spawnArea(b);
+	}
+	
+	@Override
+	public boolean bypassRestrictedAreas() {
+		return false;
 	}
 		
 }
