@@ -29,13 +29,19 @@ import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
+import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.util.Vector;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 
+import net.dezilla.dectf2.game.GameMatch;
+import net.dezilla.dectf2.game.ctf.CTFFlag;
+import net.dezilla.dectf2.game.ctf.CTFFlag.FlagType;
+import net.dezilla.dectf2.game.ctf.CTFGame;
 import net.dezilla.dectf2.util.GameConfig;
+import net.dezilla.dectf2.util.Minion;
 
 public class Util {
 	
@@ -250,6 +256,16 @@ public class Util {
 		if(delay < GameConfig.regenDelay)
 			return false;
 		player.getKit().setInventory(false);
+		if(GameMatch.currentMatch != null && GameMatch.currentMatch.getGame() instanceof CTFGame) {
+			CTFGame game = (CTFGame) GameMatch.currentMatch.getGame();
+			CTFFlag flag = game.getHeldFlag(player);
+			if(flag != null) {
+				player.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.GLOWING, -1, 0));
+				if(flag.getFlagType() == FlagType.BANNER)
+					player.getPlayer().getEquipment().setHelmet(flag.getFlagItem());
+				player.getPlayer().getInventory().addItem(flag.getFlagItem());
+			}
+		}
 		player.getPlayer().playSound(player.getPlayer(), Sound.ENTITY_SLIME_HURT_SMALL, 1, 1);
 		player.setLastRegen(now);
 		return true;
@@ -310,6 +326,12 @@ public class Util {
 			Projectile p = (Projectile) entity;
 			if(p.getShooter() != null && p.getShooter() instanceof Entity)
 				entity = (Entity) p.getShooter();
+		}
+		if(entity instanceof LivingEntity) {
+			Minion m = Minion.get((LivingEntity) entity);
+			if(m != null && m.getOwner() != null) {
+				return m.getOwner();
+			}
 		}
 		if(entity instanceof Player) {
 			Player p = (Player) entity;

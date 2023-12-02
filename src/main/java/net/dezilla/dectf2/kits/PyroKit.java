@@ -84,8 +84,10 @@ public class PyroKit extends BaseKit{
 		inv.addItem(ItemBuilder.of(GameConfig.foodMaterial).name("Steak").amount(3).get());
 		addToolItems();
 		player.applyInvSave();
-		if(resetStats)
+		if(resetStats) {
 			frenzyMana = 0;
+			player.getPlayer().setCooldown(Material.FLINT_AND_STEEL, 0);
+		}
 	}
 	
 	@Override

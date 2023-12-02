@@ -66,8 +66,11 @@ public class NinjaKit extends BaseKit{
 		}
 		addToolItems();
 		player.applyInvSave();
-		if(resetStats)
+		if(resetStats) {
 			invisMana = 1;
+			player.getPlayer().setCooldown(Material.ENDER_PEARL, 0);
+			player.getPlayer().setCooldown(Material.EGG, 0);
+		}
 	}
 	
 	@Override

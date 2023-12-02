@@ -1,6 +1,7 @@
 package net.dezilla.dectf2.kits;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.attribute.Attribute;
@@ -8,6 +9,7 @@ import org.bukkit.block.Banner;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
@@ -15,6 +17,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
+import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType.SlotType;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -183,6 +186,24 @@ public abstract class BaseKit implements Listener{
 		}
 	}
 	
+	@EventHandler(ignoreCancelled=true)
+	public void onArrowPassthrough(ProjectileHitEvent event) {
+		GamePlayer gp = Util.getOwner(event.getEntity());
+		if(gp == null || !gp.equals(player))
+			return;
+		if(event.getHitEntity() == null)
+			return;
+		GamePlayer hit = Util.getOwner(event.getHitEntity());
+		if(hit == null || !sameTeam(hit))
+			return;
+		event.setCancelled(true);
+		Location l = event.getEntity().getLocation().add(event.getEntity().getVelocity());
+		Projectile p = (Projectile) l.getWorld().spawnEntity(l, event.getEntityType());
+		p.setVelocity(event.getEntity().getVelocity());
+		p.setShooter(player.getPlayer());
+		event.getEntity().remove();
+	}
+	
 	@EventHandler(priority=EventPriority.HIGHEST)
 	public void onSteakUse(PlayerInteractEvent event) {
 		Player p = player.getPlayer();
@@ -235,7 +256,8 @@ public abstract class BaseKit implements Listener{
 		if(!(event.getEntity() instanceof Player) || !((Player) event.getEntity()).equals(player.getPlayer()))
 			return;
 		long now = GameMain.getServerTick();
-		if(event.getDamager() != null && player.getPlayer().isHandRaised() && event.getCause() != DamageCause.CUSTOM && now-lastAttack >= 10) {
+		ItemStack offhand = player.getPlayer().getEquipment().getItemInOffHand();
+		if(event.getDamager() != null && player.getPlayer().isHandRaised() && offhand != null && offhand.getType() == Material.SHIELD && event.getCause() != DamageCause.CUSTOM && now-lastAttack >= 10) {
 			event.setCancelled(true);
 			GamePlayer killer = Util.getOwner(event.getDamager());
 			if(killer != null)
