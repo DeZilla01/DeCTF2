@@ -10,6 +10,7 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
+import org.bukkit.entity.ThrowableProjectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
@@ -201,6 +202,12 @@ public abstract class BaseKit implements Listener{
 		Projectile p = (Projectile) l.getWorld().spawnEntity(l, event.getEntityType());
 		p.setVelocity(event.getEntity().getVelocity());
 		p.setShooter(player.getPlayer());
+		if(p instanceof ThrowableProjectile) {
+			ThrowableProjectile old = (ThrowableProjectile) event.getEntity();
+			ThrowableProjectile newP = (ThrowableProjectile) p;
+			if(old.getItem() != null)
+				newP.setItem(old.getItem());
+		}
 		event.getEntity().remove();
 	}
 	
