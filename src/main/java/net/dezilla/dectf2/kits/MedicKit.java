@@ -14,6 +14,7 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Snowball;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
@@ -43,6 +44,7 @@ public class MedicKit extends BaseKit{
 	private static int MEDIC_WEB_AMOUNT = 8;
 	private static int MEDIC_RANGED_WEB_AMOUNT = 4;
 	private static int MEDIC_HEAL_COOLDOWN = 15; //in seconds
+	private static int CROSSBOW_HEAL = 8;
 	private static ItemStack webItem = ItemBuilder.of(Material.SNOWBALL).name("Medic Web").data("medicweb").get();
 	
 	private boolean ranged = false;
@@ -134,15 +136,19 @@ public class MedicKit extends BaseKit{
 			return;
 		Minion m = Minion.get((LivingEntity) event.getEntity());
 		if(m != null) {
-			if(m.getTeam().equals(player.getTeam()))
-				m.heal(8);
+			if(m.getTeam().equals(player.getTeam())) {
+				m.heal(CROSSBOW_HEAL);
+				event.setCancelled(true);
+			}
 			return;
 		}
 		if(event.getEntity().getType() != EntityType.PLAYER)
 			return;
 		GamePlayer target = GamePlayer.get((Player) event.getEntity());
-		if(target.getTeam().equals(player.getTeam()))
-			Util.heal(target.getPlayer(), 8);
+		if(target.getTeam().equals(player.getTeam())) {
+			Util.heal(target.getPlayer(), CROSSBOW_HEAL);
+			event.setCancelled(true);
+		}
 	}
 	
 	@EventHandler
@@ -176,11 +182,16 @@ public class MedicKit extends BaseKit{
 		}
 	}
 	
-	@EventHandler
+	@EventHandler(ignoreCancelled=true, priority=EventPriority.NORMAL)
 	public void onWebHit(ProjectileHitEvent event) {
 		if(event.getEntity() instanceof Snowball) {
 			Snowball s = (Snowball) event.getEntity();
 			if(s.getShooter()!= null && s.getShooter().equals(player.getPlayer())) {
+				if(event.getHitEntity() != null && event.getHitEntity() instanceof LivingEntity) {
+					LivingEntity hit = (LivingEntity) event.getHitEntity();
+					if(sameTeam(hit))
+						return;
+				}
 				Block b = event.getEntity().getLocation().getBlock();
 				if(event.getHitBlock() != null)
 					b = event.getHitBlock().getRelative(event.getHitBlockFace());

@@ -28,6 +28,15 @@
         <id>codemc-snapshots</id>
         <url>https://repo.codemc.io/repository/maven-snapshots/</url>
     </repository>
+    <repository>
+    	<id>viaversion-repo</id>
+    	<url>https://repo.viaversion.com</url>
+	</repository>
+	<repository>
+    	<id>joshicodes-de-releases</id>
+    	<name>JoshiCodes Repository</name>
+    	<url>https://repo.joshicodes.de/releases</url>
+	</repository>
 </repositories>
 
   <dependencies>
@@ -65,6 +74,18 @@
       <version>1.9.2-SNAPSHOT</version>
       <!-- Use something like 1.7.0-SNAPSHOT for a stable release -->
     </dependency>
+    <dependency>
+      <groupId>com.viaversion</groupId>
+      <artifactId>viaversion-api</artifactId>
+      <version>[4.0.0,5.0.0)</version>
+      <scope>provided</scope>
+	</dependency>
+	<dependency>
+      <groupId>de.joshicodes</groupId>
+      <artifactId>NewLabyAPI</artifactId>
+      <version>1.2.5</version>
+      <scope>provided</scope>
+	</dependency>
   </dependencies>
 
   <build>

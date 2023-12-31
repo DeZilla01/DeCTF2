@@ -33,6 +33,7 @@ import net.dezilla.dectf2.listeners.SpongeListener;
 import net.dezilla.dectf2.util.GameConfig;
 import net.dezilla.dectf2.util.LuckPermsStuff;
 import net.dezilla.dectf2.util.MapManagerWorld;
+import net.dezilla.dectf2.util.Metrics;
 import net.luckperms.api.LuckPerms;
 import net.md_5.bungee.api.ChatColor;
 
@@ -63,7 +64,7 @@ public class GameMain extends JavaPlugin{
 	public void onLoad() {
 		instance = this;
 		kits.add(HeavyKit.class);
-		kits.add(TestyKit.class);
+		//kits.add(TestyKit.class);
 		kits.add(SoldierKit.class);
 		kits.add(ArcherKit.class);
 		kits.add(MedicKit.class);
@@ -91,6 +92,8 @@ public class GameMain extends JavaPlugin{
 			getServer().getPluginManager().registerEvents(new SpongeListener(), this);
 		//Callouts
 		getServer().getPluginManager().registerEvents(new CalloutListener(), this);
+		//bStats
+		Metrics metrics = new Metrics(this, 20543);
 		//Map Manager
 		if(GameConfig.mapManager) {
 			getServer().getPluginManager().registerEvents(new MapManagerListener(), this);

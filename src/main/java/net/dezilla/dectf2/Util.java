@@ -104,7 +104,7 @@ public class Util {
 	}
 	
 	public static boolean onGround(LivingEntity e) {
-		return e.getVelocity().getY() >= -.08 && e.getVelocity().getY() < 0 && e.getLocation().add(0,-.1,0).getBlock().getType() != Material.AIR;
+		return e.getVelocity().getY() >= -.08 && e.getVelocity().getY() < 0 && !air(e.getLocation().add(0,-.1,0).getBlock());
 	}
 	
 	public static float getYaw(Vector vector) {

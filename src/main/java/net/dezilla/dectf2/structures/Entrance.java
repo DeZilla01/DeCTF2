@@ -65,6 +65,15 @@ public class Entrance extends BaseStructure{
 				e.getKey().getPlayer().spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText("Teleportation cancelled"));
 				continue;
 			}
+			if(GameMatch.currentMatch != null && GameMatch.currentMatch.getGame() instanceof CTFGame) {
+				CTFGame game = (CTFGame) GameMatch.currentMatch.getGame();
+				CTFFlag flag = game.getHeldFlag(e.getKey());
+				if(flag != null) {
+					toRemove.add(e.getKey());
+					e.getKey().getPlayer().spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText("So you want to teleport away with the flag heh? Well not today bitch!"));
+					continue;
+				}
+			}
 			delays.put(e.getKey(), e.getValue()-1);
 			if(e.getValue() <= 0) {
 				exit.teleport(e.getKey().getPlayer());

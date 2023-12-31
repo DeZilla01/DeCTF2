@@ -8,8 +8,10 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Egg;
 import org.bukkit.entity.EnderPearl;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
@@ -248,13 +250,18 @@ public class NinjaKit extends BaseKit{
 		}
 	}
 	
-	@EventHandler
+	@EventHandler(ignoreCancelled=true, priority=EventPriority.NORMAL)
 	public void onEggHit(ProjectileHitEvent event) {
 		if(event.getEntity() instanceof Egg) {
 			Egg e = (Egg) event.getEntity();
 			GamePlayer p = Util.getOwner(e);
 			if(p == null || !p.equals(player))
 				return;
+			if(event.getHitEntity() != null && event.getHitEntity() instanceof LivingEntity) {
+				LivingEntity hit = (LivingEntity) event.getHitEntity();
+				if(sameTeam(hit))
+					return;
+			}
 			if(event.getHitEntity() != null && event.getHitEntity() instanceof Player) {
 				GamePlayer victim = GamePlayer.get((Player) event.getHitEntity());
 				if(victim.getTeam() != null && player.getTeam() != null && !victim.getTeam().equals(player.getTeam())) {

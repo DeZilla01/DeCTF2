@@ -187,7 +187,7 @@ public abstract class BaseKit implements Listener{
 		}
 	}
 	
-	@EventHandler(ignoreCancelled=true)
+	@EventHandler(ignoreCancelled=true, priority=EventPriority.HIGHEST)
 	public void onArrowPassthrough(ProjectileHitEvent event) {
 		GamePlayer gp = Util.getOwner(event.getEntity());
 		if(gp == null || !gp.equals(player))
@@ -261,6 +261,9 @@ public abstract class BaseKit implements Listener{
 	@EventHandler
 	public void onDamageEntity(EntityDamageByEntityEvent event) {
 		if(!(event.getEntity() instanceof Player) || !((Player) event.getEntity()).equals(player.getPlayer()))
+			return;
+		GamePlayer k = Util.getOwner(event.getDamager());
+		if(k != null && k.getTeam().equals(player.getTeam()))
 			return;
 		long now = GameMain.getServerTick();
 		ItemStack offhand = player.getPlayer().getEquipment().getItemInOffHand();

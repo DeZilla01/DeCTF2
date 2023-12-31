@@ -5,6 +5,7 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
@@ -58,7 +59,7 @@ public class ArcherKit extends BaseKit{
 		player.applyInvSave();
 	}
 	
-	@EventHandler
+	@EventHandler(ignoreCancelled=true, priority=EventPriority.NORMAL)
 	public void onShot(ProjectileHitEvent event) {
 		if(!arbalist && event.getEntity() instanceof Arrow && ((Arrow) event.getEntity()).getShooter().equals(player.getPlayer()) ) {
 			if(event.getHitEntity()!= null && event.getHitEntity() instanceof Player) {

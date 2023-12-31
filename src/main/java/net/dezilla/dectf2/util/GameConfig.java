@@ -1,6 +1,7 @@
 package net.dezilla.dectf2.util;
 
 import org.bukkit.Material;
+import org.bukkit.entity.EntityType;
 
 import net.dezilla.dectf2.game.ctf.CTFFlag.FlagType;
 
@@ -17,7 +18,8 @@ public class GameConfig {
 	public static double calloutNameRadius = 15.0;
 	public static double calloutRadius = 45.0;
 	public static boolean displayServerListMotd = true;
-	public static boolean joinMessages = true;
+	public static boolean joinMessages = false;
+	public static EntityType dummyType = EntityType.SKELETON;
 	
 	//kit stuff
 	public static Material foodMaterial = Material.COOKED_BEEF;

@@ -82,6 +82,12 @@ public class EventListener implements Listener{
 			event.setJoinMessage(msg);
 		else
 			event.setJoinMessage(null);
+		p.refreshVersionProtocol();
+		if(p.getVersionProtocol() == 47)
+			p.getPlayer().sendMessage(ChatColor.RED+"Warning, 1.8.X is not properly supported. It is recommended that you use a more modern version as you will likely encounter issues.");
+		else if(p.getVersionProtocol()>0 && p.getVersionProtocol() < 47) 
+			p.getPlayer().sendMessage(ChatColor.RED+"Warning, 1.7.X is not properly supported. It is recommended that you use a more modern version as you will likely encounter issues.");
+		Bukkit.getScheduler().scheduleSyncDelayedTask(GameMain.getInstance(), () -> p.checkLabyUse(), 1);
 	}
 	
 	@EventHandler
@@ -224,11 +230,25 @@ public class EventListener implements Listener{
 		}
 		p.setInversionTicks(-1);
 		p.setFrozenTicks(-1);
+		try {
+			LivingEntity dummy = (LivingEntity) p.getLocation().getWorld().spawnEntity(p.getLocation(), GameConfig.dummyType);
+			dummy.setCustomNameVisible(true);
+			dummy.setCustomName(p.getColoredName());
+			dummy.damage(999);
+			dummy.getEquipment().setHelmet(p.getPlayer().getInventory().getHelmet());
+			dummy.getEquipment().setChestplate(p.getPlayer().getInventory().getChestplate());
+			dummy.getEquipment().setLeggings(p.getPlayer().getInventory().getLeggings());
+			dummy.getEquipment().setBoots(p.getPlayer().getInventory().getBoots());
+			dummy.getEquipment().setItemInMainHand(p.getPlayer().getInventory().getItemInMainHand());
+			dummy.getEquipment().setItemInOffHand(p.getPlayer().getInventory().getItemInOffHand());
+		} catch(Exception e) {
+			GameMain.getInstance().getLogger().info(ChatColor.RED+"!!!Dummy type is not living entity, pls change that in configs");
+		}
 		Bukkit.getScheduler().scheduleSyncDelayedTask(GameMain.getInstance(), () -> {
 			match.respawnPlayer(p);
 			p.setSpawnProtection();
 			p.setLastAttacker(null);
-		}, 3);
+		}, 4);
 	}
 	
 	@EventHandler(ignoreCancelled=true)
@@ -385,7 +405,8 @@ public class EventListener implements Listener{
 		}
 		if(block == null || event.getPlayer().getGameMode() == GameMode.CREATIVE)
 			return;
-		if(dontTouchThat.contains(block.getType()) || block.getType().toString().contains("SHULKER_BOX") || block.getType().toString().contains("SIGN") || block.getType().toString().endsWith("_BED")) {
+		if(dontTouchThat.contains(block.getType()) || block.getType().toString().contains("SHULKER_BOX") || block.getType().toString().contains("SIGN") || 
+				block.getType().toString().endsWith("_BED") || block.getType().toString().startsWith("POTTED_")) {
 			event.setCancelled(true);
 			return;
 		}

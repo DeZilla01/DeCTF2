@@ -68,6 +68,7 @@ public class KitSelectionGui extends GuiPage{
 					GamePlayer p = GamePlayer.get(getPlayer());
 					p.getPlayer().closeInventory();
 					p.setKit(kit.getClass(), alt);
+					p.getPlayer().sendMessage("Kit changed to "+p.getKit().getName()+" ("+p.getKit().getVariation()+")");
 				});
 				setItem(row, col++, item);
 				if(col>8) {
@@ -96,8 +97,8 @@ public class KitSelectionGui extends GuiPage{
 					col=0;
 				}
 			}
-			this.removeEmptyRows();
 			this.centerRow(row);
+			this.removeEmptyRows();
 		}catch(Exception e) {e.printStackTrace();}
 	}
 

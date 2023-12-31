@@ -63,7 +63,7 @@ public class DeathListener implements Listener{
 						list.add("relied too much on his shield and got killed");
 						break;
 					case ARCHER_HEADSHOT:
-						list.add("got snipped");
+						list.add("got snippped");
 						break;
 					case NINJA_TELEPORT:
 						list.add("teleported to his doom");

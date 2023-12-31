@@ -90,6 +90,9 @@ public abstract class BaseStructure implements Listener {
 		if(!canPlace(location)) {
 			throw new CannotBuildException("Not enough room to build a structure");
 		}
+		if(!bypassRestrictedAreas() && spongeCheck(location.getBlock())) {
+			throw new CannotBuildException("Cannot build on a sponge");
+		}
 		onTickTaskID = Bukkit.getScheduler().scheduleSyncRepeatingTask(GameMain.getInstance(), () -> {
 			onTick();
 			if(removeOnSpawnProtection && owner != null && owner.isSpawnProtected())
@@ -104,7 +107,7 @@ public abstract class BaseStructure implements Listener {
 	
 	public void onTick() {}
 	
-	public abstract boolean canPlace(Location location);
+	public abstract boolean canPlace(Location location) throws CannotBuildException;
 	
 	public abstract boolean bypassRestrictedAreas();
 	
@@ -118,6 +121,10 @@ public abstract class BaseStructure implements Listener {
 	
 	public GamePlayer getOwner() {
 		return owner;
+	}
+	
+	public Location getLocation() {
+		return location.clone();
 	}
 	
 	protected void addBlock(Block block) throws CannotBuildException {
@@ -201,6 +208,14 @@ public abstract class BaseStructure implements Listener {
 	
 	public static boolean structureCheck(Block b) {
 		return getStructure(b.getRelative(BlockFace.DOWN)) == null && getStructure(b) == null;
+	}
+	
+	public static boolean structureCheckSingleBlock(Block b) {
+		return getStructure(b) == null;
+	}
+	
+	public static boolean spongeCheck(Block b) {
+		return b.getType() == Material.SPONGE || b.getRelative(BlockFace.DOWN).getType() == Material.SPONGE;
 	}
 	
 	public static boolean singleBlockStructureCheck(Block b) {

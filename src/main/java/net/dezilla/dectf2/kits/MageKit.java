@@ -27,6 +27,7 @@ import org.bukkit.entity.ShulkerBullet;
 import org.bukkit.entity.Snowball;
 import org.bukkit.entity.ThrownPotion;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
@@ -66,7 +67,7 @@ public class MageKit extends BaseKit{
 	private static int LIGHTNING_DMG = 6;
 	private static int ICE_BLAST_DURATION = 50;
 	private static double ICE_BLAST_RADIUS = 2.8;
-	private static int MINION_CAP = 3;
+	private static int MINION_CAP = 2;
 	private static int BLOOD_HIT_AMOUNT = 4;
 	private static double SHULKER_DMG = 5;
 	private static int INVERSION_DURATION = 40;
@@ -90,7 +91,7 @@ public class MageKit extends BaseKit{
 		SPELL_REGENS.put("ice_spell", .00625f);
 		SPELL_REGENS.put("shadow_spell", .00833f);
 		SPELL_REGENS.put("skeleton_spell", .005f);
-		SPELL_REGENS.put("inversion_spell", .013f);
+		SPELL_REGENS.put("inversion_spell", .011f);
 		SPELL_REGENS.put("shulker_spell", .066f);
 		SPELL_REGENS.put("cure_spell", .00625f);
 		SPELL_REGENS.put("thorn_spell", .005f);
@@ -384,12 +385,18 @@ public class MageKit extends BaseKit{
 		}
 	}
 	
-	@EventHandler
+	@EventHandler(ignoreCancelled=true, priority=EventPriority.NORMAL)
 	public void onProjectileHit(ProjectileHitEvent event) {
 		GamePlayer p = Util.getOwner((Entity) event.getEntity().getShooter());
 		if(p == null || !p.getPlayer().equals(player.getPlayer()))
 			return;
-		//dmg spell
+		if(event.getHitEntity() != null && event.getHitEntity() instanceof LivingEntity) {
+			LivingEntity hit = (LivingEntity) event.getHitEntity();
+			if(sameTeam(hit)) {
+				if(!(event.getEntity() instanceof Snowball) || ((Snowball) event.getEntity()).getItem() == null || ((Snowball) event.getEntity()).getItem().getType() != Material.REDSTONE_BLOCK)
+					return;
+			}
+		}
 		if(event.getEntityType() == EntityType.ARROW) {
 			dmgEffect(event.getEntity().getLocation());
 		}

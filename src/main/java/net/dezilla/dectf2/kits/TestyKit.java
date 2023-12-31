@@ -282,6 +282,11 @@ public class TestyKit extends BaseKit{
 		GamePlayer p = Util.getOwner((Entity) event.getEntity().getShooter());
 		if(p == null || !p.getPlayer().equals(player.getPlayer()) || event.getHitEntity() == null)
 			return;
+		if(event.getHitEntity() != null && event.getHitEntity() instanceof LivingEntity) {
+			LivingEntity hit = (LivingEntity) event.getHitEntity();
+			if(sameTeam(hit))
+				return;
+		}
 		if(event.getHitEntity() instanceof Player) {
 			GamePlayer victim = GamePlayer.get((Player) event.getHitEntity());
 			if(victim.getTeam().equals(player.getTeam()))

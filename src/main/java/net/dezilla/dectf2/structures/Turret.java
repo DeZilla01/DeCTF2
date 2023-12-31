@@ -16,6 +16,7 @@ import org.bukkit.entity.Arrow;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
@@ -38,7 +39,9 @@ public class Turret extends BaseStructure{
 	static double FIRE_RADIUS = 15;
 	static int HEALTH_BAR_SIZE = 20;
 	static float READY_RATE = 0.015f;
-	static int MANUAL_HIT_DELAY = 10;
+	static int MANUAL_HIT_DELAY = 15;
+	static int AUTO_HIT_DELAY = 20;
+	static double DISTANCE_TO_OTHER_TURRETS = 8;
 	
 	double health = MAX_HEALTH;
 	boolean readyToFire = false;
@@ -108,11 +111,14 @@ public class Turret extends BaseStructure{
 		}
 		if(owner.equals(gp))
 			event.setDamage(999);
-		if(health - event.getDamage() <= 0) {
+		double dmg = event.getDamage();
+		if(event.getDamager() instanceof Projectile)
+			dmg*=2;
+		if(health - dmg <= 0) {
 			remove();
 			return;
 		} else
-			health -= event.getDamage();
+			health -= dmg;
 	}
 	
 	@EventHandler(ignoreCancelled=true)
@@ -131,7 +137,7 @@ public class Turret extends BaseStructure{
 	
 	@EventHandler
 	public void onManualAim(PlayerInteractEvent event) {
-		if(owner == null || !event.getPlayer().equals(event.getPlayer()))
+		if(owner == null || !event.getPlayer().equals(owner.getPlayer()))
 			return;
 		if(!ItemBuilder.dataMatch(event.getItem(), "aim_tool"))
 			return;
@@ -208,7 +214,7 @@ public class Turret extends BaseStructure{
 				else if(target.getLocation().distance(location) > e.getLocation().distance(location))
 					target = e;
 			}
-			if(ticks % 20 == 0 && readyToFire) {
+			if(ticks % AUTO_HIT_DELAY == 0 && readyToFire) {
 				if(target != null) {
 					Location l = hitbox.getEyeLocation().add(Util.get2DVectorToLoc(dispenser.getEyeLocation(), target.getEyeLocation(), .5));
 					Arrow a = location.getWorld().spawnArrow(l, Util.getVectorToLoc(l, target.getEyeLocation(), 1), 5, 0);
@@ -258,10 +264,14 @@ public class Turret extends BaseStructure{
 	}
 
 	@Override
-	public boolean canPlace(Location location) {
+	public boolean canPlace(Location location) throws CannotBuildException {
 		Block b = location.getBlock();
 		if(!Util.air(b) || !Util.air(b.getRelative(BlockFace.UP)) || !Util.air(b.getRelative(BlockFace.UP).getRelative(BlockFace.UP)))
 			return false;
+		for(BaseStructure s : BaseStructure.STRUCTURES) {
+			if(s instanceof Turret && s.getLocation().distance(location) < DISTANCE_TO_OTHER_TURRETS && s.getOwner().getTeam().equals(owner.getTeam()))
+				throw new CannotBuildException("Cannot build too close to another ally turret");
+		}
 		return true;
 	}
 	

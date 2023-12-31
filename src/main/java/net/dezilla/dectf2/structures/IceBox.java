@@ -6,6 +6,8 @@ import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.LivingEntity;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.entity.PlayerDeathEvent;
 
 import net.dezilla.dectf2.GamePlayer;
 import net.dezilla.dectf2.Util;
@@ -29,7 +31,7 @@ public class IceBox extends BaseStructure{
 					Block block = b.getLocation().add(x, y, z).getBlock();
 					if(!Util.air(block))
 						continue;
-					if(!structureCheck(block))
+					if(!structureCheckSingleBlock(block))
 						continue;
 					addBlock(block);
 					block.setType(Material.ICE);
@@ -43,6 +45,12 @@ public class IceBox extends BaseStructure{
 	public void remove() {
 		super.remove();
 		center.getWorld().playSound(center, Sound.BLOCK_GLASS_BREAK, 1, 1);
+	}
+	
+	@EventHandler
+	public void onDeath(PlayerDeathEvent event) {
+		if(event.getEntity().equals(victim))
+			this.remove();
 	}
 	
 	@Override

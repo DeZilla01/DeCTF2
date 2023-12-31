@@ -44,6 +44,7 @@ import net.dezilla.dectf2.gui.MapVoteGui;
 import net.dezilla.dectf2.util.GameColor;
 import net.dezilla.dectf2.util.GameConfig;
 import net.dezilla.dectf2.util.ItemBuilder;
+import net.dezilla.dectf2.util.LabyUtil;
 import net.dezilla.dectf2.util.MapPreview;
 import net.dezilla.dectf2.util.Portal;
 import net.dezilla.dectf2.util.RestrictArea;
@@ -303,6 +304,10 @@ public class GameMatch {
 		l.setY(world.getMinHeight());
 		player.getPlayer().setBedSpawnLocation(l, true);
 		respawnPlayer(player);
+		Bukkit.getScheduler().scheduleSyncDelayedTask(GameMain.getInstance(), () -> {
+			if(LabyUtil.playerUseLaby(player.getPlayer()))
+				LabyUtil.updateLabyStatus(player.getPlayer(), game.getGamemodeName());
+		}, 2);
 	}
 	
 	public void createMapVote(boolean openGui) {
@@ -334,6 +339,7 @@ public class GameMatch {
 		player.getPlayer().setHealth(20.0);
 		player.getPlayer().setFoodLevel(20);
 		player.getPlayer().getInventory().clear();
+		player.setInversionTicks(0);
 		GameTeam team = getTeam(player);
 		if(state != GameState.INGAME || team == null) {
 			if(state == GameState.PREGAME)

@@ -16,6 +16,7 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityShootBowEvent;
@@ -74,7 +75,7 @@ public class PyroKit extends BaseKit{
 		else if(light)
 			inv.setItem(0, ItemBuilder.of(Material.IRON_AXE).unbreakable().name("Pyro Axe").damageModifier(3).get());
 		else
-			inv.setItem(0, ItemBuilder.of(Material.GOLDEN_AXE).unbreakable().name("Pyro Axe").damageModifier(4.5).get());
+			inv.setItem(0, ItemBuilder.of(Material.GOLDEN_AXE).unbreakable().name("Pyro Axe").damageModifier(4.0).get());
 		if(light)
 			inv.setItemInOffHand(ItemBuilder.of(Material.FLINT_AND_STEEL).name("Pyro Flint & Steel").data("light_flint").unbreakable().get());
 		else
@@ -188,13 +189,13 @@ public class PyroKit extends BaseKit{
 			if(victim.getFireTicks()>0 && !victim.hasPotionEffect(PotionEffectType.FIRE_RESISTANCE))
 				event.setDamage(event.getDamage()*8);
 			else {
-				event.setDamage(event.getDamage()*1.5);
+				event.setDamage(event.getDamage()*1.8);
 				victim.setFireTicks(100);
 			}
 		}
 		else if(frenzy && !frenzyMode) {
 			if(victim.getFireTicks()>0 && !victim.hasPotionEffect(PotionEffectType.FIRE_RESISTANCE))
-				event.setDamage(event.getDamage()*1.5);
+				event.setDamage(event.getDamage()*1.8);
 			frenzyMana+=event.getDamage()*PYRO_FRENZY_MANA_GAIN_RATE;
 			if(frenzyMana>1)
 				frenzyMana=1;
@@ -202,11 +203,16 @@ public class PyroKit extends BaseKit{
 		}
 	}
 	
-	@EventHandler
+	@EventHandler(ignoreCancelled=true, priority=EventPriority.NORMAL)
 	public void onArrowHit(ProjectileHitEvent event) {
 		GamePlayer p = Util.getOwner((Entity) event.getEntity().getShooter());
 		if(p == null || !p.getPlayer().equals(player.getPlayer()))
 			return;
+		if(event.getHitEntity() != null && event.getHitEntity() instanceof LivingEntity) {
+			LivingEntity hit = (LivingEntity) event.getHitEntity();
+			if(sameTeam(hit))
+				return;
+		}
 		if(event.getEntity() instanceof Arrow && chargedArrows.contains(event.getEntity())) {
 			Location l = event.getEntity().getLocation();
 			for(LivingEntity e : l.getWorld().getLivingEntities()) {

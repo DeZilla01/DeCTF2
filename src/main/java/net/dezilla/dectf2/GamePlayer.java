@@ -46,7 +46,9 @@ import net.dezilla.dectf2.util.CustomDamageCause;
 import net.dezilla.dectf2.util.GameConfig;
 import net.dezilla.dectf2.util.InvSave;
 import net.dezilla.dectf2.util.ItemBuilder;
+import net.dezilla.dectf2.util.LabyUtil;
 import net.dezilla.dectf2.util.ObjectiveLocation;
+import net.dezilla.dectf2.util.ViaUtil;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -95,10 +97,13 @@ public class GamePlayer {
 	private int objectiveIndex = 0;
 	private int frozenTicks = 0;
 	private boolean frozen = false;
+	//client info
+	private int versionProtocol = -1;
+	private boolean labymod = false;
 	//tools
 	private boolean objectiveTracker = true;
 	private boolean spyglass = false;
-	private boolean kitSelector = false;
+	private boolean kitSelector = true;
 	private boolean pointer = false;
 	private List<InvSave> invSaves = new ArrayList<InvSave>();
 	
@@ -109,6 +114,8 @@ public class GamePlayer {
 		applyScoreboard();
 		updateScoreboardDisplay();
 		kit = new HeavyKit(this);
+		if(ViaUtil.ViaInstalled())
+			versionProtocol = ViaUtil.getMCVersion(player);
 	}
 	
 	public void onTick() {
@@ -412,6 +419,24 @@ public class GamePlayer {
 	
 	public boolean isFrozen() {
 		return frozen;
+	}
+	
+	public int getVersionProtocol() {
+		return versionProtocol;
+	}
+	
+	public boolean isUsingLabyMod() {
+		return labymod;
+	}
+	
+	public void refreshVersionProtocol() {
+		if(ViaUtil.ViaInstalled())
+			versionProtocol = ViaUtil.getMCVersion(player);
+	}
+	
+	public void checkLabyUse() {
+		if(LabyUtil.APIPluginInstalled())
+			labymod = LabyUtil.playerUseLaby(player);
 	}
 	
 	private ItemStack fHelmet = null;
