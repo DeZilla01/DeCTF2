@@ -371,7 +371,7 @@ public class MageKit extends BaseKit{
 				return;
 			charges.put("thorn_spell", 0f);
 			ThrownPotion pot = player.getPlayer().launchProjectile(ThrownPotion.class, Util.inFront(player.getPlayer(), .5));
-			pot.setItem(ItemBuilder.of(Material.SPLASH_POTION).potionEffect(PotionEffectType.LUCK, 160, 0).potionColor(PotionEffectType.LUCK.getColor()).get());
+			pot.setItem(ItemBuilder.of(Material.SPLASH_POTION).potionEffect(PotionEffectType.LUCK, 160, 2).potionColor(PotionEffectType.LUCK.getColor()).get());
 		}
 		else if(ItemBuilder.dataMatch(event.getItem(), "dark_dagger")) {
 			float charge = charges.get("dark_dagger");
