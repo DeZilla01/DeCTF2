@@ -46,6 +46,7 @@ import net.dezilla.dectf2.util.CustomDamageCause;
 import net.dezilla.dectf2.util.GameConfig;
 import net.dezilla.dectf2.util.InvSave;
 import net.dezilla.dectf2.util.ItemBuilder;
+import net.dezilla.dectf2.util.KitLimitException;
 import net.dezilla.dectf2.util.LabyUtil;
 import net.dezilla.dectf2.util.ObjectiveLocation;
 import net.dezilla.dectf2.util.ViaUtil;
@@ -570,16 +571,18 @@ public class GamePlayer {
 		return kit;
 	}
 	
-	public void setKit(Class<? extends BaseKit> kit) {
+	public void setKit(Class<? extends BaseKit> kit) throws KitLimitException {
 		setKit(kit, null);
 	}
 	
-	public void setKit(Class<? extends BaseKit> kit, String variation) {
+	public void setKit(Class<? extends BaseKit> kit, String variation) throws KitLimitException {
 		try {
 			BaseKit oldkit = this.kit;
-			this.kit = kit.getConstructor(this.getClass()).newInstance(this);
+			BaseKit newKit = kit.getConstructor(this.getClass()).newInstance(this);
 			if(variation != null)
-				this.kit.setVariation(variation);
+				newKit.setVariation(variation);
+			GameMain.getClassManager().canUseKitCheck(this, newKit);
+			this.kit = newKit;
 			oldkit.unregister();
 			GameMatch match = GameMatch.currentMatch;
 			if(match != null && match.getGameState() == GameState.INGAME && player.getGameMode() == GameMode.SURVIVAL) {

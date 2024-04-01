@@ -2,6 +2,7 @@ package net.dezilla.dectf2;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.sql.Timestamp;
@@ -58,8 +59,14 @@ public class Util {
 	
 	public static File getGameMapFolder() {
 		File folder = new File(GameConfig.mapFolder+File.separator);
-		if(!folder.exists() && !folder.isDirectory())
+		if(!folder.exists() && !folder.isDirectory()) {
 			folder.mkdir();
+			try {
+				GameConfig.loadFile("default.zip", folder.getPath()+File.separator+"default.zip");
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 		return folder;
 	}
 	

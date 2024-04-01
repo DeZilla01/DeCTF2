@@ -11,6 +11,8 @@ import net.dezilla.dectf2.GamePlayer;
 import net.dezilla.dectf2.Util;
 import net.dezilla.dectf2.kits.BaseKit;
 import net.dezilla.dectf2.util.ItemBuilder;
+import net.dezilla.dectf2.util.KitLimitException;
+import net.md_5.bungee.api.ChatColor;
 
 public class KitSelectionGui extends GuiPage{
 	private static ItemStack pane = ItemBuilder.of(Material.GRAY_STAINED_GLASS_PANE).name("").get();
@@ -67,8 +69,12 @@ public class KitSelectionGui extends GuiPage{
 				item.setRun(event -> {
 					GamePlayer p = GamePlayer.get(getPlayer());
 					p.getPlayer().closeInventory();
-					p.setKit(kit.getClass(), alt);
-					p.getPlayer().sendMessage("Kit changed to "+p.getKit().getName()+" ("+p.getKit().getVariation()+")");
+					try {
+						p.setKit(kit.getClass(), alt);
+						p.getPlayer().sendMessage("Kit changed to "+p.getKit().getName()+" ("+p.getKit().getVariation()+")");
+					}catch(KitLimitException e) {
+						p.getPlayer().sendMessage(ChatColor.RED+e.getMessage());
+					}
 				});
 				setItem(row, col++, item);
 				if(col>8) {

@@ -21,6 +21,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import net.dezilla.dectf2.commands.*;
 import net.dezilla.dectf2.commands.mapmanager.*;
+import net.dezilla.dectf2.game.ClassManager;
 import net.dezilla.dectf2.game.GameMatch;
 import net.dezilla.dectf2.game.GameTimer;
 import net.dezilla.dectf2.kits.*;
@@ -40,9 +41,14 @@ import net.md_5.bungee.api.ChatColor;
 public class GameMain extends JavaPlugin{
 	
 	static GameMain instance;
+	static ClassManager classManager;
 	
 	public static GameMain getInstance() {
 		return instance;
+	}
+	
+	public static ClassManager getClassManager() {
+		return classManager;
 	}
 	
 	static boolean luckPerms = false;
@@ -64,7 +70,7 @@ public class GameMain extends JavaPlugin{
 	public void onLoad() {
 		instance = this;
 		kits.add(HeavyKit.class);
-		//kits.add(TestyKit.class);
+		kits.add(TestyKit.class);
 		kits.add(SoldierKit.class);
 		kits.add(ArcherKit.class);
 		kits.add(MedicKit.class);
@@ -73,6 +79,7 @@ public class GameMain extends JavaPlugin{
 		kits.add(MageKit.class);
 		kits.add(ChemistKit.class);
 		kits.add(EngineerKit.class);
+		kits.add(NecroKit.class);
 		for(Class<? extends BaseKit> c : kits) {
 			try {
 				BaseKit k = c.getConstructor(new Class[] {GamePlayer.class}).newInstance(GamePlayer.get(null));
@@ -83,10 +90,13 @@ public class GameMain extends JavaPlugin{
 				e.printStackTrace();
 			}
 		}
+		classManager = new ClassManager();
 	}
 	
 	@Override
 	public void onEnable() {
+		//config
+		GameConfig.loadConfig();
 		//Sponge
 		if(GameConfig.launchSponge)
 			getServer().getPluginManager().registerEvents(new SpongeListener(), this);
@@ -111,7 +121,8 @@ public class GameMain extends JavaPlugin{
 						new SaveCommand(),
 						new SignFindCommand(),
 						new BrawlToDectfCommand(),
-						new SetWorldSpawnCommand());
+						new SetWorldSpawnCommand(),
+						new DeCTF2Command());
 				commandMap.registerAll("dectf2", commands);
 			} catch(Exception e) {
 				e.printStackTrace();
@@ -174,6 +185,8 @@ public class GameMain extends JavaPlugin{
 					new ZoneCommand(),
 					new ToolsCommand(),
 					new InvSaveCommand(),
+					new KitLimitCommand(),
+					new DeCTF2Command(),
 					kitCommand);
 			commandMap.registerAll("dectf2", commands);
 		} catch(Exception e) {

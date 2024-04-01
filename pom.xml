@@ -71,7 +71,7 @@
     <dependency>
       <groupId>me.gamercoder215</groupId>
       <artifactId>mobchip-bukkit</artifactId>
-      <version>1.9.2-SNAPSHOT</version>
+      <version>1.9.5-SNAPSHOT</version>
       <!-- Use something like 1.7.0-SNAPSHOT for a stable release -->
     </dependency>
     <dependency>

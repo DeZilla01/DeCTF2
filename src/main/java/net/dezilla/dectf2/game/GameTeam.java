@@ -1,7 +1,9 @@
 package net.dezilla.dectf2.game;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -24,6 +26,7 @@ import org.bukkit.inventory.Inventory;
 import net.dezilla.dectf2.GameMain;
 import net.dezilla.dectf2.GamePlayer;
 import net.dezilla.dectf2.game.ctf.CTFGame;
+import net.dezilla.dectf2.kits.BaseKit;
 import net.dezilla.dectf2.util.GameColor;
 
 public class GameTeam {
@@ -105,6 +108,19 @@ public class GameTeam {
 	
 	public int getScore() {
 		return score;
+	}
+	
+	public Map<String, Map<String, Integer>> getKitUsage(){
+		Map<String, Map<String, Integer>> bigMap = new HashMap<String, Map<String, Integer>>();
+		for(GamePlayer p : getPlayers()) {
+			BaseKit k = p.getKit();
+			if(!bigMap.containsKey(k.getName().toLowerCase()))
+				bigMap.put(k.getName().toLowerCase(), new HashMap<String, Integer>());
+			if(!bigMap.get(k.getName().toLowerCase()).containsKey(k.getVariation().toLowerCase()))
+				bigMap.get(k.getName().toLowerCase()).put(k.getVariation().toLowerCase(), 0);
+			bigMap.get(k.getName().toLowerCase()).put(k.getVariation().toLowerCase(), bigMap.get(k.getName().toLowerCase()).get(k.getVariation().toLowerCase())+1);
+		}
+		return bigMap;
 	}
 	
 	public Material getSpawnMaterial() {

@@ -7,7 +7,6 @@ import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.EntityType;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
-import org.bukkit.event.player.PlayerInteractEntityEvent;
 
 import net.dezilla.dectf2.GamePlayer;
 import net.dezilla.dectf2.util.ASBuilder;

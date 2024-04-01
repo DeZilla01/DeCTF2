@@ -2,72 +2,71 @@ package net.dezilla.dectf2.commands;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 
 import net.dezilla.dectf2.GameMain;
 import net.dezilla.dectf2.GamePlayer;
-import net.dezilla.dectf2.gui.KitSelectionGui;
+import net.dezilla.dectf2.game.ClassManager.KitManager;
 import net.dezilla.dectf2.kits.BaseKit;
-import net.dezilla.dectf2.util.KitLimitException;
 import net.md_5.bungee.api.ChatColor;
 
-public class KitCommand extends Command implements CommandExecutor{
+public class KitLimitCommand extends Command{
 
-	public KitCommand() {
-		super("kit", "Change and select your kit.", "/kit [kit name] [variation]", Arrays.asList("kits", "class", "classes"));
-		setPermission("dectf2.command.kit");
-	}
-	
-	public void addAliases(List<String> aliases) {
-		List<String> a = this.getAliases();
-		a.addAll(aliases);
-		this.setAliases(a);
+	public KitLimitCommand() {
+		super("kitlimit");
+		setUsage("/kitlimit");
+		setDescription("Configure kit limits");
+		setPermission("dectf2.command.kitlimit");
 	}
 
 	@Override
 	public boolean execute(CommandSender sender, String commandLabel, String[] args) {
-		if(!(sender instanceof Player)) {
-			sender.sendMessage(ChatColor.RED+"You must be a player to use this command.");
+		if(args.length == 0) {
+			sender.sendMessage(ChatColor.RED+getUsage());
 			return false;
 		}
-		GamePlayer p = GamePlayer.get((Player) sender);
-		try {
-			if(GameMain.getInstance().kitMap().containsKey(commandLabel.toLowerCase())) {
-				if(args.length>0)
-					p.setKit(GameMain.getInstance().kitMap().get(commandLabel.toLowerCase()), args[0]);
-				else
-					p.setKit(GameMain.getInstance().kitMap().get(commandLabel.toLowerCase()));
-				p.getPlayer().sendMessage("You have selected "+p.getKit().getName()+" ("+p.getKit().getVariation()+")");
+		String kitName = args[0].toLowerCase();
+		Map<String, Class<? extends BaseKit>> m = GameMain.getInstance().kitMap();
+		if(!m.containsKey(kitName)){
+			sender.sendMessage(ChatColor.RED+"Kit not found.");
+			sender.sendMessage(ChatColor.RED+getUsage());
+			return false;
+		}
+		KitManager manager = GameMain.getClassManager().getManager(kitName);
+		if(args.length == 1) {
+			sender.sendMessage(manager.getKitName()+": "+manager.getLimit());
+			for(Entry<String, Integer> e : manager.getLimits().entrySet()) {
+				sender.sendMessage(e.getKey()+": "+e.getValue());
+			}
+			return true;
+		}
+		if(args.length == 2) {
+			try {
+				int amount = Integer.parseInt(args[1]);
+				manager.setLimit(amount);
+				sender.sendMessage("set");
 				return true;
-			}else if(args.length>0 && GameMain.getInstance().kitMap().containsKey(args[0].toLowerCase())){
-				if(args.length>1)
-					p.setKit(GameMain.getInstance().kitMap().get(args[0].toLowerCase()), args[1]);
-				else
-					p.setKit(GameMain.getInstance().kitMap().get(args[0].toLowerCase()));
-				p.getPlayer().sendMessage("You have selected "+p.getKit().getName()+" ("+p.getKit().getVariation()+")");
-				return true;
-			} else if(args.length>0){
-				p.getPlayer().sendMessage("Invalid kit selection");
+			} catch(Exception e) {
+				sender.sendMessage(ChatColor.RED+"Invalid value");
+				sender.sendMessage(ChatColor.RED+getUsage());
 				return false;
 			}
-		} catch(KitLimitException e) {
-			p.getPlayer().sendMessage(ChatColor.RED+e.getMessage());
+		}
+		try {
+			int amount = Integer.parseInt(args[2]);
+			manager.setLimit(args[1].toLowerCase(), amount);
+			sender.sendMessage("set");
+			return true;
+		} catch(Exception e) {
+			sender.sendMessage(ChatColor.RED+"Invalid value");
+			sender.sendMessage(ChatColor.RED+getUsage());
 			return false;
 		}
-		new KitSelectionGui(p.getPlayer()).display();
-		return true;
-	}
-
-	@Override
-	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-		return execute(sender, label, args);
 	}
 	
 	@Override
@@ -103,4 +102,5 @@ public class KitCommand extends Command implements CommandExecutor{
 		}
 		return list;
 	}
+
 }

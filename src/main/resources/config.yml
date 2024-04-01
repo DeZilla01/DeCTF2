@@ -1,1 +1,28 @@
-mapFolder=GAMEMAP
+mapManager: false
+	
+mapFolder: GAMEMAP
+gameFolderName: game
+launchSponge: true
+defaultMap: small4team.zip
+playersToStart: 1
+serverName: mcctf.net
+mapVoteAmount: 5
+calloutNameRadius: 15.0
+calloutRadius: 45.0
+displayServerListMotd: true
+joinMessages: true
+dummyType: SKELETON
+	
+#kit stuff
+foodMaterial: COOKED_BEEF
+regenDelay: 300
+	
+#ctf config
+flagType: BANNER
+flagStealRadius: 1.5
+stealDelay: 3
+flagReset: 16
+flagGlow: true
+	
+#zc config
+captureBarSize: 45
