@@ -1,3 +1,11 @@
+Update: Due to inactivity in the last months, I decided to make the project public despite being unfinished. A binary will be available in the release section.
+
+Shitty instructions to play around the plugin:
+place maps like this: serverroot/GAMEMAP/my_map.zip
+there are permissions, you'll find them on the command classes, they ressemble "dectf2.command.switch" or "dectf2.command.changemap"
+reccomended settings: disable nehter and the end as those worlds will be useless, enable mobs as the plugins will handle their spawning, allow flight otherwise soldiers will get kicked for flying, use LuckPerms or your favorite permission handler to handle permissions, am I forgetting something? probably. Ask questions and I might answer
+
+
 # DeCTF2
 Rewrite of DeCTF based on the now defunct McCTF plugin from McPvP/Brawl
 
