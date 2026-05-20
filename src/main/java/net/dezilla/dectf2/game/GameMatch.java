@@ -369,16 +369,37 @@ public class GameMatch {
 	}
 	
 	private void parseSigns() {
-		int spawnx = world.getSpawnLocation().getChunk().getX();
-		int spawnz = world.getSpawnLocation().getChunk().getZ();
+		// Derive chunk coords directly from the spawn block coords instead
+		// of calling Location#getChunk(), which internally triggers a sync
+		// load of the spawn chunk. If that chunk is corrupt or saved with a
+		// newer MC data version than the server, the load blocks the main
+		// thread until the watchdog kills it.
+		Location spawn = world.getSpawnLocation();
+		int spawnx = spawn.getBlockX() >> 4;
+		int spawnz = spawn.getBlockZ() >> 4;
+		// Only iterate chunks that are *already loaded* (in memory). We
+		// deliberately don't use isChunkGenerated + sync getChunkAt here:
+		// a corrupt or version-mismatched chunk file on disk would block
+		// the chunk loader, which has happened with bundled maps saved on
+		// a newer MC version than the running server. Signs in chunks
+		// outside the loaded radius will be missed; if a map needs signs
+		// parsed beyond the auto-loaded spawn region, the caller should
+		// pre-load those chunks asynchronously before invoking parseSigns.
 		String pattern1 = Pattern.quote("{") + "(.*)" + Pattern.quote("}");
 		String pattern2 = Pattern.quote("{") + "(.*)=(.*)" + Pattern.quote("}");
 		List<Block> toRemove = new ArrayList<Block>();
 		for(int x = spawnx-16 ; x <= spawnx+16 ; x++) {
 			for(int z = spawnz-16 ; z <= spawnz+16 ; z++) {
-				if(!world.isChunkGenerated(x, z))
+				if(!world.isChunkLoaded(x, z))
 					continue;
-				Chunk c = world.getChunkAt(x, z, false);
+				Chunk c;
+				try {
+					c = world.getChunkAt(x, z, false);
+				} catch (Exception e) {
+					GameMain.getInstance().getLogger().warning(
+						"Skipping unreadable chunk (" + x + "," + z + ") while parsing signs: " + e.getMessage());
+					continue;
+				}
 				for(BlockState s : c.getTileEntities()) {
 					if(!(s instanceof Sign))
 						continue;
