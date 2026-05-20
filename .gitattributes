@@ -1,0 +1,31 @@
+# Normalise all text files to LF on commit, regardless of OS.
+# Windows tools that need CRLF (.bat, .cmd) are listed explicitly below.
+* text=auto eol=lf
+
+# Windows shell scripts
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Java and resources are LF
+*.java         text eol=lf
+*.xml          text eol=lf
+*.yml          text eol=lf
+*.yaml         text eol=lf
+*.properties   text eol=lf
+*.md           text eol=lf
+.editorconfig  text eol=lf
+.gitattributes text eol=lf
+
+# Binary files - never normalise these
+*.jar  binary
+*.zip  binary
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.ico  binary
+*.nbt  binary
+*.dat  binary
+*.mca  binary
+*.mcr  binary
