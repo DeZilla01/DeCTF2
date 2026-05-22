@@ -207,10 +207,15 @@ public class GameMain extends JavaPlugin{
 			onTick();
 		}, 1, 1);
 		//stuff
-		RegisteredServiceProvider<LuckPerms> provider = Bukkit.getServicesManager().getRegistration(LuckPerms.class);
-		if (provider != null) {
-		    LuckPermsStuff.api = provider.getProvider();
-		    luckPerms = true;
+		// Guard against LuckPerms not being installed: referencing LuckPerms.class
+		// triggers class loading and throws NoClassDefFoundError when the (soft)
+		// dependency is absent. plugin.yml already declares it as softdepend.
+		if (Bukkit.getPluginManager().isPluginEnabled("LuckPerms")) {
+			RegisteredServiceProvider<LuckPerms> provider = Bukkit.getServicesManager().getRegistration(LuckPerms.class);
+			if (provider != null) {
+				LuckPermsStuff.api = provider.getProvider();
+				luckPerms = true;
+			}
 		}
 	}
 	

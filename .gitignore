@@ -1,0 +1,16 @@
+target/
+
+# IDEs
+.idea/
+*.iml
+.vscode/
+.project
+.classpath
+.settings/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Local Claude Code per-user state (settings.local.json is per-developer)
+.claude/settings.local.json
